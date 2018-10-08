@@ -1,20 +1,21 @@
 {
   "name": "morbo",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint ./*.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "",
   "dependencies": {
     "@hyperapp/html": "^1.1.1",
     "d3": "^5.7.0",
     "hyperapp": "^1.2.9"
   },
   "devDependencies": {
-    "babel-plugin-transform-object-rest-spread": "^6.26.0"
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "eslint": "^5.6.1"
   }
 }

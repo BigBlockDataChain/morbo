@@ -74,6 +74,9 @@ typings/
 # Serverless directories
 .serverless
 
+# parcel-bundler build
+dist/
+
 ### Vim #######################################################################
 
 # Swap
