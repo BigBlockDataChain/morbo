@@ -1,5 +1,7 @@
 # morbo
 
+[![Build Status][build-badge-image]][build-link]
+
 ## Development Setup
 
 You will require [NPM][npm-link] or [Yarn][yarn-link], and preferable an [editor](#editor)
@@ -27,6 +29,9 @@ To check for link errors, run `npm run lint` or `yarn lint`.
 To fix some error automatically, run `npm run lint-fix` or `yarn lint-fix`. Rest of the
 errors will need to be fixed manually.
 
+
+[build-link]: https://api.travis-ci.org/BigBlockDataChain/morbo.svg?branch=master
+[build-badge-image]: https://api.travis-ci.org/BigBlockDataChain/morbo.svg?branch=master
 
 [npm-link]: https://www.npmjs.com/
 [yarn-link]: https://yarnpkg.com/en/
