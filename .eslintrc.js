@@ -61,7 +61,7 @@ module.exports = {
         ],
         "consistent-return": "error",
         "consistent-this": "error",
-        "curly": "error",
+        "curly": "off",
         "default-case": "error",
         "dot-location": [
             "error",
@@ -120,7 +120,7 @@ module.exports = {
             "separate-lines"
         ],
         "multiline-ternary": "error",
-        "new-cap": "error",
+        "new-cap": "off",
         "new-parens": "error",
         "newline-after-var": "off",
         "newline-before-return": "off",

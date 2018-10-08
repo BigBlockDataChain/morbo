@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint ./*.js"
+    "lint": "eslint ./src/*.js",
+    "lint-fix": "eslint --fix ./src/*.js"
   },
   "keywords": [],
   "author": "",
-  "license": "",
+  "license": "ISC",
   "dependencies": {
     "@hyperapp/html": "^1.1.1",
     "d3": "^5.7.0",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
+    "babel-eslint": "^10.0.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "eslint": "^5.6.1"
   }
