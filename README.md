@@ -6,9 +6,9 @@ You will require [NPM][npm-link] or [Yarn][yarn-link], and preferable an [editor
 that supports JavaScript and linting with ESLint.
 
 ### Install dependencies
-```
-npm i
-```
+If using NPM, `npm i`.
+
+If using Yarn, `yarn`.
 
 ### Editor
 Use an editor that supports ESLint (either natively or through a plugin) such as:
@@ -16,25 +16,25 @@ Use an editor that supports ESLint (either natively or through a plugin) such as
 - [Code][code-link]
 - [Vim][vim-link]
 - [Spacemacs][spacemacs-links]
-- [Emacs][emacs-link],
+- [Emacs][emacs-link]
 - [Atom][atom-link]
 - [Sublime][sublime-link]
-- [Webstorm][webstorm-link].
+- [Webstorm][webstorm-link]
 
 ### Linting
 To check for link errors, run `npm run lint` or `yarn lint`.
 
 To fix some error automatically, run `npm run lint-fix` or `yarn lint-fix`. Rest of the
-error will need to be fixed manually.
+errors will need to be fixed manually.
 
 
 [npm-link]: https://www.npmjs.com/
 [yarn-link]: https://yarnpkg.com/en/
 
-[code]: https://github.com/Microsoft/vscode
+[code-link]: https://github.com/Microsoft/vscode
 [vim-link]: https://www.vim.org/
 [spacemacs-links]: http://spacemacs.org/
 [emacs-link]: https://www.gnu.org/software/emacs/
-[atom]: https://github.com/atom/atom
-[sublime]: https://www.sublimetext.com/
-[webstorm]: https://www.jetbrains.com/webstorm/
+[atom-link]: https://github.com/atom/atom
+[sublime-link]: https://www.sublimetext.com/
+[webstorm-link]: https://www.jetbrains.com/webstorm/
