@@ -1,23 +1,17 @@
 import * as d3 from 'd3'
 import * as html from '@hyperapp/html'
-import {app as hyperapp} from 'hyperapp'
 
-main()
-
-function main() {
+export default function() {
   const state = {
-    screenHeight: 0,
-    screenWidth: 0,
+    initialized: false,
+    width: 0,
+    height: 0,
   }
 
   const actions = {
-    // eslint-disable-next-line no-unused-vars
-    onInit: el => state =>
-      // eslint-disable-next-line no-warning-comments
-      // TODO: Fix ...state
-      ({screenHeight: el.offsetHeight, screenWidth: el.offsetWidth}),
-
     onD3ContainerCreate: el => state => {
+      if (state.initialized) return
+
       const data = {
         nodes: [{
           name: 'A',
@@ -51,8 +45,8 @@ function main() {
       const c10 = d3.scaleOrdinal(d3.schemeCategory10)
       const svg = d3.select(el)
         .append('svg')
-        .attr('width', state.screenWidth / 2)
-        .attr('height', state.screenHeight)
+        .attr('width', state.width)
+        .attr('height', state.height)
 
       const drag = d3.drag()
         .on('drag', function(d, i) {
@@ -107,65 +101,25 @@ function main() {
           return c10(i)
         })
         .call(drag)
+
+      return {...state, initialized: true}
     },
   }
 
-  const view = function(state, actions) {
+  function view(actions) {
     return html.div(
       {
-        id: 'app',
-        oncreate: el => actions.onInit(el),
-      },
-      [
-        viewGraph(actions),
-        viewEditor(),
-        viewDebugPanel(state),
-      ]
+        id: 'd3-container',
+        onupdate: el => {
+          actions.onD3ContainerCreate(el)
+        },
+      }
     )
   }
 
-  // eslint-disable-next-line no-unused-vars
-  const app = hyperapp(state, actions, view, document.querySelector('#root'))
-}
+  function setDimensions(height, width, state) {
+    return {...state, height, width}
+  }
 
-function viewGraph(actions) {
-  return html.div(
-    {
-      id: 'd3-container',
-      onupdate: el => {
-        actions.onD3ContainerCreate(el)
-      },
-    }
-  )
-}
-
-function viewEditor() {
-  return html.div(
-    {
-      id: 'editor-container',
-    },
-    [
-      html.textarea(
-        {
-          id: 'editor',
-        }
-      ),
-    ]
-  )
-}
-
-function viewDebugPanel(state) {
-  return html.div(
-    {
-      id: 'debug-panel',
-      style: {
-        display: 'flex',
-        flexDirection: 'column',
-      },
-    },
-    [
-      html.div(['height ', state.screenHeight]),
-      html.div(['width ', state.screenWidth]),
-    ]
-  )
+  return {state, actions, view, setDimensions}
 }

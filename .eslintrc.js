@@ -59,7 +59,7 @@ module.exports = {
             "error",
             "never"
         ],
-        "consistent-return": "error",
+        "consistent-return": "off",
         "consistent-this": "error",
         "curly": "off",
         "default-case": "error",
