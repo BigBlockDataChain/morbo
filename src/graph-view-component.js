@@ -6,41 +6,40 @@ export default function() {
     initialized: false,
     width: 0,
     height: 0,
+    data: {
+      nodes: [{
+        name: 'A',
+        x: 200,
+        y: 150,
+      }, {
+        name: 'B',
+        x: 140,
+        y: 300,
+      }, {
+        name: 'C',
+        x: 300,
+        y: 300,
+      }, {
+        name: 'D',
+        x: 300,
+        y: 180,
+      }],
+      links: [{
+        source: 0,
+        target: 1,
+      }, {
+        source: 1,
+        target: 2,
+      }, {
+        source: 2,
+        target: 3,
+      }],
+    },
   }
 
   const actions = {
     onD3ContainerCreate: el => state => {
       if (state.initialized) return
-
-      const data = {
-        nodes: [{
-          name: 'A',
-          x: 200,
-          y: 150,
-        }, {
-          name: 'B',
-          x: 140,
-          y: 300,
-        }, {
-          name: 'C',
-          x: 300,
-          y: 300,
-        }, {
-          name: 'D',
-          x: 300,
-          y: 180,
-        }],
-        links: [{
-          source: 0,
-          target: 1,
-        }, {
-          source: 1,
-          target: 2,
-        }, {
-          source: 2,
-          target: 3,
-        }],
-      }
 
       const c10 = d3.scaleOrdinal(d3.schemeCategory10)
       const svg = d3.select(el)
@@ -63,19 +62,19 @@ export default function() {
         })
 
       const links = svg.selectAll('.link')
-        .data(data.links)
+        .data(state.data.links)
         .enter()
         .append('line')
         .attr('class', 'link')
         .attr('x1', function(l) {
-          const sourceNode = data.nodes.filter(function(d, i) {
+          const sourceNode = state.data.nodes.filter(function(d, i) {
             return i == l.source
           })[0]
           d3.select(this).attr('y1', sourceNode.y)
           return sourceNode.x
         })
         .attr('x2', function(l) {
-          const targetNode = data.nodes.filter(function(d, i) {
+          const targetNode = state.data.nodes.filter(function(d, i) {
             return i == l.target
           })[0]
           d3.select(this).attr('y2', targetNode.y)
@@ -86,7 +85,7 @@ export default function() {
 
       // eslint-disable-next-line no-unused-vars
       const nodes = svg.selectAll('.node')
-        .data(data.nodes)
+        .data(state.data.nodes)
         .enter()
         .append('circle')
         .attr('class', 'node')
@@ -106,18 +105,20 @@ export default function() {
     },
   }
 
-  function view(actions) {
+  function view(state, actions) {
     return html.div(
       {
         id: 'd3-container',
-        onupdate: el => {
-          actions.onD3ContainerCreate(el)
+        style: {
+          minWidth: state.width + 'px',
+          minHeight: state.height + 'px',
         },
+        onupdate: el => actions.onD3ContainerCreate(el),
       }
     )
   }
 
-  function setDimensions(height, width, state) {
+  function setDimensions(state, height, width) {
     return {...state, height, width}
   }
 
