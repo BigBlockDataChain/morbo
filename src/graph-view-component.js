@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import * as d3zoom from 'd3-zoom'
 import * as html from '@hyperapp/html'
 
 export default function() {
@@ -46,6 +47,8 @@ export default function() {
         .append('svg')
         .attr('width', state.width)
         .attr('height', state.height)
+      const g = svg.append("g")
+        .attr("class", "everything")
 
       const drag = d3.drag()
         .on('drag', function(d, i) {
@@ -61,7 +64,7 @@ export default function() {
           })
         })
 
-      const links = svg.selectAll('.link')
+      const links = g.selectAll('.link')
         .data(state.data.links)
         .enter()
         .append('line')
@@ -84,7 +87,7 @@ export default function() {
         .attr('stroke', 'white')
 
       // eslint-disable-next-line no-unused-vars
-      const nodes = svg.selectAll('.node')
+      const nodes = g.selectAll('.node')
         .data(state.data.nodes)
         .enter()
         .append('circle')
@@ -95,11 +98,19 @@ export default function() {
         .attr('cy', function(d) {
           return d.y
         })
-        .attr('r', 15)
+        .attr('r', 10)
         .attr('fill', function(d, i) {
           return c10(i)
         })
         .call(drag)
+
+      function zoomActions(){
+        g.attr("transform", d3.event.transform)
+      }
+      const zoom_handler = d3zoom.zoom()
+        .on("zoom", zoomActions)
+
+      zoom_handler(svg)
 
       return {...state, initialized: true}
     },
