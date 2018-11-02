@@ -2,7 +2,7 @@
 
 [![Build Status][build-badge-image]][build-link]
 
-## Development Setup
+## Development setup
 
 You will require [NPM][npm-link] or [Yarn][yarn-link], and preferable an [editor](#editor)
 that supports JavaScript and linting with ESLint.
@@ -28,6 +28,10 @@ To check for link errors, run `npm run lint` or `yarn lint`.
 
 To fix some error automatically, run `npm run lint-fix` or `yarn lint-fix`. Rest of the
 errors will need to be fixed manually.
+
+### Starting development server
+To run a server with hot-reloading enabled run `npm run serve`. Then open `localhost:1234`
+in a browser (Chrome or Firefox should be supported fine, others are untested)
 
 
 [build-link]: https://api.travis-ci.org/BigBlockDataChain/morbo.svg?branch=master
