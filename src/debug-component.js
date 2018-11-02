@@ -10,7 +10,6 @@ export default function() {
       ({mode: state.mode === 'min' ? 'max' : 'min'}),
   }
 
-  // eslint-disable-next-line no-unused-vars
   function view(state, actions, globalState) {
     return html.div(
       {
@@ -33,7 +32,6 @@ export default function() {
             },
           },
           [
-            state.mode,
             html.pre(JSON.stringify(globalState, null, 2)),
           ],
         ),

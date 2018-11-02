@@ -5,6 +5,9 @@ html, body {
   width: 100%;
   font-family: helvetica, arial, sans;
   overflow-y: hidden;
+  padding: 4px;
+  box-sizing: border-box;
+  background: #eee;
 }
 
 #root {
@@ -50,6 +53,10 @@ html, body {
   height: 100%;
   width: 100%;
   resize: none;
+}
+
+#d3-container {
+  background: white;
 }
 
 .node {

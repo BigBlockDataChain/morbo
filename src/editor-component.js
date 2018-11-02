@@ -14,7 +14,7 @@ export default function() {
       ({...state, content: value}),
   }
 
-  function view(actions) {
+  function view(state, actions) {
     return html.div(
       {
         id: 'editor-container',
@@ -23,13 +23,18 @@ export default function() {
         html.textarea(
           {
             id: 'editor',
-            oncreate: ev => actions.oncreate(ev),
+            // oncreate: ev => actions.oncreate(ev),
             oninput: ev => actions.oninput(ev.target.value),
+            value: state.content,
           }
         ),
       ]
     )
   }
 
-  return {state, actions, view}
+  function setContent(state, content) {
+    return {...state, content}
+  }
+
+  return {state, actions, view, setContent}
 }
