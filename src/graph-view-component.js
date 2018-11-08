@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
 import * as html from '@hyperapp/html'
 
-import {getLogger} from 'logger.js'
+import {getLogger} from './logger.js'
 
 const logger = getLogger('graph-view-component.js')
 
@@ -33,6 +33,25 @@ export default function() {
         oncreate: el => actions.oncreate(el),
       }
     )
+  }
+
+  function init(state, dimensions, graphData) {
+    if (state.initialized || state.d3Initialized) {
+      logger.debug('Already initialized, not running initializer again')
+      return
+    }
+
+    _initD3({...state, d3Initialized: true, data})
+    _createGraph(state, state.d3State.g, state.d3State.c10)
+
+    return {
+      ...state,
+      initialized: true,
+      d3Initialized: true,
+      data: graphData,
+      height: dimensions.height,
+      width: dimensions.width,
+    }
   }
 
   function setDimensions(state, height, width) {
@@ -83,6 +102,8 @@ export default function() {
   }
 
   function _createGraph(state, g, c10) {
+    logger.debug('Drawing graph nodes and links')
+
     const links = g.selectAll('.link')
       .data(state.data.links)
       .enter()
@@ -145,5 +166,5 @@ export default function() {
     return {links, nodes}
   }
 
-  return {state: _state, actions: _actions, view: _view, setDimensions, setData}
+  return {state: _state, actions: _actions, view: _view, init, setDimensions, setData}
 }
