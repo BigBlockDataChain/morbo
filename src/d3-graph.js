@@ -65,8 +65,12 @@ export default class D3Graph {
     // TODO Remove function usage and replace with anonymous functions expressions But
     //   this will cause issues with the use of 'this' in functions, so need to figure out
     //   how to fix that too
+    const svg = this._svg
     const g = this._g
     const c10 = this._c10
+
+    // Disable double click zooming
+    svg.on('dblclick.zoom', null)
 
     const links = g.selectAll('.link')
       .data(data.links)
@@ -120,9 +124,10 @@ export default class D3Graph {
         return c10(i)
       })
       .call(drag)
-      .on('click', () => callbacks.onclick !== undefined ? callbacks.onclick() : null)
-      .on('dblclick', () =>
-        callbacks.ondblclick !== undefined ? callbacks.ondblclick() : null)
+      .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+      .on('dblclick', (ev) =>
+        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+      .on('dblclick.zoom', null)
 
     return {links, nodes}
   }
