@@ -1,14 +1,14 @@
 export function getLogger(name) {
-  function _log(levelLogger, ...args) {
-    levelLogger(`${name}: `, ...args)
+  function _log(levelLogger, level, ...args) {
+    levelLogger(`${level.toUpperCase()} ${name}:`, ...args)
   }
 
   return {
     /* eslint-disable no-console */
-    log: (...args) => _log(console.log, ...args),
-    debug: (...args) => _log(console.log, ...args),
-    warn: (...args) => _log(console.log, ...args),
-    error: (...args) => _log(console.log, ...args),
+    debug: (...args) => _log(console.debug, 'debug', ...args),
+    log: (...args) => _log(console.log, 'log', ...args),
+    warn: (...args) => _log(console.warn, 'warn', ...args),
+    error: (...args) => _log(console.error, 'error', ...args),
     /* eslint-enable no-console */
   }
 }
