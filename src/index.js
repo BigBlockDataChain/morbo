@@ -5,103 +5,18 @@ import devtools from 'hyperapp-redux-devtools'
 import GraphView from './graph-view-component'
 import EditorView from './editor-component'
 import {getLogger} from './logger'
-import {retrieveNodes} from './temp-data-component'
+import {retrieveGraphData} from './temp-data-component'
 
 //import {nodes, links} from
 
 const logger = getLogger('main')
-
-const nodes1 = [{
-  nodeId: 1,
-  name: 'N1',
-  x: 300,
-  y: 150,
-  content: 'blank1',
-}, {
-  nodeId: 2,
-  name: 'N2',
-  x: 140,
-  y: 300,
-  content: 'blank2',
-}, {
-  nodeId: 3,
-  name: 'N3',
-  x: 300,
-  y: 300,
-  content: 'blank3',
-}, {
-  nodeId: 4,
-  name: 'N4',
-  x: 300,
-  y: 180,
-  content: 'blank4',
-}]
-
-const links1 = [{
-  source: 0,
-  target: 1,
-}, {
-  source: 1,
-  target: 2,
-}, {
-  source: 2,
-  target: 3,
-}]
-
-const nodes2 = [{
-  nodeId: 1,
-  name: 'N1-1',
-  x: 300,
-  y: 150,
-  content: 'blank1',
-}, {
-  nodeId: 3,
-  name: 'N1-3',
-  x: 300,
-  y: 100,
-  content: 'blank1-3',
-}, {
-  nodeId: 5,
-  name: 'N1-4',
-  x: 350,
-  y: 200,
-  content: 'blank1-4',
-}, {
-  nodeId: 6,
-  name: 'N1-5',
-  x: 100,
-  y: 250,
-  content: 'blank1-5',
-}]
-
-const links2 = [{
-  source: 0,
-  target: 2,
-}, {
-  source: 0,
-  target: 2,
-}, {
-  source: 2,
-  target: 3,
-}, {
-  source: 0,
-  target: 1,
-}, {
-  source: 0,
-  target: 3,
-}]
-
-const nodes3 = retrieveNodes()
 
 const state = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
   selectedNode: null,
-  graphData: {
-    nodes: nodes3,
-    links: links1,
-  }
+  graphData: retrieveGraphData(1),
 }
 
 const actions = {
@@ -137,14 +52,7 @@ const actions = {
 
   onGraphDblClick: ev => (state, actions) => {
     logger.log('graph double clicked', ev)
-    if (ev.nodeId === 2) {
-      state.graphData.nodes = nodes2
-      state.graphData.links = links2
-    }
-    if (ev.nodeId === 1) {
-      state.graphData.nodes = nodes1
-      state.graphData.links = links1
-    }
+    state.graphData = retrieveGraphData(ev.nodeId)
     const selectedNode = ev
     return {
       ...state,
