@@ -5,6 +5,7 @@ import devtools from 'hyperapp-redux-devtools'
 import GraphView from './graph-view-component'
 import EditorView from './editor-component'
 import {getLogger} from './logger'
+import {retrieveGraphData} from './graph-data'
 
 const logger = getLogger('main')
 
@@ -13,39 +14,7 @@ const state = {
   screenWidth: 0,
   showEditor: false,
   selectedNode: null,
-  graphData: {
-    nodes: [{
-      name: 'A',
-      x: 300,
-      y: 150,
-      content: 'Node A',
-    }, {
-      name: 'B',
-      x: 140,
-      y: 300,
-      content: 'Node B',
-    }, {
-      name: 'C',
-      x: 300,
-      y: 300,
-      content: 'Node C',
-    }, {
-      name: 'D',
-      x: 300,
-      y: 180,
-      content: 'Node D',
-    }],
-    links: [{
-      source: 0,
-      target: 1,
-    }, {
-      source: 1,
-      target: 2,
-    }, {
-      source: 2,
-      target: 3,
-    }],
-  },
+  graphData: retrieveGraphData(1),
 }
 
 const actions = {
@@ -75,17 +44,20 @@ const actions = {
     return {
       ...state,
       selectedNode,
-      showEditor: false,
+      showEditor: true,
     }
   },
 
   onGraphDblClick: ev => (state, actions) => {
     logger.log('graph double clicked', ev)
+    const newGraphData = retrieveGraphData(ev.nodeId)
+
     const selectedNode = ev
     return {
       ...state,
       selectedNode,
-      showEditor: true,
+      showEditor: false,
+      graphData: newGraphData,
     }
   },
 
