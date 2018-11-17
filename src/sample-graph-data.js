@@ -1,4 +1,4 @@
-export const allNodes = [{
+export const defaultNodes = [{
   nodeId: 0,
   name: 'N0',
   x: 300,
@@ -50,7 +50,7 @@ export const allNodes = [{
   color: 'purple',
 }]
 
-const allLinks = [{
+export const defaultLinks = [{
   nodeGroup: 1,
   nodeSourceId: 0,
   nodeTargetId: 1,

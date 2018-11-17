@@ -1,4 +1,4 @@
-import {allNodes as defaultNodes, allLinks as defaultLinks} from './sample-graph-data'
+import {defaultNodes, defaultLinks} from './sample-graph-data'
 
 const DATA_KEY = 'graphData'
 
