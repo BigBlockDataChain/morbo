@@ -1,112 +1,9 @@
-const allNodes = [{
-  nodeId: 0,
-  name: 'N0',
-  x: 300,
-  y: 150,
-  color: 'red',
-  // NOTE(francium) Added for debugging purposes
-  content: 'blank0',
-}, {
-  nodeId: 1,
-  name: 'N1',
-  x: 140,
-  y: 300,
-  content: 'blank1',
-  color: 'green',
-}, {
-  nodeId: 2,
-  name: 'N2',
-  x: 300,
-  y: 300,
-  content: 'blank2',
-  color: 'blue',
-}, {
-  nodeId: 3,
-  name: 'N3',
-  x: 400,
-  y: 180,
-  content: 'blank3',
-  color: 'orange',
-}, {
-  nodeId: 4,
-  name: 'N4',
-  x: 300,
-  y: 180,
-  content: 'blank4',
-  color: 'lime',
-}, {
-  nodeId: 5,
-  name: 'N5',
-  x: 300,
-  y: 180,
-  content: 'blank5',
-  color: 'cyan',
-}, {
-  nodeId: 6,
-  name: 'N6',
-  x: 300,
-  y: 180,
-  content: 'blank6',
-  color: 'purple',
-}]
+import {allNodes as defaultNodes, allLinks as defaultLinks} from './sample-graph-data'
 
-const allLinks = [{
-  nodeGroup: 1,
-  nodeSourceId: 0,
-  nodeTargetId: 1,
-  source: 0,
-  target: 1,
-}, {
-  nodeGroup: 1,
-  nodeSourceId: 1,
-  nodeTargetId: 2,
-  source: 1,
-  target: 2,
-}, {
-  nodeGroup: 1,
-  nodeSourceId: 2,
-  nodeTargetId: 3,
-  source: 2,
-  target: 3,
-}, {
-  nodeGroup: 2,
-  nodeSourceId: 3,
-  nodeTargetId: 4,
-  source: 0,
-  target: 1,
-}, {
-  nodeGroup: 2,
-  nodeSourceId: 4,
-  nodeTargetId: 5,
-  source: 1,
-  target: 2,
-}, {
-  nodeGroup: 2,
-  nodeSourceId: 3,
-  nodeTargetId: 1,
-  source: 0,
-  target: 3,
-}, {
-  nodeGroup: 3,
-  nodeSourceId: 2,
-  nodeTargetId: 1,
-  source: 0,
-  target: 1,
-}, {
-  nodeGroup: 3,
-  nodeSourceId: 2,
-  nodeTargetId: 4,
-  source: 0,
-  target: 2,
-}, {
-  nodeGroup: 3,
-  nodeSourceId: 1,
-  nodeTargetId: 4,
-  source: 1,
-  target: 2,
-}]
+const DATA_KEY = 'graphData'
 
-function selectNodes(links) {
+function selectNodes(graphData, links) {
+  const {allNodes, allLinks} = graphData
   const nodes = []
   for (let i = 0; i < links.length; i += 1) {
     let node = nodes.find(node => node.nodeId === links[i].nodeTargetId)
@@ -120,13 +17,25 @@ function selectNodes(links) {
   return nodes
 }
 
-function selectLinks(selectedNode) {
+function selectLinks(graphData, selectedNode) {
+  const {allLinks} = graphData
   const links = allLinks.filter(link => link.nodeGroup === selectedNode)
   return links
 }
 
-export function retrieveGraphData(selectedNode = 1) {
-  const links = selectLinks(selectedNode)
-  const nodes = selectNodes(links)
+export function getNodeSubTree(graphData, selectedNode = 1) {
+  const links = selectLinks(graphData, selectedNode)
+  const nodes = selectNodes(graphData, links)
   return {nodes, links}
+}
+
+export function loadGraphData() {
+  const defaultGraphData = {allNodes: defaultNodes, allLinks: defaultLinks}
+  const storedGraphData = window.localStorage.getItem(DATA_KEY)
+  if (storedGraphData === null) {
+    window.localStorage.setItem(DATA_KEY, JSON.stringify(defaultGraphData))
+    return defaultGraphData
+  } else {
+    return JSON.parse(storedGraphData)
+  }
 }

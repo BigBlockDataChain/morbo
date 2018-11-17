@@ -60,6 +60,11 @@ export default class D3Graph {
   }
 
   render(data, callbacks = {}) {
+    if (data == null) {
+      logger.log('No data for rendering')
+      return
+    }
+
     logger.debug('Drawing graph nodes and links')
 
     const labelFontSize = 8

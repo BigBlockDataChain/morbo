@@ -5,16 +5,19 @@ import devtools from 'hyperapp-redux-devtools'
 import GraphView from './graph-view-component'
 import EditorView from './editor-component'
 import {getLogger} from './logger'
-import {retrieveGraphData} from './graph-data'
+import {loadGraphData, getNodeSubTree} from './graph-data'
 
 const logger = getLogger('main')
+
+const allGraphData = loadGraphData()
 
 const state = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
   selectedNode: null,
-  graphData: retrieveGraphData(1),
+  allGraphData,
+  graphData: null,
 }
 
 const actions = {
@@ -27,6 +30,7 @@ const actions = {
       ...state,
       screenHeight: el.offsetHeight,
       screenWidth: el.offsetWidth,
+      graphData: getNodeSubTree(state.allGraphData),
     }
   },
 
@@ -50,7 +54,7 @@ const actions = {
 
   onGraphDblClick: ev => (state, actions) => {
     logger.log('graph double clicked', ev)
-    const newGraphData = retrieveGraphData(ev.nodeId)
+    const newGraphData = getNodeSubTree(state.allGraphData, ev.nodeId)
 
     const selectedNode = ev
     return {
