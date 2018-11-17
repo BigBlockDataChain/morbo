@@ -3,6 +3,8 @@ const allNodes = [{
   name: 'N0',
   x: 300,
   y: 150,
+  color: 'red',
+  // NOTE(francium) Added for debugging purposes
   content: 'blank0',
 }, {
   nodeId: 1,
@@ -10,36 +12,42 @@ const allNodes = [{
   x: 140,
   y: 300,
   content: 'blank1',
+  color: 'green',
 }, {
   nodeId: 2,
   name: 'N2',
   x: 300,
   y: 300,
   content: 'blank2',
+  color: 'blue',
 }, {
   nodeId: 3,
   name: 'N3',
-  x: 300,
+  x: 400,
   y: 180,
   content: 'blank3',
+  color: 'orange',
 }, {
   nodeId: 4,
   name: 'N4',
   x: 300,
   y: 180,
   content: 'blank4',
+  color: 'lime',
 }, {
   nodeId: 5,
   name: 'N5',
   x: 300,
   y: 180,
   content: 'blank5',
+  color: 'cyan',
 }, {
   nodeId: 6,
   name: 'N6',
   x: 300,
   y: 180,
   content: 'blank6',
+  color: 'purple',
 }]
 
 const allLinks = [{

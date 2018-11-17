@@ -102,19 +102,29 @@ export default class D3Graph {
       .on('drag', function(d, i) {
         d.x += d3.event.dx
         d.y += d3.event.dy
-        d3.select(this).attr('cx', d.x).attr('cy', d.y)
+
+        d3.select(this)
+          .attr('cx', d.x)
+          .attr('cy', d.y)
+
         links.each(function(l) {
-          if (l.source == i) {
-            d3.select(this).attr('x1', d.x).attr('y1', d.y)
-          } else if (l.target == i) {
-            d3.select(this).attr('x2', d.x).attr('y2', d.y)
-          }
+          if (l.source == i)
+            d3.select(this)
+              .attr('x1', d.x)
+              .attr('y1', d.y)
+
+          else if (l.target == i)
+            d3.select(this)
+              .attr('x2', d.x)
+              .attr('y2', d.y)
         })
         nodeTextLabels.each(function(n) {
           if (n.nodeId == i)
-            d3.select(this).attr('x', d.x).attr('y', d.y)
+            d3.select(this)
+              .attr('x', d.x + labelFontSize / 2)
+              .attr('y', d.y + 15)
         })
-        nodes.each(function(n) {
+       nodes.each(function(n) {
           if (n.nodeId == i)
             d3.select(this).attr('cx', d.x).attr('cy', d.y)
         })
@@ -128,7 +138,7 @@ export default class D3Graph {
       .attr('cx', d => d.x)
       .attr('cy', d => d.y)
       .attr('r', 10)
-      .attr('fill', (d, i) => c10(i))
+      .attr('fill', (d, i) => d.color)
       .call(drag)
       .on('click', ev =>
         callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
@@ -141,10 +151,10 @@ export default class D3Graph {
       .enter()
       .append('text')
       .text(d => d.name)
-      .attr('x', d => d.x - labelFontSize / 2)
-      .attr('y', d => d.y + labelFontSize / 2)
+      .attr('x', d => d.x + labelFontSize / 2)
+      .attr('y', d => d.y + 15)
       .attr('font-size', labelFontSize)
-      .attr('fill', (d, i) => 'white')
+      .attr('fill', (d, i) => 'black')
       .call(drag)
 
     return {links, nodes}
