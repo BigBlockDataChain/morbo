@@ -62,12 +62,16 @@ export default class D3Graph {
   render(data, callbacks = {}) {
     logger.debug('Drawing graph nodes and links')
 
+    const labelFontSize = 8
+
     // TODO Remove function usage and replace with anonymous functions expressions But
     //   this will cause issues with the use of 'this' in functions, so need to figure out
     //   how to fix that too
     const svg = this._svg
     const g = this._g
     const c10 = this._c10
+
+    let nodeTextLabels = []
 
     // Disable double click zooming
     svg.on('dblclick.zoom', null)
@@ -106,6 +110,14 @@ export default class D3Graph {
             d3.select(this).attr('x2', d.x).attr('y2', d.y)
           }
         })
+        nodeTextLabels.each(function(n) {
+          if (n.nodeId == i)
+            d3.select(this).attr('x', d.x).attr('y', d.y)
+        })
+        nodes.each(function(n) {
+          if (n.nodeId == i)
+            d3.select(this).attr('cx', d.x).attr('cy', d.y)
+        })
       })
 
     const nodes = g.selectAll('.node')
@@ -113,21 +125,27 @@ export default class D3Graph {
       .enter()
       .append('circle')
       .attr('class', 'node')
-      .attr('cx', function(d) {
-        return d.x
-      })
-      .attr('cy', function(d) {
-        return d.y
-      })
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
       .attr('r', 10)
-      .attr('fill', function(d, i) {
-        return c10(i)
-      })
+      .attr('fill', (d, i) => c10(i))
       .call(drag)
-      .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-      .on('dblclick', (ev) =>
+      .on('click', ev =>
+        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+      .on('dblclick', ev =>
         callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
       .on('dblclick.zoom', null)
+
+    nodeTextLabels = nodes.select('text')
+      .data(data.nodes)
+      .enter()
+      .append('text')
+      .text(d => d.name)
+      .attr('x', d => d.x - labelFontSize / 2)
+      .attr('y', d => d.y + labelFontSize / 2)
+      .attr('font-size', labelFontSize)
+      .attr('fill', (d, i) => 'white')
+      .call(drag)
 
     return {links, nodes}
   }
