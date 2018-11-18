@@ -2,12 +2,29 @@ import * as html from '@hyperapp/html'
 
 import D3Graph from './d3-graph'
 import {getLogger} from './logger'
+import homeIcon from './widgets/home-icon'
 
 const logger = getLogger('graph-view-component')
 
 const d3Graph = new D3Graph()
 
-export default function(dimensions, callbacks, graphData) {
+export default function(dimensions, onHomeClick, callbacks, graphData) {
+  return html.div(
+    {
+      id: 'graph-view-component',
+      style: {
+        width: dimensions.width + 'px',
+        height: dimensions.height + 'px',
+      },
+    },
+    [
+      homeIcon(onHomeClick),
+      d3Container(dimensions, callbacks, graphData),
+    ],
+  )
+}
+
+function d3Container(dimensions, callbacks, graphData) {
   return html.div(
     {
       id: 'd3-container',

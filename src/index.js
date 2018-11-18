@@ -42,6 +42,14 @@ const actions = {
     }
   },
 
+  onGraphReset: () => (state, actions) => {
+    logger.log('graph view reset')
+    return {
+      ...state,
+      graphData: getNodeSubTree(state.allGraphData),
+    }
+  },
+
   onGraphClick: ev => (state, actions) => {
     logger.log('graph clicked', ev)
     const selectedNode = ev
@@ -114,6 +122,7 @@ function view(state, actions) {
     [
       GraphView(
         {height: state.screenHeight, width: state.screenWidth},
+        actions.onGraphReset,
         {onclick: actions.onGraphClick, ondblclick: actions.onGraphDblClick},
         state.graphData
       ),
