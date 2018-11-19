@@ -30204,8 +30204,6 @@ function update() {
 
   _Globals.Globals.getSVG().on('dblclick.zoom', null);
 
-  logger.debug(zoomHandler);
-
   _Globals.Globals.setZoomHandler(zoomHandler);
 }
 },{"./../logger":"src/logger.js","./../supporting_modules/Globals":"src/supporting_modules/Globals.js","d3":"node_modules/d3/index.js","./../supporting_modules/transformations":"src/supporting_modules/transformations.js"}],"src/graph_modules/node_highlight.js":[function(require,module,exports) {
@@ -30561,7 +30559,6 @@ function render(data, callbacks) {
   }).attr('y', function (d) {
     return d.y - 10;
   }).attr('font-size', 16).attr('font-family', 'Arial').attr('fill', 'blue').attr('stroke', 'blue').attr('stroke-width', 0.1);
-  logger.debug(_Globals.Globals.getSVG());
   setTimeout(function () {
     MLoader.loadModules();
   }, 1000);
@@ -30981,7 +30978,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59679" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50463" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

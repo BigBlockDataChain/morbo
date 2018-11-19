@@ -59,7 +59,5 @@ export function update() {
   // Disable double click zooming
   Globals.getSVG().on('dblclick.zoom', null)
 
-  logger.debug(zoomHandler)
-
   Globals.setZoomHandler(zoomHandler)
 }
