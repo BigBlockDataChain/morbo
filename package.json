@@ -1,0 +1,27 @@
+{
+  "name": "morbo",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint ./src/*.js",
+    "lint-fix": "eslint --fix ./src/*.js",
+    "serve": "parcel index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hyperapp/html": "^1.1.1",
+    "d3": "^5.7.0",
+    "hyperapp": "^1.2.9",
+    "hyperapp-redux-devtools": "^1.1.6"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^10.0.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "eslint": "^5.6.1",
+    "parcel-bundler": "^1.10.3"
+  }
+}
