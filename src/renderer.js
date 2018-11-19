@@ -81,6 +81,8 @@ export function render(data, callbacks) {
         .attr('stroke', 'blue')
         .attr('stroke-width', 0.1)
 
+        logger.debug()
+        
     setTimeout(function () {
         MLoader.loadModules()
     }, 1000)
