@@ -30559,6 +30559,7 @@ function render(data, callbacks) {
   }).attr('y', function (d) {
     return d.y - 10;
   }).attr('font-size', 16).attr('font-family', 'Arial').attr('fill', 'blue').attr('stroke', 'blue').attr('stroke-width', 0.1);
+  logger.debug();
   setTimeout(function () {
     MLoader.loadModules();
   }, 1000);
@@ -30978,7 +30979,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53916" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56596" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);
