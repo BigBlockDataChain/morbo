@@ -60,10 +60,10 @@ export function render(data, callbacks) {
         .attr('orig_color', function (d, i) {
             return c10(i)
         })
-        // .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-        // .on('dblclick', (ev) =>
-        //     callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
-        // .on('dblclick.zoom', null)
+    // .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+    // .on('dblclick', (ev) =>
+    //     callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+    // .on('dblclick.zoom', null)
 
     const labels = nodes.select('text')
         .data(data.nodes)
@@ -80,6 +80,8 @@ export function render(data, callbacks) {
         .attr('fill', 'blue')
         .attr('stroke', 'blue')
         .attr('stroke-width', 0.1)
+
+    logger.debug()
 
     setTimeout(function () {
         MLoader.loadModules()
