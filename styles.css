@@ -71,8 +71,16 @@ html, body {
   background: lightgray;
 }
 
-#d3-container {
+#graph-view-component {
   background: white;
+  position: relative;
+}
+#graph-view-component > .home-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+#d3-container {
 }
 
 .node {
@@ -83,4 +91,37 @@ html, body {
 .link {
   stroke: black;
   stroke-width: 2px;
+}
+
+.home-icon {
+  position: relative;
+  width: 32px;
+  height: 8px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  background: black;
+  opacity: 0.25;
+}
+.home-icon:hover {
+  opacity: 0.5;
+}
+
+.home-icon:before {
+  content: '';
+  position: absolute;
+  top: -7.5px;
+  width: 0;
+  height: 0;
+  border-left: 16px solid transparent;
+  border-right: 16px solid transparent;
+  border-bottom: 8px solid black;
+}
+.home-icon:after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  width: 9px;
+  height: 16px;
+  border-left: 12px solid black;
+  border-right: 12px solid black;
 }

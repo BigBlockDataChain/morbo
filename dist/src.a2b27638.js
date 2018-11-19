@@ -30543,23 +30543,22 @@ function render(data, callbacks) {
     return c10(i);
   }).attr('orig_color', function (d, i) {
     return c10(i);
-  }); // .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-  // .on('dblclick', (ev) =>
-  //     callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
-  // .on('dblclick.zoom', null)
-
+  }).on('click', function (ev) {
+    return callbacks.onclick !== undefined ? callbacks.onclick(ev) : null;
+  }).on('dblclick', function (ev) {
+    return callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null;
+  }).on('dblclick.zoom', null);
   var labels = nodes.select('text').data(data.nodes).enter();
 
   _Globals.Globals.setNodeLabels(labels);
 
-  var textbox = labels.append('text').text(function (d) {
+  var textLabels = labels.append('text').text(function (d) {
     return d.content;
   }).attr('x', function (d) {
     return d.x - d.content.length * 4;
   }).attr('y', function (d) {
     return d.y - 10;
   }).attr('font-size', 16).attr('font-family', 'Arial').attr('fill', 'blue').attr('stroke', 'blue').attr('stroke-width', 0.1);
-  logger.debug();
   setTimeout(function () {
     MLoader.loadModules();
   }, 1000);
@@ -30633,9 +30632,15 @@ function () {
       }
 
       this._host = host;
-      document.d3Initialized = true;
-      this._svg = d3.select(host).append('svg').attr('width', dimensions.width).attr('height', dimensions.height);
-      this._g = this._svg.append('g').attr('transform', d3.zoomIdentity); // store global variables
+      document.d3Initialized = true; // Used for node coloring
+
+      this._c10 = d3.scaleOrdinal(d3.schemeCategory10);
+      this._svg = d3.select(host).append('svg').attr('width', dimensions.width).attr('height', dimensions.height).on('click', function () {
+        return logger.debug('click');
+      }).on('dblclick', function () {
+        return logger.debug('dblclick');
+      });
+      this._g = this._svg.append('g').attr('class', 'everything').attr('transform', d3.zoomIdentity); // store global variables
 
       _Globals.Globals.setSVG(this._svg);
 
@@ -30657,6 +30662,12 @@ function () {
     key: "render",
     value: function render(data) {
       var callbacks = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      if (data === null) {
+        logger.log('No data for rendering');
+        return;
+      }
+
       return Renderer.render(data, callbacks);
     }
   }]);
@@ -30683,10 +30694,22 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
+//import homeIcon from './widgets/home-icon'
 var logger = (0, _logger.getLogger)('graph-view-component');
 var d3Graph = new _d3Graph.default();
 
-function _default(dimensions, callbacks, graphData) {
+function _default(dimensions, onHomeClick, callbacks, graphData) {
+  return html.div({
+    id: 'graph-view-component',
+    style: {
+      width: dimensions.width + 'px',
+      height: dimensions.height + 'px'
+    }
+  }, [//homeIcon(onHomeClick),
+  d3Container(dimensions, callbacks, graphData)]);
+}
+
+function d3Container(dimensions, callbacks, graphData) {
   return html.div({
     id: 'd3-container',
     style: {
@@ -30741,7 +30764,190 @@ function _default(content, _oninput, onClose) {
     value: content
   })]);
 }
-},{"@hyperapp/html":"node_modules/@hyperapp/html/dist/html.js"}],"src/index.js":[function(require,module,exports) {
+},{"@hyperapp/html":"node_modules/@hyperapp/html/dist/html.js"}],"src/sample-graph-data.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.defaultLinks = exports.defaultNodes = void 0;
+var defaultNodes = [{
+  nodeId: 0,
+  name: 'N0',
+  x: 300,
+  y: 150,
+  color: 'red',
+  // NOTE(francium) Added for debugging purposes
+  content: 'blank0'
+}, {
+  nodeId: 1,
+  name: 'N1',
+  x: 140,
+  y: 300,
+  content: 'blank1',
+  color: 'green'
+}, {
+  nodeId: 2,
+  name: 'N2',
+  x: 300,
+  y: 300,
+  content: 'blank2',
+  color: 'blue'
+}, {
+  nodeId: 3,
+  name: 'N3',
+  x: 400,
+  y: 180,
+  content: 'blank3',
+  color: 'orange'
+}, {
+  nodeId: 4,
+  name: 'N4',
+  x: 300,
+  y: 180,
+  content: 'blank4',
+  color: 'lime'
+}, {
+  nodeId: 5,
+  name: 'N5',
+  x: 300,
+  y: 180,
+  content: 'blank5',
+  color: 'cyan'
+}, {
+  nodeId: 6,
+  name: 'N6',
+  x: 300,
+  y: 180,
+  content: 'blank6',
+  color: 'purple'
+}];
+exports.defaultNodes = defaultNodes;
+var defaultLinks = [{
+  nodeGroup: 1,
+  nodeSourceId: 0,
+  nodeTargetId: 1,
+  source: 0,
+  target: 1
+}, {
+  nodeGroup: 1,
+  nodeSourceId: 1,
+  nodeTargetId: 2,
+  source: 1,
+  target: 2
+}, {
+  nodeGroup: 1,
+  nodeSourceId: 2,
+  nodeTargetId: 3,
+  source: 2,
+  target: 3
+}, {
+  nodeGroup: 2,
+  nodeSourceId: 3,
+  nodeTargetId: 4,
+  source: 0,
+  target: 1
+}, {
+  nodeGroup: 2,
+  nodeSourceId: 4,
+  nodeTargetId: 5,
+  source: 1,
+  target: 2
+}, {
+  nodeGroup: 2,
+  nodeSourceId: 3,
+  nodeTargetId: 1,
+  source: 0,
+  target: 3
+}, {
+  nodeGroup: 3,
+  nodeSourceId: 2,
+  nodeTargetId: 1,
+  source: 0,
+  target: 1
+}, {
+  nodeGroup: 3,
+  nodeSourceId: 2,
+  nodeTargetId: 4,
+  source: 0,
+  target: 2
+}, {
+  nodeGroup: 3,
+  nodeSourceId: 1,
+  nodeTargetId: 4,
+  source: 1,
+  target: 2
+}];
+exports.defaultLinks = defaultLinks;
+},{}],"src/graph-data.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getNodeSubTree = getNodeSubTree;
+exports.loadGraphData = loadGraphData;
+
+var _sampleGraphData = require("./sample-graph-data");
+
+var DATA_KEY = 'graphData';
+
+function selectNodes(graphData, links) {
+  var allNodes = graphData.allNodes,
+      allLinks = graphData.allLinks;
+  var nodes = [];
+
+  var _loop = function _loop(i) {
+    var node = nodes.find(function (node) {
+      return node.nodeId === links[i].nodeTargetId;
+    });
+    if (!node) nodes.push(allNodes[links[i].nodeTargetId]);
+    node = nodes.find(function (node) {
+      return node.nodeId === links[i].nodeSourceId;
+    });
+    if (!node) nodes.push(allNodes[links[i].nodeSourceId]);
+  };
+
+  for (var i = 0; i < links.length; i += 1) {
+    _loop(i);
+  }
+
+  return nodes;
+}
+
+function selectLinks(graphData, selectedNode) {
+  var allLinks = graphData.allLinks;
+  var links = allLinks.filter(function (link) {
+    return link.nodeGroup === selectedNode;
+  });
+  return links;
+}
+
+function getNodeSubTree(graphData) {
+  var selectedNode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+  var links = selectLinks(graphData, selectedNode);
+  var nodes = selectNodes(graphData, links);
+  return {
+    nodes: nodes,
+    links: links
+  };
+}
+
+function loadGraphData() {
+  var defaultGraphData = {
+    allNodes: _sampleGraphData.defaultNodes,
+    allLinks: _sampleGraphData.defaultLinks
+  };
+  var storedGraphData = window.localStorage.getItem(DATA_KEY);
+
+  if (storedGraphData === null) {
+    window.localStorage.setItem(DATA_KEY, JSON.stringify(defaultGraphData));
+    return defaultGraphData;
+  } else {
+    return JSON.parse(storedGraphData);
+  }
+}
+},{"./sample-graph-data":"src/sample-graph-data.js"}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 var html = _interopRequireWildcard(require("@hyperapp/html"));
@@ -30756,6 +30962,10 @@ var _editorComponent = _interopRequireDefault(require("./editor-component"));
 
 var _logger = require("./logger");
 
+var _graphData = require("./graph-data");
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
@@ -30768,83 +30978,25 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 var logger = (0, _logger.getLogger)('main');
+var allGraphData = (0, _graphData.loadGraphData)();
 var state = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
   selectedNode: null,
-  graphData: {
-    nodes: [{
-      nodeId: 0,
-      name: 'A',
-      x: 0,
-      y: 0,
-      content: 'Node A'
-    }, {
-      name: 'B',
-      nodeId: 1,
-      x: 140,
-      y: 300,
-      content: 'Node B'
-    }, {
-      name: 'C',
-      nodeId: 2,
-      x: 300,
-      y: 300,
-      content: 'Node C'
-    }, {
-      name: 'D',
-      nodeId: 3,
-      x: 310,
-      y: 180,
-      content: 'Node D'
-    }, {
-      name: 'E',
-      nodeId: 4,
-      x: 320,
-      y: 300,
-      content: 'Node E'
-    }, {
-      name: 'F',
-      nodeId: 5,
-      x: 330,
-      y: 180,
-      content: 'Node F'
-    }, {
-      name: 'G',
-      nodeId: 6,
-      x: 350,
-      y: 200,
-      content: 'Node G'
-    }],
-    links: [{
-      source: 0,
-      target: 1
-    }, {
-      source: 1,
-      target: 2
-    }, {
-      source: 2,
-      target: 3
-    }, {
-      source: 3,
-      target: 4
-    }]
-  }
+  allGraphData: allGraphData,
+  graphData: null
 };
 var actions = {
   oncreate: function oncreate(el) {
     return function (state, actions) {
       logger.debug('element created (app)', el);
       registerEventHandlers(el, actions);
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         screenHeight: el.offsetHeight,
-        screenWidth: el.offsetWidth
+        screenWidth: el.offsetWidth,
+        graphData: (0, _graphData.getNodeSubTree)(state.allGraphData)
       });
     };
   },
@@ -30852,9 +31004,17 @@ var actions = {
     var height = _ref.height,
         width = _ref.width;
     return function (state, actions) {
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         screenHeight: height,
         screenWidth: width
+      });
+    };
+  },
+  onGraphReset: function onGraphReset() {
+    return function (state, actions) {
+      logger.log('graph view reset');
+      return _extends({}, state, {
+        graphData: (0, _graphData.getNodeSubTree)(state.allGraphData)
       });
     };
   },
@@ -30862,23 +31022,24 @@ var actions = {
     return function (state, actions) {
       logger.log('graph clicked', ev);
       var selectedNode = ev;
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         selectedNode: selectedNode,
-        showEditor: false
+        showEditor: true
       });
     };
   },
   onGraphDblClick: function onGraphDblClick(ev) {
     return function (state, actions) {
       logger.log('graph double clicked', ev);
+      var newGraphData = (0, _graphData.getNodeSubTree)(state.allGraphData, ev.nodeId);
       var selectedNode = ev;
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         selectedNode: selectedNode,
-        showEditor: true
+        showEditor: false,
+        graphData: newGraphData
       });
     };
   },
-  // eslint-disable-next-line max-statements
   onEditorInput: function onEditorInput(content) {
     return function (state, actions) {
       if (state.selectedNode === null) {
@@ -30897,7 +31058,7 @@ var actions = {
 
       var oldNode = state.graphData.nodes[selectedNodeIndex];
 
-      var newNode = _objectSpread({}, oldNode);
+      var newNode = _extends({}, oldNode);
 
       newNode.content = content;
       var oldList = state.graphData.nodes;
@@ -30907,11 +31068,11 @@ var actions = {
       newList[selectedNodeIndex] = newNode;
       var oldData = state.graphData;
 
-      var newData = _objectSpread({}, oldData, {
+      var newData = _extends({}, oldData, {
         nodes: newList
       });
 
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         graphData: newData,
         selectedNode: newNode
       });
@@ -30919,7 +31080,7 @@ var actions = {
   },
   onEditorClose: function onEditorClose() {
     return function (state, actions) {
-      return _objectSpread({}, state, {
+      return _extends({}, state, {
         selectedNode: null,
         showEditor: false
       });
@@ -30936,7 +31097,7 @@ function view(state, actions) {
   }, [(0, _graphViewComponent.default)({
     height: state.screenHeight,
     width: state.screenWidth
-  }, {
+  }, actions.onGraphReset, {
     onclick: actions.onGraphClick,
     ondblclick: actions.onGraphDblClick
   }, state.graphData), state.showEditor && state.selectedNode !== null ? (0, _editorComponent.default)(state.selectedNode.content, actions.onEditorInput, actions.onEditorClose) : null]);
@@ -30952,7 +31113,7 @@ function registerEventHandlers(el, actions) {
 }
 
 var app = (0, _hyperappReduxDevtools.default)(_hyperapp.app)(state, actions, view, document.querySelector('#root'));
-},{"@hyperapp/html":"node_modules/@hyperapp/html/dist/html.js","hyperapp":"node_modules/hyperapp/src/index.js","hyperapp-redux-devtools":"node_modules/hyperapp-redux-devtools/index.js","./graph-view-component":"src/graph-view-component.js","./editor-component":"src/editor-component.js","./logger":"src/logger.js"}],"node_modules/parcel-bundler/lib/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"@hyperapp/html":"node_modules/@hyperapp/html/dist/html.js","hyperapp":"node_modules/hyperapp/src/index.js","hyperapp-redux-devtools":"node_modules/hyperapp-redux-devtools/index.js","./graph-view-component":"src/graph-view-component.js","./editor-component":"src/editor-component.js","./logger":"src/logger.js","./graph-data":"src/graph-data.js"}],"node_modules/parcel-bundler/lib/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -30979,7 +31140,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56596" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56571" + '/');
 
   ws.onmessage = function (event) {
     var data = JSON.parse(event.data);

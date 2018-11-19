@@ -60,10 +60,10 @@ export function render(data, callbacks) {
         .attr('orig_color', function (d, i) {
             return c10(i)
         })
-    // .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-    // .on('dblclick', (ev) =>
-    //     callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
-    // .on('dblclick.zoom', null)
+    .on('click', (ev) => callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+    .on('dblclick', (ev) =>
+        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+    .on('dblclick.zoom', null)
 
     const labels = nodes.select('text')
         .data(data.nodes)
@@ -71,7 +71,7 @@ export function render(data, callbacks) {
 
     Globals.setNodeLabels(labels)
 
-    const textbox = labels.append('text')
+    const textLabels = labels.append('text')
         .text(d => d.content)
         .attr('x', d => d.x - d.content.length * 4)
         .attr('y', d => d.y - 10)

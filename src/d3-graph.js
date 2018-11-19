@@ -39,12 +39,18 @@ export default class D3Graph {
     this._host = host
     document.d3Initialized = true
 
+    // Used for node coloring
+    this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
+
     this._svg = d3.select(host)
       .append('svg')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
+      .on('click', () => logger.debug('click'))
+      .on('dblclick', () => logger.debug('dblclick'))
 
     this._g = this._svg.append('g')
+      .attr('class', 'everything')
       .attr('transform', d3.zoomIdentity)
 
     // store global variables
@@ -66,6 +72,10 @@ export default class D3Graph {
 
   // eslint-disable-next-line class-methods-use-this
   render(data, callbacks = {}) {
+    if (data === null) {
+      logger.log('No data for rendering')
+      return
+    }
     return Renderer.render(data, callbacks)
   }
 }
