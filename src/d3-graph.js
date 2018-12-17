@@ -15,6 +15,16 @@ export default class D3Graph {
     this._svg = null
     this._c10 = null
     this._g = null
+    this._zoomHandler = null
+
+    this._links = null
+    this._nodes = null
+    this._drag = null
+    this._nodeTextLabels = null
+
+    this._LABEL_FONT_SIZE = 8
+    this._TRANSITION_DURATION = 250
+    this._PAN_MOVEMENT_OFFSET = 50
   }
 
   init(host, dimensions) {
@@ -57,35 +67,80 @@ export default class D3Graph {
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
     }
-    const zoomHandler = d3zoom.zoom()
+    this._zoomHandler = d3zoom.zoom()
       .on('zoom', zoomActions)
 
-    zoomHandler(this._svg)
+    this._zoomHandler(this._svg)
   }
 
+  /**
+   * @param {Object} data Object containing nodes and links
+   * @param {Object} callbacks Object containing callbacks
+   * @return {undefined}
+   */
   render(data, callbacks = {}) {
-    if (data == null) {
+    if (data === null) {
       logger.log('No data for rendering')
       return
     }
 
     logger.debug('Drawing graph nodes and links')
 
-    const labelFontSize = 8
+    // Must be called before renderNodes
+    this._enableDrag()
 
-    // TODO Remove function usage and replace with anonymous functions expressions But
-    //   this will cause issues with the use of 'this' in functions, so need to figure out
-    //   how to fix that too
-    const svg = this._svg
-    const g = this._g
-    const c10 = this._c10
+    this._renderLinks(data)
+    this._renderNodes(data, callbacks)
 
-    let nodeTextLabels = []
+    this._enableClickToCenter()
+    this._enableKeyboardPanning()
+    this._enableNodeHighlightOnHover()
+    this._disableDoubleClickZoom()
+  }
 
-    // Disable double click zooming
-    svg.on('dblclick.zoom', null)
+  /**
+   * @private
+   * @param {Object} data Object containing nodes and links
+   * @param {Object} callbacks Object containing callbacks
+   * @returns {undefined}
+   */
+  _renderNodes(data, callbacks) {
+    this._nodes = this._g.selectAll('.node')
+      .data(data.nodes)
+      .enter()
+      .append('circle')
+      .attr('class', 'node')
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', 10)
+      .attr('fill', (d, i) => d.color)
+      .attr('fill_original', (d, i) => d.color)
+      .call(this._drag.bind())
+      .on('click', ev =>
+        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+      .on('dblclick', ev =>
+        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+      .on('dblclick.zoom', null)
 
-    const links = g.selectAll('.link')
+    this._nodeTextLabels = this._nodes.select('text')
+      .data(data.nodes)
+      .enter()
+      .append('text')
+      .text(d => d.name)
+      .attr('x', d => d.x + this._LABEL_FONT_SIZE / 2)
+      .attr('y', d => d.y + 15)
+      .attr('font-size', this._LABEL_FONT_SIZE)
+      .attr('fill', (d, i) => 'black')
+      .call(this._drag.bind())
+  }
+
+  /**
+   * @private
+   * @param {Object} data Object containing nodes and links
+   * @returns {undefined}
+   */
+  _renderLinks(data) {
+    this._links = this._g.selectAll('.link')
       .data(data.links)
       .enter()
       .append('line')
@@ -106,8 +161,16 @@ export default class D3Graph {
       })
       .attr('fill', 'none')
       .attr('stroke', 'black')
+  }
 
-    const drag = d3.drag()
+  /**
+   * @private
+   * @returns {undefined}
+   */
+  _enableDrag() {
+    const that = this
+
+    this._drag = d3.drag()
       .on('drag', function(d, i) {
         d.x += d3.event.dx
         d.y += d3.event.dy
@@ -116,7 +179,7 @@ export default class D3Graph {
           .attr('cx', d.x)
           .attr('cy', d.y)
 
-        links.each(function(l) {
+        that._links.each(function(l) {
           if (l.source == i)
             d3.select(this)
               .attr('x1', d.x)
@@ -127,45 +190,128 @@ export default class D3Graph {
               .attr('x2', d.x)
               .attr('y2', d.y)
         })
-        nodeTextLabels.each(function(n) {
-          if (n.nodeId == i)
-            d3.select(this)
-              .attr('x', d.x + labelFontSize / 2)
-              .attr('y', d.y + 15)
-        })
-       nodes.each(function(n) {
+
+        if (that._nodeTextLabels === null)
+          logger.warn(
+            'enableDrag called before this._nodeTextLabels has been initialized')
+        else
+          that._nodeTextLabels.each(function(n) {
+            if (n.nodeId == i)
+              d3.select(this)
+                .attr('x', d.x + that._LABEL_FONT_SIZE / 2)
+                .attr('y', d.y + 15)
+          })
+
+        that._nodes.each(function(n) {
           if (n.nodeId == i)
             d3.select(this).attr('cx', d.x).attr('cy', d.y)
         })
       })
-
-    const nodes = g.selectAll('.node')
-      .data(data.nodes)
-      .enter()
-      .append('circle')
-      .attr('class', 'node')
-      .attr('cx', d => d.x)
-      .attr('cy', d => d.y)
-      .attr('r', 10)
-      .attr('fill', (d, i) => d.color)
-      .call(drag)
-      .on('click', ev =>
-        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-      .on('dblclick', ev =>
-        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
-      .on('dblclick.zoom', null)
-
-    nodeTextLabels = nodes.select('text')
-      .data(data.nodes)
-      .enter()
-      .append('text')
-      .text(d => d.name)
-      .attr('x', d => d.x + labelFontSize / 2)
-      .attr('y', d => d.y + 15)
-      .attr('font-size', labelFontSize)
-      .attr('fill', (d, i) => 'black')
-      .call(drag)
-
-    return {links, nodes}
   }
+
+  /**
+   * @private
+   * @return {undefined}
+   */
+  _enableClickToCenter() {
+    const that = this
+    this._nodes.on('click', function(d) {
+      const {translation, scale} = that._getGraphTranslationAndScale()
+      const x = translation[0] - d.x
+      const y = translation[1] - d.y
+      that._g
+        .transition()
+        .duration(that._TRANSITION_DURATION)
+        .call(
+          that._zoomHandler.transform,
+          d3.zoomIdentity.translate(x, y).scale(scale)
+        )
+    })
+  }
+
+  _enableKeyboardPanning() {
+    const keymap = {
+      LEFT: 37,
+      UP: 38,
+      RIGHT: 39,
+      DOWN: 40,
+    }
+
+    const that = this
+    d3.select('body')
+      .on('keydown', function() {
+        const {translation} = that._getGraphTranslationAndScale()
+        let offsetRight = 0
+        let offsetDown = 0
+
+        switch (d3.event.keyCode) {
+          case keymap.UP:
+            offsetDown = translation[1] - that._PAN_MOVEMENT_OFFSET
+            break
+          case keymap.DOWN:
+            offsetDown = translation[1] + that._PAN_MOVEMENT_OFFSET
+            break
+          case keymap.LEFT:
+            offsetRight = translation[0] - that._PAN_MOVEMENT_OFFSET
+            break
+          case keymap.RIGHT:
+            offsetRight = translation[0] + that._PAN_MOVEMENT_OFFSET
+            break
+          default:
+            break
+        }
+
+        that._g
+          .transition()
+          .duration(that._TRANSITION_DURATION)
+          .call(
+            that._zoomHandler.transform,
+            d3.zoomIdentity.translate(offsetRight, offsetDown)
+          )
+      })
+  }
+
+  _enableNodeHighlightOnHover() {
+    const nodes = this._nodes.selectAll('circle')
+    nodes
+      .on('mouseenter', function(d) {
+        const fill = d3.select(this).attr('fill')
+        if (fill === d3.select(this).attr('fill_original'))
+          d3.select(this)
+            .attr('stroke', 'black')
+            .style('stroke-width', '2px')
+      })
+      .on('mouseleave', function(d) {
+        const fill = d3.select(this).attr('fill_original')
+        if (fill !== d3.select(this).attr('fill_original'))
+          d3.select(this)
+            .attr('stroke', undefined)
+            .style('stroke-width', undefined)
+      })
+  }
+
+  /**
+   * @private
+   * @returns {undefined}
+   */
+  _disableDoubleClickZoom() {
+    this._svg.on('dblclick.zoom', null)
+  }
+
+  /**
+   * @return {{array, number}} A tuple of the x, y translation and the zoom scale
+   */
+  _getGraphTranslationAndScale() {
+    const transformRaw = this._g.attr('transform')
+    if (transformRaw === null) return {translation: [0, 0], scale: 1}
+    const [translationRaw, scaleRaw] = transformRaw.split(' ')
+    const translation = translationRaw
+      .replace('translate(', '')
+      .replace(')', '')
+      .split(',')
+      .map(Number)
+    const scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
+    return {translation, scale}
+  }
+
 }
