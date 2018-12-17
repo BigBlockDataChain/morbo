@@ -15,7 +15,8 @@
     "@hyperapp/html": "^1.1.1",
     "d3": "^5.7.0",
     "hyperapp": "^1.2.9",
-    "hyperapp-redux-devtools": "^1.1.6"
+    "hyperapp-redux-devtools": "^1.1.6",
+    "normalize.css": "^8.0.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -23,5 +24,6 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "eslint": "^5.6.1",
     "parcel-bundler": "^1.10.3"
-  }
+  },
+  "browserslist": ["Firefox > 62", "Chrome > 70"]
 }

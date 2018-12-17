@@ -17,7 +17,11 @@ export default class D3Graph {
     this._g = null
   }
 
-  init(host = null, dimensions) {
+  init(host, dimensions) {
+    if (host === null) {
+      throw Error('Host not provided')
+    }
+
     if (document.d3Initialized
         && dimensions.height === this._height
         && dimensions.width === this._width) {
@@ -101,7 +105,7 @@ export default class D3Graph {
         return targetNode.x
       })
       .attr('fill', 'none')
-      .attr('stroke', 'white')
+      .attr('stroke', 'black')
 
     const drag = d3.drag()
       .on('drag', function(d, i) {

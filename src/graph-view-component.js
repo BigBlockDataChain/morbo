@@ -41,7 +41,7 @@ function d3Container(dimensions, callbacks, graphData) {
           d3Graph.init(el, {height: dimensions.height, width: dimensions.width})
 
         if (callbacks != prevAttrs.callbacks)
-          d3Graph.init(el, {height: dimensions.height, width: dimensions.width})
+          d3Graph.render(graphData, callbacks)
 
         if (graphData != prevAttrs.graphData)
           d3Graph.render(graphData, callbacks)
