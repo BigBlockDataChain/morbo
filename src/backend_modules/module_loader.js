@@ -12,32 +12,32 @@ import * as GraphMove from './../graph_modules/graph_move'
 
 // Holds all import objects
 const modules = [
-    NodeHighlight,
-    GraphZoom,
-    DragNodes,
-    NodeCenter,
-    GraphMove,
+  NodeHighlight,
+  GraphZoom,
+  DragNodes,
+  NodeCenter,
+  GraphMove,
 ]
 
 // Used to load all modules to be run in the system
 export function loadModules() {
-    const opt = Globals.getModuleRun()
+  const opt = Globals.getModuleRun()
 
-    for (const i in opt) {
-        if (opt[i] === true) {
-            for (let j = 0; j < modules.length; j += 1) {
-                if (i === modules[j].moduleName) {
-                    modules[j].start()
-                    modules[j].update()
-                    logger.debug(i + ' loaded')
-                }
-            }
+  for (const i in opt) {
+    if (opt[i] === true) {
+      for (let j = 0; j < modules.length; j += 1) {
+        if (i === modules[j].moduleName) {
+          modules[j].start()
+          modules[j].update()
+          logger.debug(i + ' loaded')
         }
+      }
     }
+  }
 
-    setTimeout(function () {
-        logger.debug('Finished loading all modules')
-    }, 100)
+  setTimeout(function () {
+    logger.debug('Finished loading all modules')
+  }, 100)
 
-    return true
+  return true
 }
