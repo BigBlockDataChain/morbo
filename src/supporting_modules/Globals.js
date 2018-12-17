@@ -4,44 +4,44 @@
  * then be stored back in the database on shutdown of the system
  */
 export class Globals {
-    // SVG element that is drawn on
-    static setSVG(i) { this.svg = i }
+  // SVG element that is drawn on
+  static setSVG(i) { this.svg = i }
 
-    static getSVG() { return this.svg }
+  static getSVG() { return this.svg }
 
-    // Graph that holds all nodes, links, etc
-    static setGraph(i) { this.graph = i }
+  // Graph that holds all nodes, links, etc
+  static setGraph(i) { this.graph = i }
 
-    static getGraph() { return this.graph }
+  static getGraph() { return this.graph }
 
-    // Sets which modules should run upon startup
-    static setModuleRun(i) { this.mRun = i }
+  // Sets which modules should run upon startup
+  static setModuleRun(i) { this.mRun = i }
 
-    static getModuleRun() { return this.mRun }
+  static getModuleRun() { return this.mRun }
 
-    // Min and max height and width in local coordinates,
-    // that dictates whether a drawn object will be seen
-    static setWinSize(i) { this.winSize = i }
+  // Min and max height and width in local coordinates,
+  // that dictates whether a drawn object will be seen
+  static setWinSize(i) { this.winSize = i }
 
-    static getWinSize() { return this.winSize }
+  static getWinSize() { return this.winSize }
 
-    // Holds all nodes and their data
-    static setNodes(i) { this.nodes = i }
+  // Holds all nodes and their data
+  static setNodes(i) { this.nodes = i }
 
-    static getNodes() { return this.nodes }
+  static getNodes() { return this.nodes }
 
-    // Holds all links and their data
-    static setLinks(i) { this.linkss = i }
+  // Holds all links and their data
+  static setLinks(i) { this.linkss = i }
 
-    static getLinks() { return this.linkss }
+  static getLinks() { return this.linkss }
 
-    // Holds all node labels
-    static setNodeLabels(i) { this.nodeLabels = i }
+  // Holds all node labels
+  static setNodeLabels(i) { this.nodeLabels = i }
 
-    static getNodeLabels() { return this.nodeLabels }
+  static getNodeLabels() { return this.nodeLabels }
 
-    // Holds zoom handler
-    static setZoomHandler(i) { this.zoomHandler = i }
+  // Holds zoom handler
+  static setZoomHandler(i) { this.zoomHandler = i }
 
-    static getZoomHandler() { return this.zoomHandler }
+  static getZoomHandler() { return this.zoomHandler }
 }
