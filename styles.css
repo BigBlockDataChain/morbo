@@ -83,16 +83,6 @@ html, body {
 #d3-container {
 }
 
-.node {
-  stroke: black;
-  stroke-width: 2px;
-}
-
-.link {
-  stroke: black;
-  stroke-width: 2px;
-}
-
 .home-icon {
   position: relative;
   width: 32px;
@@ -124,4 +114,8 @@ html, body {
   height: 16px;
   border-left: 12px solid black;
   border-right: 12px solid black;
+}
+
+.node > text {
+  cursor: default;
 }

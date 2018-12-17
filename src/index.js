@@ -5,13 +5,13 @@ import devtools from 'hyperapp-redux-devtools'
 import GraphView from './graph-view-component'
 import EditorView from './editor-component'
 import {getLogger} from './logger'
-import {loadGraphData, getNodeSubTree} from './graph-data'
+import {loadGraphData} from './graph-data'
 
 const logger = getLogger('main')
 
 const allGraphData = loadGraphData()
 
-const state = {
+const initialState = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
@@ -20,60 +20,50 @@ const state = {
   graphData: null,
 }
 
-const actions = {
+const appActions = {
   oncreate: el => (state, actions) => {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
 
     return {
-      ...state,
       screenHeight: el.offsetHeight,
       screenWidth: el.offsetWidth,
-      graphData: getNodeSubTree(state.allGraphData),
+      graphData: state.allGraphData,
     }
   },
 
-  onWindowResize: ({height, width}) => (state, actions) => {
+  onWindowResize: ({height, width}) => () => {
     return {
-      ...state,
       screenHeight: height,
       screenWidth: width,
     }
   },
 
-  onGraphReset: () => (state, actions) => {
+  onGraphReset: () => () => {
     logger.log('graph view reset')
-    return {
-      ...state,
-      graphData: getNodeSubTree(state.allGraphData),
-    }
   },
 
-  onGraphClick: ev => (state, actions) => {
+  onGraphClick: ev => () => {
     logger.log('graph clicked', ev)
     const selectedNode = ev
     return {
-      ...state,
+      selectedNode,
+    }
+  },
+
+  onGraphDblClick: ev => () => {
+    logger.log('graph double clicked', ev)
+
+    const selectedNode = ev
+    return {
       selectedNode,
       showEditor: true,
     }
   },
 
-  onGraphDblClick: ev => (state, actions) => {
-    logger.log('graph double clicked', ev)
-    const newGraphData = getNodeSubTree(state.allGraphData, ev.nodeId)
-
-    const selectedNode = ev
-    return {
-      ...state,
-      selectedNode,
-      showEditor: false,
-      graphData: newGraphData,
-    }
-  },
-
-  onEditorInput: content => (state, actions) => {
+  // TODO Causes unecessary D3 rendering calls. Need to decouple node data from nodes
+  onEditorInput: content => state => {
     if (state.selectedNode === null) {
       logger.warn('Trying to set content, but no node is selected')
       return
@@ -98,15 +88,13 @@ const actions = {
     const newData = {...oldData, nodes: newList}
 
     return {
-      ...state,
       graphData: newData,
       selectedNode: newNode,
     }
   },
 
-  onEditorClose: () => (state, actions) => {
+  onEditorClose: () => () => {
     return {
-      ...state,
       selectedNode: null,
       showEditor: false,
     }
@@ -143,4 +131,5 @@ function registerEventHandlers(el, actions) {
   })
 }
 
-const app = devtools(hyperapp)(state, actions, view, document.querySelector('#root'))
+const app = devtools(hyperapp)(
+  initialState, appActions, view, document.querySelector('#root'))

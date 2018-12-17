@@ -1,3 +1,8 @@
+/**
+ * TODO
+ * - Keep track of transformation to graph (translation and scale) when rerendering
+ */
+
 import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
 
@@ -8,6 +13,10 @@ const logger = getLogger('d3-graph')
 export default class D3Graph {
 
   constructor() {
+    this._LABEL_FONT_SIZE = 8
+    this._TRANSITION_DURATION = 250
+    this._PAN_MOVEMENT_OFFSET = 50
+
     document.d3Initialized = false
     this._width = null
     this._height = null
@@ -22,9 +31,8 @@ export default class D3Graph {
     this._drag = null
     this._nodeTextLabels = null
 
-    this._LABEL_FONT_SIZE = 8
-    this._TRANSITION_DURATION = 250
-    this._PAN_MOVEMENT_OFFSET = 50
+    this._selectedNode = null
+    this._mouseDownNode = null
   }
 
   init(host, dimensions) {
@@ -92,7 +100,7 @@ export default class D3Graph {
     this._renderLinks(data)
     this._renderNodes(data, callbacks)
 
-    this._enableClickToCenter()
+    // this._enableClickToCenter()
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._disableDoubleClickZoom()
@@ -105,33 +113,38 @@ export default class D3Graph {
    * @returns {undefined}
    */
   _renderNodes(data, callbacks) {
-    this._nodes = this._g.selectAll('.node')
+    const nodes = this._g.selectAll('.node')
       .data(data.nodes)
       .enter()
-      .append('circle')
+      .append('g')
       .attr('class', 'node')
+      .on('click', ev =>
+        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
+      .on('dblclick', ev =>
+        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+
+    nodes
+      .append('circle')
       .attr('cx', d => d.x)
       .attr('cy', d => d.y)
       .attr('r', 10)
       .attr('fill', (d, i) => d.color)
       .attr('fill_original', (d, i) => d.color)
-      .call(this._drag.bind())
-      .on('click', ev =>
-        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-      .on('dblclick', ev =>
-        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+      .attr('stroke', 'black')
+      .call(this._drag)
       .on('dblclick.zoom', null)
 
-    this._nodeTextLabels = this._nodes.select('text')
-      .data(data.nodes)
-      .enter()
+    nodes
       .append('text')
       .text(d => d.name)
       .attr('x', d => d.x + this._LABEL_FONT_SIZE / 2)
       .attr('y', d => d.y + 15)
       .attr('font-size', this._LABEL_FONT_SIZE)
-      .attr('fill', (d, i) => 'black')
-      .call(this._drag.bind())
+      .attr('fill', 'black')
+      .call(this._drag)
+
+    this._nodes = this._g.selectAll('.node')
+    this._nodeTextLabels = this._nodes.selectAll('text')
   }
 
   /**
@@ -141,21 +154,18 @@ export default class D3Graph {
    */
   _renderLinks(data) {
     this._links = this._g.selectAll('.link')
+    this._links
       .data(data.links)
       .enter()
       .append('line')
       .attr('class', 'link')
       .attr('x1', function(l) {
-        const sourceNode = data.nodes.filter(function(d, i) {
-          return i == l.source
-        })[0]
+        const sourceNode = data.nodes.filter(d => d.id == l.source)[0]
         d3.select(this).attr('y1', sourceNode.y)
         return sourceNode.x
       })
       .attr('x2', function(l) {
-        const targetNode = data.nodes.filter(function(d, i) {
-          return i == l.target
-        })[0]
+        const targetNode = data.nodes.filter(d => d.id == l.target)[0]
         d3.select(this).attr('y2', targetNode.y)
         return targetNode.x
       })
@@ -171,7 +181,8 @@ export default class D3Graph {
     const that = this
 
     this._drag = d3.drag()
-      .on('drag', function(d, i) {
+    this._drag
+      .on('drag', function(d) {
         d.x += d3.event.dx
         d.y += d3.event.dy
 
@@ -180,12 +191,11 @@ export default class D3Graph {
           .attr('cy', d.y)
 
         that._links.each(function(l) {
-          if (l.source == i)
+          if (l.source === d.id)
             d3.select(this)
               .attr('x1', d.x)
               .attr('y1', d.y)
-
-          else if (l.target == i)
+          else if (l.target === d.id)
             d3.select(this)
               .attr('x2', d.x)
               .attr('y2', d.y)
@@ -196,15 +206,17 @@ export default class D3Graph {
             'enableDrag called before this._nodeTextLabels has been initialized')
         else
           that._nodeTextLabels.each(function(n) {
-            if (n.nodeId == i)
+            if (n.id == d.id)
               d3.select(this)
                 .attr('x', d.x + that._LABEL_FONT_SIZE / 2)
                 .attr('y', d.y + 15)
           })
 
         that._nodes.each(function(n) {
-          if (n.nodeId == i)
-            d3.select(this).attr('cx', d.x).attr('cy', d.y)
+          if (n.id == d.id)
+            d3.select(this).select('circle')
+              .attr('cx', d.x)
+              .attr('cy', d.y)
         })
       })
   }
@@ -239,7 +251,7 @@ export default class D3Graph {
 
     const that = this
     d3.select('body')
-      .on('keydown', function() {
+      .on('keyup', function() {
         const {translation} = that._getGraphTranslationAndScale()
         let offsetRight = 0
         let offsetDown = 0
@@ -272,21 +284,14 @@ export default class D3Graph {
   }
 
   _enableNodeHighlightOnHover() {
-    const nodes = this._nodes.selectAll('circle')
-    nodes
-      .on('mouseenter', function(d) {
-        const fill = d3.select(this).attr('fill')
-        if (fill === d3.select(this).attr('fill_original'))
-          d3.select(this)
-            .attr('stroke', 'black')
-            .style('stroke-width', '2px')
+    this._nodes
+      .on('mouseover', function(d) {
+        d3.select(this)
+          .style('stroke-width', '2px')
       })
-      .on('mouseleave', function(d) {
-        const fill = d3.select(this).attr('fill_original')
-        if (fill !== d3.select(this).attr('fill_original'))
-          d3.select(this)
-            .attr('stroke', undefined)
-            .style('stroke-width', undefined)
+      .on('mouseout', function(d) {
+        d3.select(this)
+          .style('stroke-width', '1px')
       })
   }
 
