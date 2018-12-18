@@ -1,53 +1,56 @@
 /**
  * TODO
  * - Keep track of transformation to graph (translation and scale) when rerendering
+ * - Use correct D3 types instead of `any`
  */
 
 import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
 
 import {getLogger} from './logger'
+import {Dimensions, El, GraphData} from './types'
 
 const logger = getLogger('d3-graph')
 
 export default class D3Graph {
 
-  constructor() {
-    this._LABEL_FONT_SIZE = 8
-    this._TRANSITION_DURATION = 250
-    this._PAN_MOVEMENT_OFFSET = 50
+  private static readonly _LABEL_FONT_SIZE = 8
+  private static readonly _TRANSITION_DURATION = 250
+  private static readonly _PAN_MOVEMENT_OFFSET = 50
 
-    document.d3Initialized = false
-    this._width = null
-    this._height = null
-    this._host = null
-    this._svg = null
-    this._c10 = null
-    this._g = null
-    this._zoomHandler = null
+  private _width: number | null = null
+  private _height: number | null = null
+  private _host: El | null = null
+  private _svg: any | null = null
+  private _c10: any | null = null
+  private _g: any | null = null
+  private _zoomHandler: any| null = null
 
-    this._links = null
-    this._nodes = null
-    this._drag = null
-    this._nodeTextLabels = null
+  private _links: any | null = null
+  private _nodes: any | null = null
+  private _drag: any | null = null
+  private _nodeTextLabels: any| null = null
 
-    this._selectedNode = null
-    this._mouseDownNode = null
+  private _selectedNode: any | null = null
+  private _mouseDownNode: any | null = null
+
+  public constructor() {
+    (document as any).d3Initialized = false
   }
 
-  init(host, dimensions) {
+  public init(host: El, dimensions: Dimensions): void {
     if (host === null) {
       throw Error('Host not provided')
     }
 
-    if (document.d3Initialized
+    if ((document as any).d3Initialized
         && dimensions.height === this._height
         && dimensions.width === this._width) {
       logger.debug('Nothing changed, skipping init')
       return
     }
 
-    if (document.d3Initialized) {
+    if ((document as any).d3Initialized) {
       if (this._svg !== null) {
         logger.debug('Removing existing svg element')
         this._svg.remove()
@@ -57,8 +60,8 @@ export default class D3Graph {
       }
     }
 
+    (document as any).d3Initialized = true
     this._host = host
-    document.d3Initialized = true
 
     // Used for node coloring
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
@@ -86,7 +89,7 @@ export default class D3Graph {
    * @param {Object} callbacks Object containing callbacks
    * @return {undefined}
    */
-  render(data, callbacks = {}) {
+  public render(data: GraphData, callbacks: any = {}): void {
     if (data === null) {
       logger.log('No data for rendering')
       return
@@ -112,34 +115,34 @@ export default class D3Graph {
    * @param {Object} callbacks Object containing callbacks
    * @returns {undefined}
    */
-  _renderNodes(data, callbacks) {
+  private _renderNodes(data: GraphData, callbacks: any): void {
     const nodes = this._g.selectAll('.node')
       .data(data.nodes)
       .enter()
       .append('g')
       .attr('class', 'node')
-      .on('click', ev =>
+      .on('click', (ev: Event) =>
         callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-      .on('dblclick', ev =>
+      .on('dblclick', (ev: Event) =>
         callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
 
     nodes
       .append('circle')
-      .attr('cx', d => d.x)
-      .attr('cy', d => d.y)
+      .attr('cx', (d: any) => d.x)
+      .attr('cy', (d: any) => d.y)
       .attr('r', 10)
-      .attr('fill', (d, i) => d.color)
-      .attr('fill_original', (d, i) => d.color)
+      .attr('fill', (d: any) => d.color)
+      .attr('fill_original', (d: any) => d.color)
       .attr('stroke', 'black')
       .call(this._drag)
       .on('dblclick.zoom', null)
 
     nodes
       .append('text')
-      .text(d => d.name)
-      .attr('x', d => d.x + this._LABEL_FONT_SIZE / 2)
-      .attr('y', d => d.y + 15)
-      .attr('font-size', this._LABEL_FONT_SIZE)
+      .text((d: any) => d.name)
+      .attr('x', (d: any) => d.x + D3Graph._LABEL_FONT_SIZE / 2)
+      .attr('y', (d: any) => d.y + 15)
+      .attr('font-size', D3Graph._LABEL_FONT_SIZE)
       .attr('fill', 'black')
       .call(this._drag)
 
@@ -152,21 +155,21 @@ export default class D3Graph {
    * @param {Object} data Object containing nodes and links
    * @returns {undefined}
    */
-  _renderLinks(data) {
+  private _renderLinks(data: GraphData): void {
     this._links = this._g.selectAll('.link')
     this._links
       .data(data.links)
       .enter()
       .append('line')
       .attr('class', 'link')
-      .attr('x1', function(l) {
-        const sourceNode = data.nodes.filter(d => d.id == l.source)[0]
-        d3.select(this).attr('y1', sourceNode.y)
+      .attr('x1', (l: any, i: number, refs: any[]) => {
+        const sourceNode = data.nodes.filter((d: any) => d.id == l.source)[0]
+        d3.select(refs[i]).attr('y1', sourceNode.y)
         return sourceNode.x
       })
-      .attr('x2', function(l) {
-        const targetNode = data.nodes.filter(d => d.id == l.target)[0]
-        d3.select(this).attr('y2', targetNode.y)
+      .attr('x2', (l: any, i: number, refs: any[]) => {
+        const targetNode = data.nodes.filter((d: any) => d.id == l.target)[0]
+        d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
       })
       .attr('fill', 'none')
@@ -177,44 +180,42 @@ export default class D3Graph {
    * @private
    * @returns {undefined}
    */
-  _enableDrag() {
-    const that = this
-
+  private _enableDrag(): void {
     this._drag = d3.drag()
     this._drag
-      .on('drag', function(d) {
+      .on('drag', (d: any, i: number, refs: any[]) => {
         d.x += d3.event.dx
         d.y += d3.event.dy
 
-        d3.select(this)
+        d3.select(refs[i])
           .attr('cx', d.x)
           .attr('cy', d.y)
 
-        that._links.each(function(l) {
+        this._links.each((l: any, i: number, refs: any[]) => {
           if (l.source === d.id)
-            d3.select(this)
+            d3.select(refs[i])
               .attr('x1', d.x)
               .attr('y1', d.y)
           else if (l.target === d.id)
-            d3.select(this)
+            d3.select(refs[i])
               .attr('x2', d.x)
               .attr('y2', d.y)
         })
 
-        if (that._nodeTextLabels === null)
+        if (this._nodeTextLabels === null)
           logger.warn(
             'enableDrag called before this._nodeTextLabels has been initialized')
         else
-          that._nodeTextLabels.each(function(n) {
+          this._nodeTextLabels.each((n: any, i: number, refs: any[]) => {
             if (n.id == d.id)
-              d3.select(this)
-                .attr('x', d.x + that._LABEL_FONT_SIZE / 2)
+              d3.select(refs[i])
+                .attr('x', d.x + D3Graph._LABEL_FONT_SIZE / 2)
                 .attr('y', d.y + 15)
           })
 
-        that._nodes.each(function(n) {
+        this._nodes.each((n: any, i: number, refs: any[]) => {
           if (n.id == d.id)
-            d3.select(this).select('circle')
+            d3.select(refs[i]).select('circle')
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
@@ -225,23 +226,22 @@ export default class D3Graph {
    * @private
    * @return {undefined}
    */
-  _enableClickToCenter() {
-    const that = this
-    this._nodes.on('click', function(d) {
-      const {translation, scale} = that._getGraphTranslationAndScale()
+  private _enableClickToCenter(): void {
+    this._nodes.on('click', (d: any) => {
+      const {translation, scale} = this._getGraphTranslationAndScale()
       const x = translation[0] - d.x
       const y = translation[1] - d.y
-      that._g
+      this._g
         .transition()
-        .duration(that._TRANSITION_DURATION)
+        .duration(D3Graph._TRANSITION_DURATION)
         .call(
-          that._zoomHandler.transform,
+          this._zoomHandler.transform,
           d3.zoomIdentity.translate(x, y).scale(scale)
         )
     })
   }
 
-  _enableKeyboardPanning() {
+  private _enableKeyboardPanning(): void {
     const keymap = {
       LEFT: 37,
       UP: 38,
@@ -249,48 +249,47 @@ export default class D3Graph {
       DOWN: 40,
     }
 
-    const that = this
     d3.select('body')
-      .on('keyup', function() {
-        const {translation} = that._getGraphTranslationAndScale()
+      .on('keyup', () => {
+        const {translation} = this._getGraphTranslationAndScale()
         let offsetRight = 0
         let offsetDown = 0
 
         switch (d3.event.keyCode) {
           case keymap.UP:
-            offsetDown = translation[1] - that._PAN_MOVEMENT_OFFSET
+            offsetDown = translation[1] - D3Graph._PAN_MOVEMENT_OFFSET
             break
           case keymap.DOWN:
-            offsetDown = translation[1] + that._PAN_MOVEMENT_OFFSET
+            offsetDown = translation[1] + D3Graph._PAN_MOVEMENT_OFFSET
             break
           case keymap.LEFT:
-            offsetRight = translation[0] - that._PAN_MOVEMENT_OFFSET
+            offsetRight = translation[0] - D3Graph._PAN_MOVEMENT_OFFSET
             break
           case keymap.RIGHT:
-            offsetRight = translation[0] + that._PAN_MOVEMENT_OFFSET
+            offsetRight = translation[0] + D3Graph._PAN_MOVEMENT_OFFSET
             break
           default:
             break
         }
 
-        that._g
+        this._g
           .transition()
-          .duration(that._TRANSITION_DURATION)
+          .duration(D3Graph._TRANSITION_DURATION)
           .call(
-            that._zoomHandler.transform,
+            this._zoomHandler.transform,
             d3.zoomIdentity.translate(offsetRight, offsetDown)
           )
       })
   }
 
-  _enableNodeHighlightOnHover() {
+  private _enableNodeHighlightOnHover(): void {
     this._nodes
-      .on('mouseover', function(d) {
-        d3.select(this)
+      .on('mouseover', (d: any, i: number, refs: any[]) => {
+        d3.select(refs[i])
           .style('stroke-width', '2px')
       })
-      .on('mouseout', function(d) {
-        d3.select(this)
+      .on('mouseout', (d: any, i: number, refs: any[]) => {
+        d3.select(refs[i])
           .style('stroke-width', '1px')
       })
   }
@@ -299,14 +298,15 @@ export default class D3Graph {
    * @private
    * @returns {undefined}
    */
-  _disableDoubleClickZoom() {
+  private _disableDoubleClickZoom(): void {
     this._svg.on('dblclick.zoom', null)
   }
 
   /**
+   * @private
    * @return {{array, number}} A tuple of the x, y translation and the zoom scale
    */
-  _getGraphTranslationAndScale() {
+  private _getGraphTranslationAndScale(): {translation: number[], scale: number} {
     const transformRaw = this._g.attr('transform')
     if (transformRaw === null) return {translation: [0, 0], scale: 1}
     const [translationRaw, scaleRaw] = transformRaw.split(' ')

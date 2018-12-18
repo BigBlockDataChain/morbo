@@ -6,12 +6,14 @@ import GraphView from './graph-view-component'
 import EditorView from './editor-component'
 import {getLogger} from './logger'
 import {loadGraphData} from './graph-data'
+import Empty from './widgets/empty'
+import {Actions, El, Dimensions, GraphNode, State} from './types'
 
 const logger = getLogger('main')
 
 const allGraphData = loadGraphData()
 
-const initialState = {
+const initialState: State = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
@@ -20,8 +22,8 @@ const initialState = {
   graphData: null,
 }
 
-const appActions = {
-  oncreate: el => (state, actions) => {
+const appActions: Actions = {
+  oncreate: (el: El) => (state: State, actions: Actions) => {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
@@ -33,7 +35,7 @@ const appActions = {
     }
   },
 
-  onWindowResize: ({height, width}) => () => {
+  onWindowResize: ({height, width}: Dimensions) => () => {
     return {
       screenHeight: height,
       screenWidth: width,
@@ -44,7 +46,7 @@ const appActions = {
     logger.log('graph view reset')
   },
 
-  onGraphClick: ev => () => {
+  onGraphClick: (ev: Event) => () => {
     logger.log('graph clicked', ev)
     const selectedNode = ev
     return {
@@ -52,7 +54,7 @@ const appActions = {
     }
   },
 
-  onGraphDblClick: ev => () => {
+  onGraphDblClick: (ev: Event) => () => {
     logger.log('graph double clicked', ev)
 
     const selectedNode = ev
@@ -63,14 +65,14 @@ const appActions = {
   },
 
   // TODO Causes unecessary D3 rendering calls. Need to decouple node data from nodes
-  onEditorInput: content => state => {
+  onEditorInput: (content: string) => (state: State) => {
     if (state.selectedNode === null) {
       logger.warn('Trying to set content, but no node is selected')
       return
     }
 
     const selectedNodeIndex = state.graphData.nodes
-      .findIndex(n => n.name === state.selectedNode.name)
+      .findIndex((n: GraphNode) => n.name === state.selectedNode.name)
     if (selectedNodeIndex === -1) {
       logger.warn('Could not find selected node in list of all node')
       return
@@ -101,11 +103,11 @@ const appActions = {
   },
 }
 
-function view(state, actions) {
+function view(state: State, actions: Actions) {
   return html.div(
     {
       id: 'app',
-      oncreate: el => actions.oncreate(el),
+      oncreate: (el: El) => actions.oncreate(el),
     },
     [
       GraphView(
@@ -120,12 +122,12 @@ function view(state, actions) {
           actions.onEditorInput,
           actions.onEditorClose,
         )
-        : null,
+        : Empty(),
     ]
   )
 }
 
-function registerEventHandlers(el, actions) {
+function registerEventHandlers(el: El, actions: Actions) {
   window.addEventListener('resize', () => {
     actions.onWindowResize({height: el.offsetHeight, width: el.offsetWidth})
   })

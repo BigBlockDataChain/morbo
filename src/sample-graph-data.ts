@@ -1,4 +1,6 @@
-export const defaultNodes = [
+import {GraphNodeId, GraphNode, GraphLink} from './types'
+
+export const defaultNodes: GraphNode[] = [
   graphNode(0, 'node-0', 100, 100, 'red'),
   graphNode(1, 'node-1', 200, 100, 'green'),
   graphNode(2, 'node-2', 200, 200, 'blue'),
@@ -8,7 +10,7 @@ export const defaultNodes = [
   graphNode(211, 'node-221', 400, 300, 'blue'),
 ]
 
-export const defaultLinks = [
+export const defaultLinks: GraphLink[] = [
   {source: 1, target: 2},
   {source: 2, target: 0},
   {source: 2, target: 20},
@@ -17,7 +19,13 @@ export const defaultLinks = [
   {source: 21, target: 211},
 ]
 
-function graphNode(id, name, x, y, color) {
+function graphNode(
+  id: GraphNodeId,
+  name: string,
+  x: number,
+  y: number,
+  color: string
+): GraphNode {
   return {
     id,
     name,
