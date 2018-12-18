@@ -14,9 +14,9 @@ If using NPM, `npm i`.
 If using Yarn, `yarn`.
 
 ### Starting development server
-First start up the TypeScript compiler with `npm run tsc`. Then start the development
-server with `npm run serve`. Then open `localhost:1234` in a browser (Chrome or Firefox
-should be well supported, while others are untested)
+First start up the TypeScript compiler with `npm run tsc`. Then in another shell start the
+development server with `npm run serve`. Then open `localhost:1234` in a browser (Chrome
+or Firefox should be well supported, while others are untested)
 
 ### Linting
 To check for link errors, run `npm run lint` or `yarn lint`.
