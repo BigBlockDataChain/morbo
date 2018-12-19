@@ -1,11 +1,16 @@
 @import 'normalize.css/normalize.css';
 
+* {
+  box-sizing: border-box;
+}
+
 html, body {
   height: 100%;
   width: 100%;
   font-family: helvetica, arial, sans;
   overflow-y: hidden;
   padding: 4px;
+  margin: 0;
   box-sizing: border-box;
   background: #eee;
 }
