@@ -8,6 +8,7 @@ import {getLogger} from './logger'
 import {loadGraphData} from './graph-data'
 import Empty from './widgets/empty'
 import {Actions, El, Dimensions, GraphNode, State} from './types'
+import './foo'
 
 const logger = getLogger('main')
 

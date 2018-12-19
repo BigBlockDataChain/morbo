@@ -2,11 +2,12 @@
   "name": "morbo",
   "version": "0.0.0",
   "description": "",
-  "main": "src/index.ts",
+  "main": "main.js",
   "scripts": {
     "lint": "eslint ./src/*.js",
     "lint-fix": "eslint --fix ./src/*.js",
-    "serve": "parcel index.html",
+    "serve": "parcel serve --target electron -o dist/bundle.js src-js/app.js",
+    "start": "electron .",
     "tsc": "tsc -w"
   },
   "keywords": [],
@@ -17,6 +18,7 @@
     "@types/d3": "^5.0.1",
     "@types/d3-zoom": "^1.7.3",
     "d3": "^5.7.0",
+    "electron": "^3.0.13",
     "hyperapp": "^1.2.9",
     "hyperapp-redux-devtools": "^1.1.6",
     "normalize.css": "^8.0.1",
