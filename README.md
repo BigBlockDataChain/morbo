@@ -15,8 +15,7 @@ If using Yarn, `yarn`.
 
 ### Starting development server
 First start up the TypeScript compiler with `npm run tsc`. Then in another shell start the
-development server with `npm run serve`. Then open `localhost:1234` in a browser (Chrome
-or Firefox should be well supported, while others are untested)
+development server with `npm run serve`. Then start electron using `npm run start`.
 
 ### Linting
 To check for link errors, run `npm run lint` or `yarn lint`.
