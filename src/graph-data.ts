@@ -1,6 +1,6 @@
-import {defaultNodes, defaultLinks} from './sample-graph-data'
-import {GraphData} from './types'
+import {defaultLinks, defaultNodes} from './sample-graph-data'
+import {IGraphData} from './types'
 
-export function loadGraphData(): GraphData {
+export function loadGraphData(): IGraphData {
   return {nodes: defaultNodes, links: defaultLinks}
 }

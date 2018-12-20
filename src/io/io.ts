@@ -2,7 +2,11 @@ import {
   GraphNodeId,
   NoteDataType,
 } from '../types'
-import {readFile, writeFile, getFileExtensionFromNoteDataType} from './io-utils'
+import {
+  getFileExtensionFromNoteDataType,
+  readFile,
+  writeFile,
+} from './io-utils'
 
 // export function loadIndex(): Promise<GraphIndex> {
 //   const filePath = './index'
@@ -32,4 +36,3 @@ export function writeNote(id: GraphNodeId, data: NoteDataType): Promise<void> {
   //   write binary data
   return Promise.reject()
 }
-

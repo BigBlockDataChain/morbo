@@ -1,19 +1,10 @@
 import {remote} from 'electron'
 
-console.log(remote)
-
 import {
-  GraphNodeId,
   NoteDataType,
-  GraphNodeIndex,
-  GraphIndex,
-  GraphMetadata,
-  GraphMetadatum,
 } from '../types'
 
 const fs = remote.require('fs')
-
-console.log(remote.require('fuzz'))
 
 /**
  * @param {string} path Path to file

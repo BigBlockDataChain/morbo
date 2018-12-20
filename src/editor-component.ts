@@ -2,7 +2,11 @@ import * as html from '@hyperapp/html'
 
 import {El} from './types'
 
-export default function(content: string, oninput: Function, onClose: Function) {
+export default function(
+  content: string,
+  oninput: (arg: string) => any,
+  onClose: () => any,
+) {
   return html.div(
     {
       id: 'editor-container',
@@ -13,7 +17,7 @@ export default function(content: string, oninput: Function, onClose: Function) {
           id: 'editor-close',
           onclick: (ev: Event) => onClose(),
         },
-        'x'
+        'x',
       ),
       html.textarea(
         {
@@ -22,8 +26,8 @@ export default function(content: string, oninput: Function, onClose: Function) {
             oninput((ev.target as HTMLTextAreaElement).value)
           },
           value: content,
-        }
+        },
       ),
-    ]
+    ],
   )
 }

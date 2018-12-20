@@ -8,7 +8,7 @@ import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
 
 import {getLogger} from './logger'
-import {Dimensions, El, GraphData} from './types'
+import {El, IDimensions, IGraphData} from './types'
 
 const logger = getLogger('d3-graph')
 
@@ -38,11 +38,7 @@ export default class D3Graph {
     (document as any).d3Initialized = false
   }
 
-  public init(host: El, dimensions: Dimensions): void {
-    if (host === null) {
-      throw Error('Host not provided')
-    }
-
+  public init(host: El, dimensions: IDimensions): void {
     if ((document as any).d3Initialized
         && dimensions.height === this._height
         && dimensions.width === this._width) {
@@ -50,7 +46,7 @@ export default class D3Graph {
       return
     }
 
-    if ((document as any).d3Initialized) {
+    if ((document as any).d3Initialized)
       if (this._svg !== null) {
         logger.debug('Removing existing svg element')
         this._svg.remove()
@@ -58,7 +54,6 @@ export default class D3Graph {
       } else {
         logger.debug('Can not remove svg, it has not been set')
       }
-    }
 
     (document as any).d3Initialized = true
     this._host = host
@@ -89,7 +84,7 @@ export default class D3Graph {
    * @param {Object} callbacks Object containing callbacks
    * @return {undefined}
    */
-  public render(data: GraphData, callbacks: any = {}): void {
+  public render(data: IGraphData, callbacks: any = {}): void {
     if (data === null) {
       logger.log('No data for rendering')
       return
@@ -115,7 +110,7 @@ export default class D3Graph {
    * @param {Object} callbacks Object containing callbacks
    * @returns {undefined}
    */
-  private _renderNodes(data: GraphData, callbacks: any): void {
+  private _renderNodes(data: IGraphData, callbacks: any): void {
     const nodes = this._g.selectAll('.node')
       .data(data.nodes)
       .enter()
@@ -155,7 +150,7 @@ export default class D3Graph {
    * @param {Object} data Object containing nodes and links
    * @returns {undefined}
    */
-  private _renderLinks(data: GraphData): void {
+  private _renderLinks(data: IGraphData): void {
     this._links = this._g.selectAll('.link')
     this._links
       .data(data.links)
@@ -163,12 +158,12 @@ export default class D3Graph {
       .append('line')
       .attr('class', 'link')
       .attr('x1', (l: any, i: number, refs: any[]) => {
-        const sourceNode = data.nodes.filter((d: any) => d.id == l.source)[0]
+        const sourceNode = data.nodes.filter((d: any) => d.id === l.source)[0]
         d3.select(refs[i]).attr('y1', sourceNode.y)
         return sourceNode.x
       })
       .attr('x2', (l: any, i: number, refs: any[]) => {
-        const targetNode = data.nodes.filter((d: any) => d.id == l.target)[0]
+        const targetNode = data.nodes.filter((d: any) => d.id === l.target)[0]
         d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
       })
@@ -191,13 +186,13 @@ export default class D3Graph {
           .attr('cx', d.x)
           .attr('cy', d.y)
 
-        this._links.each((l: any, i: number, refs: any[]) => {
+        this._links.each((l: any, i_: number, refs_: any[]) => {
           if (l.source === d.id)
-            d3.select(refs[i])
+            d3.select(refs_[i_])
               .attr('x1', d.x)
               .attr('y1', d.y)
           else if (l.target === d.id)
-            d3.select(refs[i])
+            d3.select(refs_[i_])
               .attr('x2', d.x)
               .attr('y2', d.y)
         })
@@ -206,16 +201,16 @@ export default class D3Graph {
           logger.warn(
             'enableDrag called before this._nodeTextLabels has been initialized')
         else
-          this._nodeTextLabels.each((n: any, i: number, refs: any[]) => {
-            if (n.id == d.id)
-              d3.select(refs[i])
+          this._nodeTextLabels.each((n: any, i_: number, refs_: any[]) => {
+            if (n.id === d.id)
+              d3.select(refs_[i_])
                 .attr('x', d.x + D3Graph._LABEL_FONT_SIZE / 2)
                 .attr('y', d.y + 15)
           })
 
-        this._nodes.each((n: any, i: number, refs: any[]) => {
-          if (n.id == d.id)
-            d3.select(refs[i]).select('circle')
+        this._nodes.each((n: any, i_: number, refs_: any[]) => {
+          if (n.id === d.id)
+            d3.select(refs_[i_]).select('circle')
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
@@ -236,7 +231,7 @@ export default class D3Graph {
         .duration(D3Graph._TRANSITION_DURATION)
         .call(
           this._zoomHandler.transform,
-          d3.zoomIdentity.translate(x, y).scale(scale)
+          d3.zoomIdentity.translate(x, y).scale(scale),
         )
     })
   }
@@ -277,7 +272,7 @@ export default class D3Graph {
           .duration(D3Graph._TRANSITION_DURATION)
           .call(
             this._zoomHandler.transform,
-            d3.zoomIdentity.translate(offsetRight, offsetDown)
+            d3.zoomIdentity.translate(offsetRight, offsetDown),
           )
       })
   }

@@ -1,9 +1,7 @@
 import * as electron from 'electron'
-console.log(electron)
-electron.remote.require = (name: string) => name + ' pandas'
 
-import {getFileExtensionFromNoteDataType} from './io-utils'
 import {NoteDataType} from '../types'
+import {getFileExtensionFromNoteDataType} from './io-utils'
 
 describe('getFileExtensionFromNoteDataType', () => {
   test('get text extension for text note data type', () => {

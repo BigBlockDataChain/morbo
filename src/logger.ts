@@ -1,24 +1,24 @@
 import {VoidFunction} from './types'
 
-export interface Logger {
+export interface ILogger {
   debug: VoidFunction,
   log: VoidFunction,
   warn: VoidFunction,
   error: VoidFunction,
 }
 
-export function getLogger(name: string): Logger {
+export function getLogger(name: string): ILogger {
   function log(levelLogger: any, level: _LoggerLevel, ...args: any[]) {
     levelLogger(`${level} ${name}:`, ...args)
   }
 
   return {
-    /* eslint-disable no-console */
+    /* tslint:disable: no-console */
     debug: (...args: any[]) => log(console.debug, _LoggerLevel.DEBUG, ...args),
     log: (...args: any[]) => log(console.log, _LoggerLevel.LOG, ...args),
     warn: (...args: any[]) => log(console.warn, _LoggerLevel.WARN, ...args),
     error: (...args: any[]) => log(console.error, _LoggerLevel.ERROR, ...args),
-    /* eslint-enable no-console */
+    /* tslint:enable: no-console */
   }
 }
 
@@ -28,4 +28,3 @@ enum _LoggerLevel {
   WARN = 'WARN',
   ERROR = 'ERROR',
 }
-

@@ -1,6 +1,6 @@
-import {GraphNodeId, GraphNode, GraphLink} from './types'
+import {GraphNodeId, IGraphLink, IGraphNode} from './types'
 
-export const defaultNodes: GraphNode[] = [
+export const defaultNodes: IGraphNode[] = [
   graphNode(0, 'node-0', 100, 100, 'red'),
   graphNode(1, 'node-1', 200, 100, 'green'),
   graphNode(2, 'node-2', 200, 200, 'blue'),
@@ -10,7 +10,7 @@ export const defaultNodes: GraphNode[] = [
   graphNode(211, 'node-221', 400, 300, 'blue'),
 ]
 
-export const defaultLinks: GraphLink[] = [
+export const defaultLinks: IGraphLink[] = [
   {source: 1, target: 2},
   {source: 2, target: 0},
   {source: 2, target: 20},
@@ -24,8 +24,8 @@ function graphNode(
   name: string,
   x: number,
   y: number,
-  color: string
-): GraphNode {
+  color: string,
+): IGraphNode {
   return {
     id,
     name,

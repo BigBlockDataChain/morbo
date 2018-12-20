@@ -2,18 +2,18 @@ import * as html from '@hyperapp/html'
 import {app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
 
-import GraphView from './graph-view-component'
 import EditorView from './editor-component'
-import {getLogger} from './logger'
 import {loadGraphData} from './graph-data'
+import GraphView from './graph-view-component'
+import {getLogger} from './logger'
+import {El, IActions, IDimensions, IGraphNode, IState} from './types'
 import Empty from './widgets/empty'
-import {Actions, El, Dimensions, GraphNode, State} from './types'
 
 const logger = getLogger('main')
 
 const allGraphData = loadGraphData()
 
-const initialState: State = {
+const initialState: IState = {
   screenHeight: 0,
   screenWidth: 0,
   showEditor: false,
@@ -22,8 +22,8 @@ const initialState: State = {
   graphData: null,
 }
 
-const appActions: Actions = {
-  oncreate: (el: El) => (state: State, actions: Actions) => {
+const appActions: IActions = {
+  oncreate: (el: El) => (state: IState, actions: IActions) => {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
@@ -35,7 +35,7 @@ const appActions: Actions = {
     }
   },
 
-  onWindowResize: ({height, width}: Dimensions) => () => {
+  onWindowResize: ({height, width}: IDimensions) => () => {
     return {
       screenHeight: height,
       screenWidth: width,
@@ -65,14 +65,14 @@ const appActions: Actions = {
   },
 
   // TODO Causes unecessary D3 rendering calls. Need to decouple node data from nodes
-  onEditorInput: (content: string) => (state: State) => {
+  onEditorInput: (content: string) => (state: IState) => {
     if (state.selectedNode === null) {
       logger.warn('Trying to set content, but no node is selected')
       return
     }
 
     const selectedNodeIndex = state.graphData.nodes
-      .findIndex((n: GraphNode) => n.name === state.selectedNode.name)
+      .findIndex((n: IGraphNode) => n.name === state.selectedNode.name)
     if (selectedNodeIndex === -1) {
       logger.warn('Could not find selected node in list of all node')
       return
@@ -103,7 +103,7 @@ const appActions: Actions = {
   },
 }
 
-function view(state: State, actions: Actions) {
+function view(state: IState, actions: IActions) {
   return html.div(
     {
       id: 'app',
@@ -114,7 +114,7 @@ function view(state: State, actions: Actions) {
         {height: state.screenHeight, width: state.screenWidth},
         actions.onGraphReset,
         {onclick: actions.onGraphClick, ondblclick: actions.onGraphDblClick},
-        state.graphData
+        state.graphData,
       ),
       state.showEditor && state.selectedNode !== null
         ? EditorView(
@@ -123,15 +123,19 @@ function view(state: State, actions: Actions) {
           actions.onEditorClose,
         )
         : Empty(),
-    ]
+    ],
   )
 }
 
-function registerEventHandlers(el: El, actions: Actions) {
+function registerEventHandlers(el: El, actions: IActions) {
   window.addEventListener('resize', () => {
     actions.onWindowResize({height: el.offsetHeight, width: el.offsetWidth})
   })
 }
 
 const app = devtools(hyperapp)(
-  initialState, appActions, view, document.querySelector('#root'))
+  initialState,
+  appActions,
+  view,
+  document.querySelector('#root'),
+)

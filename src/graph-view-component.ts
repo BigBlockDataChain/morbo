@@ -2,18 +2,18 @@ import * as html from '@hyperapp/html'
 
 import D3Graph from './d3-graph'
 import {getLogger} from './logger'
+import {El, IDimensions, IGraphData} from './types'
 import homeIcon from './widgets/home-icon'
-import {Dimensions, El, GraphData} from './types'
 
 const logger = getLogger('graph-view-component')
 
 const d3Graph = new D3Graph()
 
 export default function(
-  dimensions: Dimensions,
-  onHomeClick: Function,
+  dimensions: IDimensions,
+  onHomeClick: () => any,
   callbacks: any,
-  graphData: any
+  graphData: any,
 ) {
   return html.div(
     {
@@ -30,7 +30,7 @@ export default function(
   )
 }
 
-function d3Container(dimensions: Dimensions, callbacks: any, graphData: GraphData) {
+function d3Container(dimensions: IDimensions, callbacks: any, graphData: IGraphData) {
   return html.div(
     {
       id: 'd3-container',
@@ -43,15 +43,15 @@ function d3Container(dimensions: Dimensions, callbacks: any, graphData: GraphDat
         d3Graph.render(graphData, callbacks)
       },
       onupdate: (el: El, prevAttrs: any) => {
-        if (dimensions != prevAttrs.dimensions)
+        if (dimensions !== prevAttrs.dimensions)
           d3Graph.init(el, {height: dimensions.height, width: dimensions.width})
 
-        if (callbacks != prevAttrs.callbacks)
+        if (callbacks !== prevAttrs.callbacks)
           d3Graph.render(graphData, callbacks)
 
-        if (graphData != prevAttrs.graphData)
+        if (graphData !== prevAttrs.graphData)
           d3Graph.render(graphData, callbacks)
       },
-    }
+    },
   )
 }

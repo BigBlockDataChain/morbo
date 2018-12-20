@@ -1,26 +1,26 @@
 export type El = HTMLElement
 
-export interface State {
+export interface IState {
   [prop: string]: any,
 }
 
-export interface Actions {
+export interface IActions {
   [action: string]: any,
 }
 
-export interface GraphData {
-  links: GraphLink[],
-  nodes: GraphNode[],
+export interface IGraphData {
+  links: IGraphLink[],
+  nodes: IGraphNode[],
 }
 
-export type GraphNodeId = Number
+export type GraphNodeId = number
 
 export enum NoteDataType {
   TEXT = 'text',
   HANDWRITING = 'handwriting',
 }
 
-export interface GraphNode {
+export interface IGraphNode {
   id: GraphNodeId,
   name: string,
   x: number,
@@ -28,7 +28,7 @@ export interface GraphNode {
   color: string,
 }
 
-export interface GraphLink {
+export interface IGraphLink {
   source: GraphNodeId,
   target: GraphNodeId,
 }
@@ -37,16 +37,16 @@ export type GraphIndex = GraphNodeIndex[]
 
 export type GraphNodeIndex = GraphNodeId[]
 
-export type GraphMetadata = GraphMetadatum[]
+export type GraphMetadata = IGraphMetadatum[]
 
-export interface GraphMetadatum {
+export interface IGraphMetadatum {
   title: string,
   lastModified: string,
   created: string,
   tags: string[]
 }
 
-export interface Dimensions {
+export interface IDimensions {
   height: number,
   width: number,
 }
