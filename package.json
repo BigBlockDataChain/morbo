@@ -35,8 +35,7 @@
     "typescript": "^3.2.2"
   },
   "browserslist": [
-    "Firefox > 62",
-    "Chrome > 70"
+    "Chrome >= 66"
   ],
   "jest": {
     "moduleFileExtensions": [
