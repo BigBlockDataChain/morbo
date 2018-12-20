@@ -13,7 +13,12 @@ export interface GraphData {
   nodes: GraphNode[],
 }
 
-export type GraphNodeId = number
+export type GraphNodeId = Number
+
+export enum NoteDataType {
+  TEXT = 'text',
+  HANDWRITING = 'handwriting',
+}
 
 export interface GraphNode {
   id: GraphNodeId,
@@ -26,6 +31,19 @@ export interface GraphNode {
 export interface GraphLink {
   source: GraphNodeId,
   target: GraphNodeId,
+}
+
+export type GraphIndex = GraphNodeIndex[]
+
+export type GraphNodeIndex = GraphNodeId[]
+
+export type GraphMetadata = GraphMetadatum[]
+
+export interface GraphMetadatum {
+  title: string,
+  lastModified: string,
+  created: string,
+  tags: string[]
 }
 
 export interface Dimensions {
