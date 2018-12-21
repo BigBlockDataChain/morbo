@@ -2,6 +2,7 @@ const readFileMock = jest.fn()
 const writeFileMock = jest.fn()
 
 import * as electron from 'electron'
+// tslint:disable-next-line
 const remoteSpy = setupElectronRemoteSpy()
 
 import {readFile, writeFile} from './io-utils'

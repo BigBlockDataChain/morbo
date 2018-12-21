@@ -8,7 +8,6 @@ import GraphView from './components/graph-view-component'
 import {GraphAction} from './components/graph/types'
 import Empty from './components/widgets/empty'
 import {loadGraphData} from './graph-data'
-import * as io from './io/io'
 import {getLogger} from './logger'
 import {
   El,
@@ -16,7 +15,6 @@ import {
   IDimensions,
   IGraphNode,
   IState,
-  NoteDataType,
 } from './types'
 
 const logger = getLogger('main')
@@ -149,6 +147,7 @@ function registerEventHandlers(el: El, actions: IActions) {
   })
 }
 
+// tslint:disable-next-line
 const app = devtools(hyperapp)(
   initialState,
   appActions,

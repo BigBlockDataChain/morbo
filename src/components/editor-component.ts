@@ -1,7 +1,5 @@
 import * as html from '@hyperapp/html'
 
-import {El} from '../types'
-
 export default function(
   content: string,
   oninput: (arg: string) => any,

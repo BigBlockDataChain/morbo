@@ -1,13 +1,10 @@
 import * as html from '@hyperapp/html'
 import {Subject} from 'rxjs'
 
-import {getLogger} from '../logger'
 import {El, IDimensions, IGraphData} from '../types'
 import GraphComponent from './graph/graph'
 import {GraphAction} from './graph/types'
 import homeIcon from './widgets/home-icon'
-
-const logger = getLogger('graph-view-component')
 
 const graphComponent = new GraphComponent()
 
