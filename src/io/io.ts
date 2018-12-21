@@ -1,38 +1,56 @@
+import {homedir} from 'os'
+import {join} from 'path'
+
 import {
   GraphNodeId,
+  IGraphIndex,
+  IGraphMetadata,
   NoteDataType,
 } from '../types'
 import {
-  getFileExtensionFromNoteDataType,
   readFile,
   writeFile,
 } from './io-utils'
+import {
+  getFileExtensionFromNoteDataType,
+} from './utils'
 
-// export function loadIndex(): Promise<GraphIndex> {
-//   const filePath = './index'
-//   return readFile(filePath)
-// }
+const BASE_DIR = process.env.MORBO_HOME || join(homedir(), 'morbo')
 
-// export function loadMetadata(): Promise<GraphMetadata> {
-//
-// }
+const INDEX_PATH = join(BASE_DIR, 'index')
+const METADATA_PATH = join(BASE_DIR, 'metadata')
+
+export async function loadIndex(): Promise<IGraphIndex> {
+  const raw = await readFile(INDEX_PATH)
+  return JSON.parse(raw) as IGraphIndex
+}
+
+export function writeIndex(index: IGraphIndex): Promise<void> {
+  return writeFile(INDEX_PATH, JSON.stringify(index))
+}
+
+export async function loadMetadata(): Promise<IGraphMetadata> {
+  const raw = await readFile(METADATA_PATH)
+  return JSON.parse(raw) as IGraphMetadata
+}
+
+export function writeMetadata(metadata: IGraphMetadata): Promise<void> {
+  return writeFile(METADATA_PATH, JSON.stringify(metadata))
+}
 
 export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<string> {
-  const notePath = `./file${id}.${getFileExtensionFromNoteDataType(dataType)}`
+  const ext = getFileExtensionFromNoteDataType(dataType)
+  const notePath = join(BASE_DIR, `file${id}.${ext}`)
   return readFile(notePath)
 }
 
-/**
- * @param {GraphNodeId} id Id of note
- * @param {NoteDataType} data Data to write
- * @returns {Promise<void>} Either resolves or rejects promise with data or error based on
- *   success of write operation
- */
-export function writeNote(id: GraphNodeId, data: NoteDataType): Promise<void> {
-  // TODO
-  // if type of TextNodeData
-  //   return writeFile
-  // else
-  //   write binary data
-  return Promise.reject()
+export function writeNote(
+  id: GraphNodeId,
+  dataType: NoteDataType,
+  data: any,
+): Promise<void> {
+  // FIXME data type annotation
+  const ext = getFileExtensionFromNoteDataType(dataType)
+  const notePath = join(BASE_DIR, `file${id}.${ext}`)
+  return writeFile(notePath, data)
 }

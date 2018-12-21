@@ -1,15 +1,10 @@
 import {remote} from 'electron'
 
-import {
-  NoteDataType,
-} from '../types'
-
 const fs = remote.require('fs')
 
 /**
- * @param {string} path Path to file
- * @returns {Promise<void>} Either resolves or rejects promise with data or error based on
- *   success of read operation
+ * @returns Either resolves or rejects promise with data or error based on
+ * success of read operation
  */
 export function readFile(path: string): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -21,27 +16,14 @@ export function readFile(path: string): Promise<string> {
 }
 
 /**
- * @param {string} path Path to file
- * @param {string | number} data Data to write
- * @returns {Promise<void>} Either resolves or rejects promise with void or error based on
- *   success of write operation
+ * @returns Either resolves or rejects promise with void or error based on
+ * success of write operation
  */
-export function writeFile(path: string, data: string | number): Promise<void> {
+export function writeFile(path: string, data: string): Promise<void> {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, data, (err: any) => {
       if (err) reject(err)
       resolve()
     })
   })
-}
-
-export function getFileExtensionFromNoteDataType(dataType: NoteDataType): string {
-  switch (dataType) {
-    case NoteDataType.TEXT:
-      return 'txt'
-    case NoteDataType.HANDWRITING:
-      return 'png'
-    default:
-      return 'invalid'
-  }
 }

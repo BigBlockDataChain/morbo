@@ -33,11 +33,17 @@ export interface IGraphLink {
   target: GraphNodeId,
 }
 
-export type GraphIndex = GraphNodeIndex[]
+export interface IGraphIndex {
+  // id type GraphNodeId
+  [id: number]: GraphNodeIndex
+}
 
 export type GraphNodeIndex = GraphNodeId[]
 
-export type GraphMetadata = IGraphMetadatum[]
+export interface IGraphMetadata {
+  // id type GraphNodeId
+  [id: number]: IGraphMetadatum
+}
 
 export interface IGraphMetadatum {
   title: string,

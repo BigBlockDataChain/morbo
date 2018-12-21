@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "lint": "tslint -p tsconfig.json",
-    "lint-fix": "tslint -p tsling.json --fix ./src/**/*",
+    "lint-fix": "tslint -p tsconfig.json --fix",
     "serve": "parcel serve --target electron -o dist/bundle.js src-js/app.js",
     "start": "electron .",
     "test": "jest --watch src/",
@@ -26,6 +26,7 @@
     "normalize.css": "^8.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.2.2",
     "@types/jest": "^23.3.10",
     "eslint": "^5.6.1",
     "jest": "^23.6.0",
