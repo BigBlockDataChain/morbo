@@ -3,7 +3,7 @@
     "target": "ESNEXT",
     "module": "ESNext",
     "outDir": "./src-js",
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "skipLibCheck": true,
     "allowJs": true,
 

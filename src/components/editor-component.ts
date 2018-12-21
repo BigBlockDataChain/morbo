@@ -1,6 +1,6 @@
 import * as html from '@hyperapp/html'
 
-import {El} from './types'
+import {El} from '../types'
 
 export default function(
   content: string,

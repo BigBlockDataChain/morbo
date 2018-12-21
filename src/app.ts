@@ -2,12 +2,20 @@ import * as html from '@hyperapp/html'
 import {app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
 
-import EditorView from './editor-component'
+import EditorView from './components/editor-component'
+import GraphView from './components/graph-view-component'
+import Empty from './components/widgets/empty'
 import {loadGraphData} from './graph-data'
-import GraphView from './graph-view-component'
+import * as io from './io/io'
 import {getLogger} from './logger'
-import {El, IActions, IDimensions, IGraphNode, IState} from './types'
-import Empty from './widgets/empty'
+import {
+  El,
+  IActions,
+  IDimensions,
+  IGraphNode,
+  IState,
+  NoteDataType,
+} from './types'
 
 const logger = getLogger('main')
 

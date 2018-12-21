@@ -7,8 +7,8 @@
 import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
 
-import {getLogger} from './logger'
-import {El, IDimensions, IGraphData} from './types'
+import {getLogger} from '../../logger'
+import {El, IDimensions, IGraphData} from '../../types'
 
 const logger = getLogger('d3-graph')
 

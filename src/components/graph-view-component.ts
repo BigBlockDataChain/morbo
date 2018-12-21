@@ -1,8 +1,8 @@
 import * as html from '@hyperapp/html'
 
-import D3Graph from './d3-graph'
-import {getLogger} from './logger'
-import {El, IDimensions, IGraphData} from './types'
+import {getLogger} from '../logger'
+import {El, IDimensions, IGraphData} from '../types'
+import D3Graph from './graph/graph'
 import homeIcon from './widgets/home-icon'
 
 const logger = getLogger('graph-view-component')
