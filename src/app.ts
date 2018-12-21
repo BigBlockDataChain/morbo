@@ -1,9 +1,11 @@
 import * as html from '@hyperapp/html'
 import {app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
+import {Subject} from 'rxjs'
 
 import EditorView from './components/editor-component'
 import GraphView from './components/graph-view-component'
+import {GraphAction} from './components/graph/types'
 import Empty from './components/widgets/empty'
 import {loadGraphData} from './graph-data'
 import * as io from './io/io'
@@ -21,6 +23,8 @@ const logger = getLogger('main')
 
 const allGraphData = loadGraphData()
 
+const graphActionStream = new Subject<GraphAction>()
+
 const initialState: IState = {
   screenHeight: 0,
   screenWidth: 0,
@@ -35,6 +39,10 @@ const appActions: IActions = {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
+
+    graphActionStream.subscribe(event => {
+      // TODO handle graph events
+    })
 
     return {
       screenHeight: el.offsetHeight,
@@ -121,8 +129,8 @@ function view(state: IState, actions: IActions) {
       GraphView(
         {height: state.screenHeight, width: state.screenWidth},
         actions.onGraphReset,
-        {onclick: actions.onGraphClick, ondblclick: actions.onGraphDblClick},
         state.graphData,
+        graphActionStream,
       ),
       state.showEditor && state.selectedNode !== null
         ? EditorView(

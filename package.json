@@ -23,7 +23,8 @@
     "electron": "^3.0.13",
     "hyperapp": "^1.2.9",
     "hyperapp-redux-devtools": "^1.1.6",
-    "normalize.css": "^8.0.1"
+    "normalize.css": "^8.0.1",
+    "rxjs": "^6.3.3"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",

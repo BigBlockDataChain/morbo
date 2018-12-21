@@ -1,19 +1,21 @@
 import * as html from '@hyperapp/html'
+import {Subject} from 'rxjs'
 
 import {getLogger} from '../logger'
 import {El, IDimensions, IGraphData} from '../types'
-import D3Graph from './graph/graph'
+import GraphComponent from './graph/graph'
+import {GraphAction} from './graph/types'
 import homeIcon from './widgets/home-icon'
 
 const logger = getLogger('graph-view-component')
 
-const d3Graph = new D3Graph()
+const graphComponent = new GraphComponent()
 
 export default function(
   dimensions: IDimensions,
   onHomeClick: () => any,
-  callbacks: any,
   graphData: any,
+  graphActionStream: Subject<GraphAction>,
 ) {
   return html.div(
     {
@@ -25,12 +27,16 @@ export default function(
     },
     [
       homeIcon(onHomeClick),
-      d3Container(dimensions, callbacks, graphData),
+      d3Container(dimensions, graphData, graphActionStream),
     ],
   )
 }
 
-function d3Container(dimensions: IDimensions, callbacks: any, graphData: IGraphData) {
+function d3Container(
+  dimensions: IDimensions,
+  graphData: IGraphData,
+  graphActionStream: Subject<GraphAction>,
+) {
   return html.div(
     {
       id: 'd3-container',
@@ -39,18 +45,23 @@ function d3Container(dimensions: IDimensions, callbacks: any, graphData: IGraphD
         height: dimensions.height + 'px',
       },
       oncreate: (el: El) => {
-        d3Graph.init(el, {height: dimensions.height, width: dimensions.width})
-        d3Graph.render(graphData, callbacks)
+        graphComponent.init(
+          el,
+          {height: dimensions.height, width: dimensions.width},
+          graphActionStream,
+        )
+        graphComponent.render(graphData)
       },
       onupdate: (el: El, prevAttrs: any) => {
         if (dimensions !== prevAttrs.dimensions)
-          d3Graph.init(el, {height: dimensions.height, width: dimensions.width})
-
-        if (callbacks !== prevAttrs.callbacks)
-          d3Graph.render(graphData, callbacks)
+          graphComponent.init(
+            el,
+            {height: dimensions.height, width: dimensions.width},
+            graphActionStream,
+          )
 
         if (graphData !== prevAttrs.graphData)
-          d3Graph.render(graphData, callbacks)
+          graphComponent.render(graphData)
       },
     },
   )

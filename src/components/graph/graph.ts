@@ -6,13 +6,25 @@
 
 import * as d3 from 'd3'
 import * as d3zoom from 'd3-zoom'
+import {Subject} from 'rxjs'
 
 import {getLogger} from '../../logger'
 import {El, IDimensions, IGraphData} from '../../types'
+import {
+  BackgroundClickAction,
+  BackgroundDblClickAction,
+  GraphAction,
+  NodeClickAction,
+  NodeDblClickAction,
+  NodeDragAction,
+  NodeHoverEndAction,
+  NodeHoverShortAction,
+  ZoomAction,
+} from './types'
 
 const logger = getLogger('d3-graph')
 
-export default class D3Graph {
+export default class GraphComponent {
 
   private static readonly _LABEL_FONT_SIZE = 8
   private static readonly _TRANSITION_DURATION = 250
@@ -34,11 +46,17 @@ export default class D3Graph {
   private _selectedNode: any | null = null
   private _mouseDownNode: any | null = null
 
+  private _actionStream: Subject<GraphAction> | null = null
+
   public constructor() {
     (document as any).d3Initialized = false
   }
 
-  public init(host: El, dimensions: IDimensions): void {
+  public init(
+    host: El,
+    dimensions: IDimensions,
+    actionStream: Subject<GraphAction>,
+  ): void {
     if ((document as any).d3Initialized
         && dimensions.height === this._height
         && dimensions.width === this._width) {
@@ -61,12 +79,20 @@ export default class D3Graph {
     // Used for node coloring
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
 
+    this._actionStream = actionStream
+
     this._svg = d3.select(host)
       .append('svg')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
-      .on('click', () => logger.debug('click'))
-      .on('dblclick', () => logger.debug('dblclick'))
+      .on('click', () => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new BackgroundClickAction())
+      })
+      .on('dblclick', () => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new BackgroundDblClickAction())
+      })
     this._g = this._svg.append('g')
       .attr('class', 'everything')
 
@@ -74,7 +100,8 @@ export default class D3Graph {
       this._g.attr('transform', d3.event.transform)
     }
     this._zoomHandler = d3zoom.zoom()
-      .on('zoom', zoomActions)
+      .on('zoom.a', zoomActions)
+      .on('zoom.b', () => actionStream.next(new ZoomAction()))
 
     this._zoomHandler(this._svg)
   }
@@ -116,10 +143,22 @@ export default class D3Graph {
       .enter()
       .append('g')
       .attr('class', 'node')
-      .on('click', (ev: Event) =>
-        callbacks.onclick !== undefined ? callbacks.onclick(ev) : null)
-      .on('dblclick', (ev: Event) =>
-        callbacks.ondblclick !== undefined ? callbacks.ondblclick(ev) : null)
+      .on('click', (ev: Event) => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new NodeClickAction(ev))
+      })
+      .on('dblclick', (ev: Event) => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new NodeDblClickAction(ev))
+      })
+      .on('mouseover.action', (d: any) => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new NodeHoverShortAction(d))
+      })
+      .on('mouseout.action', (d: any) => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new NodeHoverEndAction(d))
+      })
 
     nodes
       .append('circle')
@@ -130,14 +169,13 @@ export default class D3Graph {
       .attr('fill_original', (d: any) => d.color)
       .attr('stroke', 'black')
       .call(this._drag)
-      .on('dblclick.zoom', null)
 
     nodes
       .append('text')
       .text((d: any) => d.name)
-      .attr('x', (d: any) => d.x + D3Graph._LABEL_FONT_SIZE / 2)
+      .attr('x', (d: any) => d.x + GraphComponent._LABEL_FONT_SIZE / 2)
       .attr('y', (d: any) => d.y + 15)
-      .attr('font-size', D3Graph._LABEL_FONT_SIZE)
+      .attr('font-size', GraphComponent._LABEL_FONT_SIZE)
       .attr('fill', 'black')
       .call(this._drag)
 
@@ -169,6 +207,7 @@ export default class D3Graph {
       })
       .attr('fill', 'none')
       .attr('stroke', 'black')
+    this._links = this._g.selectAll('.link')
   }
 
   /**
@@ -204,7 +243,7 @@ export default class D3Graph {
           this._nodeTextLabels.each((n: any, i_: number, refs_: any[]) => {
             if (n.id === d.id)
               d3.select(refs_[i_])
-                .attr('x', d.x + D3Graph._LABEL_FONT_SIZE / 2)
+                .attr('x', d.x + GraphComponent._LABEL_FONT_SIZE / 2)
                 .attr('y', d.y + 15)
           })
 
@@ -214,6 +253,8 @@ export default class D3Graph {
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
+
+        this._actionStream!.next(new NodeDragAction(d))
       })
   }
 
@@ -228,7 +269,7 @@ export default class D3Graph {
       const y = translation[1] - d.y
       this._g
         .transition()
-        .duration(D3Graph._TRANSITION_DURATION)
+        .duration(GraphComponent._TRANSITION_DURATION)
         .call(
           this._zoomHandler.transform,
           d3.zoomIdentity.translate(x, y).scale(scale),
@@ -252,16 +293,16 @@ export default class D3Graph {
 
         switch (d3.event.keyCode) {
           case keymap.UP:
-            offsetDown = translation[1] - D3Graph._PAN_MOVEMENT_OFFSET
+            offsetDown = translation[1] - GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.DOWN:
-            offsetDown = translation[1] + D3Graph._PAN_MOVEMENT_OFFSET
+            offsetDown = translation[1] + GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.LEFT:
-            offsetRight = translation[0] - D3Graph._PAN_MOVEMENT_OFFSET
+            offsetRight = translation[0] - GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.RIGHT:
-            offsetRight = translation[0] + D3Graph._PAN_MOVEMENT_OFFSET
+            offsetRight = translation[0] + GraphComponent._PAN_MOVEMENT_OFFSET
             break
           default:
             break
@@ -269,11 +310,13 @@ export default class D3Graph {
 
         this._g
           .transition()
-          .duration(D3Graph._TRANSITION_DURATION)
+          .duration(GraphComponent._TRANSITION_DURATION)
           .call(
             this._zoomHandler.transform,
             d3.zoomIdentity.translate(offsetRight, offsetDown),
           )
+
+        this._actionStream!.next(new ZoomAction())
       })
   }
 
