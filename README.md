@@ -16,11 +16,11 @@ If using Yarn, `yarn`.
 ### Starting development server
 A Makefile is provided that lets you run tasks in parallel and can be used to avoid
 running the TypeScript compiler and development server in two different shells. Use `make`
-to start both in parallel.
+to start both in parallel. Then start Electron using `npm run start`.
 
 Alternatively start each manually. First start up the TypeScript compiler with `npm run
 tsc`. Then in another shell start the development server with `npm run serve`. Then start
-electron using `npm run start`.
+Electron using `npm run start`.
 
 ### Linting
 To check for link errors, run `npm run lint` or `yarn lint`.
