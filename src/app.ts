@@ -147,7 +147,7 @@ function registerEventHandlers(el: El, actions: IActions) {
   })
 }
 
-// tslint:disable-next-line
+// @ts-ignore // no unused variables
 const app = devtools(hyperapp)(
   initialState,
   appActions,

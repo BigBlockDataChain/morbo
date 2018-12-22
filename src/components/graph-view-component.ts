@@ -4,7 +4,7 @@ import {Subject} from 'rxjs'
 import {El, IDimensions, IGraphData} from '../types'
 import GraphComponent from './graph/graph'
 import {GraphAction} from './graph/types'
-import homeIcon from './widgets/home-icon'
+import HomeIcon from './widgets/home-icon'
 
 const graphComponent = new GraphComponent()
 
@@ -23,7 +23,7 @@ export default function(
       },
     },
     [
-      homeIcon(onHomeClick),
+      HomeIcon(onHomeClick),
       d3Container(dimensions, graphData, graphActionStream),
     ],
   )

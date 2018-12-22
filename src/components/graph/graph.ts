@@ -33,8 +33,10 @@ export default class GraphComponent {
 
   private _width: number | null = null
   private _height: number | null = null
+  // @ts-ignore // no unused variable
   private _host: El | null = null
   private _svg: any | null = null
+  // @ts-ignore // no unused variable
   private _c10: any | null = null
   private _g: any | null = null
   private _zoomHandler: any| null = null
@@ -44,7 +46,9 @@ export default class GraphComponent {
   private _drag: any | null = null
   private _nodeTextLabels: any| null = null
 
+  // @ts-ignore // no unused variable
   private _selectedNode: any | null = null
+  // @ts-ignore // no unused variable
   private _mouseDownNode: any | null = null
 
   private _actionStream: Subject<GraphAction> | null = null
@@ -263,10 +267,7 @@ export default class GraphComponent {
       })
   }
 
-  /**
-   * @private
-   * @return {undefined}
-   */
+  // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click', (d: any) => {
       const {translation, scale} = this._getGraphTranslationAndScale()
