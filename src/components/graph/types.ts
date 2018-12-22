@@ -6,6 +6,14 @@ export class NodeClickAction implements INodeClickAction {
   public constructor(public readonly node: any) {}
 }
 
+export const NODE_RIGHT_CLICK_TYPE = 'nodeRightClick'
+type NodeRightClickType            = 'nodeRightClick'
+export interface INodeRightClickAction { readonly kind: NodeRightClickType, node: any }
+export class NodeRightClickAction implements INodeRightClickAction {
+  public readonly kind = NODE_RIGHT_CLICK_TYPE
+  public constructor(public readonly node: any) {}
+}
+
 const NODE_DBL_CLICK_TYPE    = 'nodeDblClick'
 export type NodeDblClickType = 'nodeDblClick'
 export interface INodeDblClickAction { readonly kind: NodeDblClickType, node: any }
@@ -87,6 +95,7 @@ export class ZoomAction implements IZoomAction {
 
 export type GraphAction
   = INodeClickAction
+  | INodeRightClickAction
   | INodeDblClickAction
   | INodeDragAction
   // | INodeDblDragAction

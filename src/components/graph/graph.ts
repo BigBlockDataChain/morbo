@@ -19,6 +19,7 @@ import {
   NodeDragAction,
   NodeHoverEndAction,
   NodeHoverShortAction,
+  NodeRightClickAction,
   ZoomAction,
 } from './types'
 
@@ -146,6 +147,10 @@ export default class GraphComponent {
       .on('click', (ev: Event) => {
         d3.event.stopPropagation()
         this._actionStream!.next(new NodeClickAction(ev))
+      })
+      .on('contextmenu', (ev: Event) => {
+        d3.event.stopPropagation()
+        this._actionStream!.next(new NodeRightClickAction(ev))
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()
