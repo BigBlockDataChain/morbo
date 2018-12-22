@@ -1,5 +1,10 @@
 const {app, BrowserWindow} = require('electron')
 
+const {
+  default: installExtension,
+  REDUX_DEVTOOLS,
+} = require('electron-devtools-installer');
+
 let win = null
 
 app.on('ready', createWindow)
@@ -25,4 +30,8 @@ function createWindow() {
   win.on('closed', () => {
     win = null
   })
+
+  installExtension(REDUX_DEVTOOLS)
+    .then((name) => console.log(`Added Extension: ${name}`))
+    .catch((err) => console.warn('An error occurred:', err))
 }
