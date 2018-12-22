@@ -37,9 +37,22 @@ const appActions: IActions = {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
-
+    let isSingleClick: boolean = true
     graphActionStream.subscribe(event => {
-      // TODO handle graph events
+      switch (event.kind) {
+        case 'nodeClick': {
+          isSingleClick = true
+          setTimeout(() => { if (isSingleClick) { onNodeClick(event) } }, 300)
+          break
+        }
+        case 'nodeDblClick': {
+          isSingleClick = false
+          onNodeDblClick(event)
+          break
+        }
+      }
+
+      // TODO handle additional graph events
     })
 
     return {
@@ -70,7 +83,6 @@ const appActions: IActions = {
 
   onGraphDblClick: (ev: Event) => () => {
     logger.log('graph double clicked', ev)
-
     const selectedNode = ev
     return {
       selectedNode,
@@ -115,6 +127,23 @@ const appActions: IActions = {
       showEditor: false,
     }
   },
+}
+
+function onNodeClick(ev: GraphAction) {
+  logger.log('graph clicked', ev)
+  const selectedNode = ev
+  return {
+    selectedNode,
+  }
+}
+
+function onNodeDblClick(ev: GraphAction) {
+  logger.log('graph double clicked', ev)
+  const selectedNode = ev
+  return {
+    selectedNode,
+    showEditor: true,
+  }
 }
 
 function view(state: IState, actions: IActions) {

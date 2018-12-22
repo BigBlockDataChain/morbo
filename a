@@ -1,0 +1,23 @@
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{0}: reset: moving to HEAD@{5}
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{1}: reset: moving to HEAD@{3}
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{2}: reset: moving to HEAD@{2}
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{3}: reset: moving to HEAD@{1}
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{4}: reset: moving to HEAD@{1}
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{5}: reset: moving to HEAD
+[33ma146f7d0[m[33m ([m[1;36mHEAD -> [m[1;32mfeature/node-create-delete-move[m[33m, [m[1;31morigin/feature/poc[m[33m)[m HEAD@{6}: pull origin feature/poc: Fast-forward
+[33mfc4a9e6d[m[33m ([m[1;32mfeature/poc[m[33m)[m HEAD@{7}: pull origin feature/poc: Fast-forward
+[33mb1d38294[m HEAD@{8}: checkout: moving from feature/poc to feature/node-create-delete-move
+[33mfc4a9e6d[m[33m ([m[1;32mfeature/poc[m[33m)[m HEAD@{9}: pull: Fast-forward
+[33mb1d38294[m HEAD@{10}: checkout: moving from feature/node-create-delete-move to feature/poc
+[33mb1d38294[m HEAD@{11}: checkout: moving from feature/poc to feature/node-create-delete-move
+[33mb1d38294[m HEAD@{12}: checkout: moving from feature/node-create-delete-move to feature/poc
+[33mb1d38294[m HEAD@{13}: checkout: moving from feature/poc to feature/node-create-delete-move
+[33mb1d38294[m HEAD@{14}: pull: Fast-forward
+[33ma2ac6ea4[m HEAD@{15}: checkout: moving from node_management to feature/poc
+[33m9fded8b4[m[33m ([m[1;31morigin/node_management[m[33m, [m[1;32mnode_management[m[33m)[m HEAD@{16}: commit: fixed lint issues
+[33mecdf87d4[m HEAD@{17}: commit: fixed broken demo
+[33m009d1523[m HEAD@{18}: commit: hard-coded node group switching
+[33ma2ac6ea4[m HEAD@{19}: checkout: moving from feature/poc to node_management
+[33ma2ac6ea4[m HEAD@{20}: pull origin feature/poc: Fast-forward
+[33mc5145b48[m HEAD@{21}: checkout: moving from master to feature/poc
+[33mac4d3fb0[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{22}: clone: from https://github.com/BigBlockDataChain/morbo.git
