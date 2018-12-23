@@ -5,11 +5,11 @@
  */
 
 import * as d3 from 'd3'
-import * as d3zoom from 'd3-zoom'
-import {Subject} from 'rxjs'
 
-import {getLogger} from '../../logger'
-import {El, IDimensions, IGraphData} from '../../types'
+import { Subject } from 'rxjs'
+
+import { getLogger } from '../../logger'
+import { El, IDimensions, IGraphData } from '../../types'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -39,12 +39,12 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _c10: any | null = null
   private _g: any | null = null
-  private _zoomHandler: any| null = null
+  private _zoomHandler: any | null = null
 
   private _links: any | null = null
   private _nodes: any | null = null
   private _drag: any | null = null
-  private _nodeTextLabels: any| null = null
+  private _nodeTextLabels: any | null = null
 
   // @ts-ignore // no unused variable
   private _selectedNode: any | null = null
@@ -63,8 +63,8 @@ export default class GraphComponent {
     actionStream: Subject<GraphAction>,
   ): void {
     if ((document as any).d3Initialized
-        && dimensions.height === this._height
-        && dimensions.width === this._width) {
+      && dimensions.height === this._height
+      && dimensions.width === this._width) {
       logger.debug('Nothing changed, skipping init')
       return
     }
@@ -104,7 +104,8 @@ export default class GraphComponent {
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
     }
-    this._zoomHandler = d3zoom.zoom()
+    this._zoomHandler = d3.zoom()
+      .scaleExtent([1 / 10, 10])
       .on('zoom.a', zoomActions)
       .on('zoom.b', () => actionStream.next(new ZoomAction()))
 
@@ -134,6 +135,7 @@ export default class GraphComponent {
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._disableDoubleClickZoom()
+    this._enableClickToCenter()
   }
 
   /**
@@ -270,10 +272,14 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click', (d: any) => {
-      const {translation, scale} = this._getGraphTranslationAndScale()
-      const x = translation[0] - d.x
-      const y = translation[1] - d.y
-      this._g
+      const { translation, scale } = this._getGraphTranslationAndScale()
+      const { position } = this._graphToSVGPosition(d)
+      const w = document.documentElement.clientWidth
+      const h = document.documentElement.clientHeight
+      const x = translation[0] + w / 2 - position[0]
+      const y = translation[1] + h / 2 - position[1]
+      //logger.log('Transform: ' + this._zoomHandler)
+      this._svg
         .transition()
         .duration(GraphComponent._TRANSITION_DURATION)
         .call(
@@ -292,10 +298,10 @@ export default class GraphComponent {
     }
 
     d3.select('body')
-      .on('keyup', () => {
-        const {translation} = this._getGraphTranslationAndScale()
-        let offsetRight = 0
-        let offsetDown = 0
+      .on('keydown', () => {
+        const { translation, scale } = this._getGraphTranslationAndScale()
+        let offsetRight = translation[0]
+        let offsetDown = translation[1]
 
         switch (d3.event.keyCode) {
           case keymap.UP:
@@ -314,12 +320,12 @@ export default class GraphComponent {
             break
         }
 
-        this._g
+        this._svg
           .transition()
-          .duration(GraphComponent._TRANSITION_DURATION)
+          .duration(GraphComponent._TRANSITION_DURATION/5)
           .call(
             this._zoomHandler.transform,
-            d3.zoomIdentity.translate(offsetRight, offsetDown),
+            d3.zoomIdentity.translate(offsetRight, offsetDown).scale(scale),
           )
 
         this._actionStream!.next(new ZoomAction())
@@ -350,9 +356,9 @@ export default class GraphComponent {
    * @private
    * @return {{array, number}} A tuple of the x, y translation and the zoom scale
    */
-  private _getGraphTranslationAndScale(): {translation: number[], scale: number} {
+  private _getGraphTranslationAndScale(): { translation: number[], scale: number } {
     const transformRaw = this._g.attr('transform')
-    if (transformRaw === null) return {translation: [0, 0], scale: 1}
+    if (transformRaw === null) return { translation: [0, 0], scale: 1 }
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
     const translation = translationRaw
       .replace('translate(', '')
@@ -360,7 +366,38 @@ export default class GraphComponent {
       .split(',')
       .map(Number)
     const scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
-    return {translation, scale}
+    return { translation, scale }
   }
 
+  /**
+ * @private
+ * @return {{array}} A tuple of the x, y position relative to the SVG
+ */
+  private _graphToSVGPosition(d: any): { position: number[] } {
+    const { points } = this._getGraphCornerPoints()
+    const w = document.documentElement.clientWidth
+    const h = document.documentElement.clientHeight
+    const position = [
+      w * (d.x - points[0]) / (points[1] - points[0]),
+      h * (d.y - points[2]) / (points[3] - points[2]),
+    ]
+    return { position }
+  }
+
+  /**
+* @private
+* @return {{array}} A tuple of the lower and upper x and y coordinates of the graph
+*/
+  private _getGraphCornerPoints(): { points: number[] } {
+    const { translation, scale } = this._getGraphTranslationAndScale()
+    const w = document.documentElement.clientWidth
+    const h = document.documentElement.clientHeight
+    const points = [
+      -translation[0] / scale,
+      w / scale - (translation[0] + 15) / scale,
+      -translation[1] / scale,
+      h / scale - (translation[1] + 15) / scale,
+    ]
+    return { points }
+  }
 }
