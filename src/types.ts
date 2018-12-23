@@ -1,16 +1,16 @@
 export type El = HTMLElement
 
 export interface IState {
-  [prop: string]: any,
+  [prop: string]: any
 }
 
 export interface IActions {
-  [action: string]: any,
+  [action: string]: any
 }
 
 export interface IGraphData {
-  links: IGraphLink[],
-  nodes: IGraphNode[],
+  index: IGraphIndex
+  metadata: IGraphMetadata
 }
 
 export type GraphNodeId = number
@@ -20,35 +20,25 @@ export enum NoteDataType {
   HANDWRITING = 'handwriting',
 }
 
-export interface IGraphNode {
-  id: GraphNodeId,
-  name: string,
-  x: number,
-  y: number,
-  color: string,
-}
-
-export interface IGraphLink {
-  source: GraphNodeId,
-  target: GraphNodeId,
-}
-
 export interface IGraphIndex {
   // id type GraphNodeId
-  [id: number]: GraphNodeIndex
+  [id: number]: GraphNodeChildren
 }
 
-export type GraphNodeIndex = GraphNodeId[]
+export type GraphNodeChildren = GraphNodeId[]
 
 export interface IGraphMetadata {
   // id type GraphNodeId
-  [id: number]: IGraphMetadatum
+  [id: number]: IGraphNodeData
 }
 
-export interface IGraphMetadatum {
-  title: string,
-  lastModified: string,
-  created: string,
+export interface IGraphNodeData {
+  id: number
+  title: string
+  lastModified: string
+  created: string
+  x: number
+  y: number
   tags: string[]
 }
 

@@ -1,7 +1,11 @@
 import * as html from '@hyperapp/html'
 import {Subject} from 'rxjs'
 
-import {El, IDimensions, IGraphData} from '../types'
+import {
+  El,
+  IDimensions,
+  IGraphData,
+} from '../types'
 import GraphComponent from './graph/graph'
 import {GraphAction} from './graph/types'
 import HomeIcon from './widgets/home-icon'
@@ -11,7 +15,7 @@ const graphComponent = new GraphComponent()
 export default function(
   dimensions: IDimensions,
   onHomeClick: () => any,
-  graphData: any,
+  graphData: IGraphData,
   graphActionStream: Subject<GraphAction>,
 ) {
   return html.div(
@@ -57,7 +61,12 @@ function d3Container(
             graphActionStream,
           )
 
-        if (graphData !== prevAttrs.graphData)
+        if (
+          !prevAttrs.graphData
+          || graphData.index !== prevAttrs.graphData.index
+          || !prevAttrs.metdata
+          || graphData.metadata !== prevAttrs.graphData.metadata
+        )
           graphComponent.render(graphData)
       },
     },

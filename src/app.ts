@@ -1,118 +1,98 @@
 import * as html from '@hyperapp/html'
-import {app as hyperapp} from 'hyperapp'
+import {ActionResult, app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
 import {Subject} from 'rxjs'
 
-import EditorView from './components/editor-component'
+import {actions as graphActions} from './actions/graph'
+// import EditorView from './components/editor-component'
 import GraphView from './components/graph-view-component'
 import {GraphAction} from './components/graph/types'
-import Empty from './components/widgets/empty'
-import {loadGraphData} from './graph-data'
+// import Empty from './components/widgets/empty'
 import {getLogger} from './logger'
 import {
   El,
-  IActions,
   IDimensions,
-  IGraphNode,
-  IState,
+  IGraphIndex,
+  IGraphMetadata,
 } from './types'
 
 const logger = getLogger('main')
 
-const allGraphData = loadGraphData()
-
 const graphActionStream = new Subject<GraphAction>()
 
-const initialState: IState = {
-  screenHeight: 0,
-  screenWidth: 0,
-  showEditor: false,
-  selectedNode: null,
-  allGraphData,
-  graphData: null,
+interface IConfig {
+  screenHeight: number
+  screenWidth: number
+  showEditor: boolean
 }
 
-const appActions: IActions = {
-  oncreate: (el: El) => (state: IState, actions: IActions) => {
+interface IState {
+  graph: IGraphState
+  editor: IEditorState
+  settings: any
+  config: IConfig
+}
+
+interface IEditorState {
+  handWritingEditor: any
+  textEditor: any
+}
+
+interface IGraphState {
+  index: IGraphIndex
+  metadata: IGraphMetadata
+}
+
+const initialState: IState = {
+  graph: {
+    index: {},
+    metadata: {},
+  },
+  editor: {
+    handWritingEditor: {},
+    textEditor: {},
+  },
+  settings: {},
+  config: {
+    screenHeight: 0,
+    screenWidth: 0,
+    showEditor: false,
+  },
+}
+
+interface IActions {
+  [action: string]:
+    (arg?: any) => (state?: IState, actions?: IActions) => ActionResult<IState>
+}
+
+const appActions = {
+  graph: graphActions,
+  oncreate: (el: El) => (state: IState, actions: any) => {
     logger.debug('element created (app)', el)
 
     registerEventHandlers(el, actions)
+
+    actions.graph.init()
 
     graphActionStream.subscribe(event => {
       // TODO handle graph events
     })
 
     return {
-      screenHeight: el.offsetHeight,
-      screenWidth: el.offsetWidth,
-      graphData: state.allGraphData,
+      config: {
+        screenHeight: el.offsetHeight,
+        screenWidth: el.offsetWidth,
+      },
     }
   },
 
-  onWindowResize: ({height, width}: IDimensions) => () => {
+  onWindowResize: ({height, width}: IDimensions) => (state: IState) => {
     return {
-      screenHeight: height,
-      screenWidth: width,
-    }
-  },
-
-  onGraphReset: () => () => {
-    logger.log('graph view reset')
-  },
-
-  onGraphClick: (ev: Event) => () => {
-    logger.log('graph clicked', ev)
-    const selectedNode = ev
-    return {
-      selectedNode,
-    }
-  },
-
-  onGraphDblClick: (ev: Event) => () => {
-    logger.log('graph double clicked', ev)
-
-    const selectedNode = ev
-    return {
-      selectedNode,
-      showEditor: true,
-    }
-  },
-
-  // TODO Causes unecessary D3 rendering calls. Need to decouple node data from nodes
-  onEditorInput: (content: string) => (state: IState) => {
-    if (state.selectedNode === null) {
-      logger.warn('Trying to set content, but no node is selected')
-      return
-    }
-
-    const selectedNodeIndex = state.graphData.nodes
-      .findIndex((n: IGraphNode) => n.name === state.selectedNode.name)
-    if (selectedNodeIndex === -1) {
-      logger.warn('Could not find selected node in list of all node')
-      return
-    }
-
-    const oldNode = state.graphData.nodes[selectedNodeIndex]
-    const newNode = {...oldNode}
-    newNode.content = content
-
-    const oldList = state.graphData.nodes
-    const newList = [...oldList]
-    newList[selectedNodeIndex] = newNode
-
-    const oldData = state.graphData
-    const newData = {...oldData, nodes: newList}
-
-    return {
-      graphData: newData,
-      selectedNode: newNode,
-    }
-  },
-
-  onEditorClose: () => () => {
-    return {
-      selectedNode: null,
-      showEditor: false,
+      config: {
+        ...state.config,
+        screenHeight: height,
+        screenWidth: width,
+      },
     }
   },
 }
@@ -125,18 +105,18 @@ function view(state: IState, actions: IActions) {
     },
     [
       GraphView(
-        {height: state.screenHeight, width: state.screenWidth},
+        {height: state.config.screenHeight, width: state.config.screenWidth},
         actions.onGraphReset,
-        state.graphData,
+        {index: state.graph.index, metadata: state.graph.metadata},
         graphActionStream,
       ),
-      state.showEditor && state.selectedNode !== null
-        ? EditorView(
-          state.selectedNode.content,
-          actions.onEditorInput,
-          actions.onEditorClose,
-        )
-        : Empty(),
+      // state.showEditor && state.selectedNode !== null
+      //   ? EditorView(
+      //     state.selectedNode.content,
+      //     actions.onEditorInput,
+      //     actions.onEditorClose,
+      //   )
+      //   : Empty(),
     ],
   )
 }

@@ -1,6 +1,5 @@
-/**
+/*
  * TODO
- * - Keep track of transformation to graph (translation and scale) when rerendering
  * - Use correct D3 types instead of `any`
  */
 
@@ -9,7 +8,15 @@ import * as d3zoom from 'd3-zoom'
 import {Subject} from 'rxjs'
 
 import {getLogger} from '../../logger'
-import {El, IDimensions, IGraphData} from '../../types'
+import {
+  El,
+  GraphNodeId,
+  IDimensions,
+  IGraphData,
+  IGraphIndex,
+  IGraphMetadata,
+  IGraphNodeData,
+} from '../../types'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -25,11 +32,30 @@ import {
 
 const logger = getLogger('d3-graph')
 
+interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
+
 export default class GraphComponent {
 
   private static readonly _LABEL_FONT_SIZE = 8
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
+
+  private static graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
+    return Object.keys(metadata)
+      .map(Number)
+      .map((k: GraphNodeId) => metadata[k])
+  }
+
+  private static flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
+    const keys = Object.keys(index).map(Number)
+    return keys.reduce(
+      (accum: ILinkTuple[], source: GraphNodeId) => {
+        accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
+        return accum
+      },
+      [],
+    )
+  }
 
   private _width: number | null = null
   private _height: number | null = null
@@ -111,12 +137,7 @@ export default class GraphComponent {
     this._zoomHandler(this._svg)
   }
 
-  /**
-   * @param {Object} data Object containing nodes and links
-   * @param {Object} callbacks Object containing callbacks
-   * @return {undefined}
-   */
-  public render(data: IGraphData, callbacks: any = {}): void {
+  public render(data: IGraphData): void {
     if (data === null) {
       logger.log('No data for rendering')
       return
@@ -128,7 +149,7 @@ export default class GraphComponent {
     this._enableDrag()
 
     this._renderLinks(data)
-    this._renderNodes(data, callbacks)
+    this._renderNodes(data)
 
     // this._enableClickToCenter()
     this._enableKeyboardPanning()
@@ -136,15 +157,11 @@ export default class GraphComponent {
     this._disableDoubleClickZoom()
   }
 
-  /**
-   * @private
-   * @param {Object} data Object containing nodes and links
-   * @param {Object} callbacks Object containing callbacks
-   * @returns {undefined}
-   */
-  private _renderNodes(data: IGraphData, callbacks: any): void {
+  private _renderNodes(data: IGraphData): void {
+    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+
     const nodes = this._g.selectAll('.node')
-      .data(data.nodes)
+      .data(metadataItems)
       .enter()
       .append('g')
       .attr('class', 'node')
@@ -171,19 +188,18 @@ export default class GraphComponent {
 
     nodes
       .append('circle')
-      .attr('cx', (d: any) => d.x)
-      .attr('cy', (d: any) => d.y)
+      .attr('cx', (d: IGraphNodeData) => d.x)
+      .attr('cy', (d: IGraphNodeData) => d.y)
       .attr('r', 10)
-      .attr('fill', (d: any) => d.color)
-      .attr('fill_original', (d: any) => d.color)
+      .attr('fill', () => 'white')
       .attr('stroke', 'black')
       .call(this._drag)
 
     nodes
       .append('text')
-      .text((d: any) => d.name)
-      .attr('x', (d: any) => d.x + GraphComponent._LABEL_FONT_SIZE / 2)
-      .attr('y', (d: any) => d.y + 15)
+      .text((d: IGraphNodeData) => d.title)
+      .attr('x', (d: IGraphNodeData) => d.x + GraphComponent._LABEL_FONT_SIZE / 2)
+      .attr('y', (d: IGraphNodeData) => d.y + 15)
       .attr('font-size', GraphComponent._LABEL_FONT_SIZE)
       .attr('fill', 'black')
       .call(this._drag)
@@ -192,25 +208,23 @@ export default class GraphComponent {
     this._nodeTextLabels = this._nodes.selectAll('text')
   }
 
-  /**
-   * @private
-   * @param {Object} data Object containing nodes and links
-   * @returns {undefined}
-   */
   private _renderLinks(data: IGraphData): void {
+    const linkData = GraphComponent.flattenGraphIndex(data.index)
+    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+
     this._links = this._g.selectAll('.link')
     this._links
-      .data(data.links)
+      .data(linkData)
       .enter()
       .append('line')
       .attr('class', 'link')
       .attr('x1', (l: any, i: number, refs: any[]) => {
-        const sourceNode = data.nodes.filter((d: any) => d.id === l.source)[0]
+        const sourceNode = metadataItems.filter((d: any) => d.id === l.source)[0]
         d3.select(refs[i]).attr('y1', sourceNode.y)
         return sourceNode.x
       })
       .attr('x2', (l: any, i: number, refs: any[]) => {
-        const targetNode = data.nodes.filter((d: any) => d.id === l.target)[0]
+        const targetNode = metadataItems.filter((d: any) => d.id === l.target)[0]
         d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
       })
@@ -219,10 +233,6 @@ export default class GraphComponent {
     this._links = this._g.selectAll('.link')
   }
 
-  /**
-   * @private
-   * @returns {undefined}
-   */
   private _enableDrag(): void {
     this._drag = d3.drag()
     this._drag
@@ -338,18 +348,10 @@ export default class GraphComponent {
       })
   }
 
-  /**
-   * @private
-   * @returns {undefined}
-   */
   private _disableDoubleClickZoom(): void {
     this._svg.on('dblclick.zoom', null)
   }
 
-  /**
-   * @private
-   * @return {{array, number}} A tuple of the x, y translation and the zoom scale
-   */
   private _getGraphTranslationAndScale(): {translation: number[], scale: number} {
     const transformRaw = this._g.attr('transform')
     if (transformRaw === null) return {translation: [0, 0], scale: 1}

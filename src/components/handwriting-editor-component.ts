@@ -16,23 +16,23 @@ enum Tool {
 }
 
 interface IState {
-  selectedTool: Tool,
-  canvasEl: null | HTMLCanvasElement,
-  canvasCtx: null | CanvasContext,
-  color: string,
-  stroke_width: number,
-  isMouseDown: boolean,
-  mouseLastLocation: [number, number],
+  selectedTool: Tool
+  canvasEl: null | HTMLCanvasElement
+  canvasCtx: null | CanvasContext
+  color: string
+  stroke_width: number
+  isMouseDown: boolean
+  mouseLastLocation: [number, number]
 }
 
 interface IActions {
-  changeColor: (color: string) => () => ActionResult<IState>,
-  strokeWidthChange: (width: number) => () => ActionResult<IState>,
-  selectTool: (tool: Tool) => () => ActionResult<IState>,
-  canvasCreated: (el: HTMLCanvasElement) => () => ActionResult<IState>,
-  mouseDownOnCanvas: (event: MouseEvent) => () => ActionResult<IState>,
-  mouseUpOnCanvas: (event: MouseEvent) => () => ActionResult<IState>,
-  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => ActionResult<IState>,
+  changeColor: (color: string) => () => ActionResult<IState>
+  strokeWidthChange: (width: number) => () => ActionResult<IState>
+  selectTool: (tool: Tool) => () => ActionResult<IState>
+  canvasCreated: (el: HTMLCanvasElement) => () => ActionResult<IState>
+  mouseDownOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
+  mouseUpOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
+  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => ActionResult<IState>
 }
 
 export const state: IState = {
