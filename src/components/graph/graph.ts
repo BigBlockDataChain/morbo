@@ -111,6 +111,7 @@ export default class GraphComponent {
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
 
     this._actionStream = actionStream
+    let isSingleClick: boolean = true
 
     this._svg = d3.select(host)
       .append('svg')
@@ -118,10 +119,14 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new BackgroundClickAction())
+        isSingleClick = true
+        setTimeout(() => { if (isSingleClick) {
+          this._actionStream!.next(new BackgroundClickAction())
+        } }, 300)
       })
       .on('dblclick', () => {
         d3.event.stopPropagation()
+        isSingleClick = false
         this._actionStream!.next(new BackgroundDblClickAction())
       })
     this._g = this._svg.append('g')
@@ -159,6 +164,7 @@ export default class GraphComponent {
 
   private _renderNodes(data: IGraphData): void {
     const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+    let isSingleClick: boolean = true
 
     const nodes = this._g.selectAll('.node')
       .data(metadataItems)
@@ -167,7 +173,10 @@ export default class GraphComponent {
       .attr('class', 'node')
       .on('click', (ev: Event) => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new NodeClickAction(ev))
+        isSingleClick = true
+        setTimeout(() => { if (isSingleClick) {
+          this._actionStream!.next(new NodeClickAction(ev))
+        } }, 300)
       })
       .on('contextmenu', (ev: Event) => {
         d3.event.stopPropagation()
@@ -175,6 +184,7 @@ export default class GraphComponent {
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()
+        isSingleClick = false
         this._actionStream!.next(new NodeDblClickAction(ev))
       })
       .on('mouseover.action', (d: any) => {
