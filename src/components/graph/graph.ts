@@ -24,6 +24,9 @@ import {
 } from './types'
 
 const logger = getLogger('d3-graph')
+if (window.localStorage.getItem('graphTransform') === undefined) {
+  window.localStorage.setItem('graphTransform', '0 0 1')
+}
 
 export default class GraphComponent {
 
@@ -98,11 +101,13 @@ export default class GraphComponent {
         d3.event.stopPropagation()
         this._actionStream!.next(new BackgroundDblClickAction())
       })
+
     this._g = this._svg.append('g')
       .attr('class', 'everything')
 
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
+      window.localStorage.setItem('graphTransform', this._graphTransformToString().str)
     }
     this._zoomHandler = d3.zoom()
       .scaleExtent([1 / 10, 10])
@@ -110,6 +115,12 @@ export default class GraphComponent {
       .on('zoom.b', () => actionStream.next(new ZoomAction()))
 
     this._zoomHandler(this._svg)
+
+    const gTransform = this._graphTransformToArray().gTransform
+    this._svg
+      .call(this._zoomHandler.transform,
+        d3.zoomIdentity.translate(gTransform[0], gTransform[1]).scale(gTransform[2]),
+      )
   }
 
   /**
@@ -278,7 +289,6 @@ export default class GraphComponent {
       const h = document.documentElement.clientHeight
       const x = translation[0] + w / 2 - position[0]
       const y = translation[1] + h / 2 - position[1]
-      //logger.log('Transform: ' + this._zoomHandler)
       this._svg
         .transition()
         .duration(GraphComponent._TRANSITION_DURATION)
@@ -322,12 +332,13 @@ export default class GraphComponent {
 
         this._svg
           .transition()
-          .duration(GraphComponent._TRANSITION_DURATION/5)
+          .duration(GraphComponent._TRANSITION_DURATION / 5)
           .call(
             this._zoomHandler.transform,
             d3.zoomIdentity.translate(offsetRight, offsetDown).scale(scale),
           )
 
+        window.localStorage.setItem('graphTransform', this._graphTransformToString().str)
         this._actionStream!.next(new ZoomAction())
       })
   }
@@ -370,9 +381,9 @@ export default class GraphComponent {
   }
 
   /**
- * @private
- * @return {{array}} A tuple of the x, y position relative to the SVG
- */
+   * @private
+   * @return {{array}} A tuple of the x, y position relative to the SVG
+   */
   private _graphToSVGPosition(d: any): { position: number[] } {
     const { points } = this._getGraphCornerPoints()
     const w = document.documentElement.clientWidth
@@ -385,9 +396,9 @@ export default class GraphComponent {
   }
 
   /**
-* @private
-* @return {{array}} A tuple of the lower and upper x and y coordinates of the graph
-*/
+   * @private
+   * @return {{array}} A tuple of the lower and upper x and y coordinates of the graph
+   */
   private _getGraphCornerPoints(): { points: number[] } {
     const { translation, scale } = this._getGraphTranslationAndScale()
     const w = document.documentElement.clientWidth
@@ -400,4 +411,33 @@ export default class GraphComponent {
     ]
     return { points }
   }
+
+  /**
+   * @private
+   * @return {{string}} A string of the translation and scale
+   */
+  private _graphTransformToString(): { str: string } {
+    const { translation, scale } = this._getGraphTranslationAndScale()
+    const str = translation[0] + ' ' + translation[1] + ' ' + scale
+    return { str }
+  }
+
+  /**
+   * @private
+   * @return {{string}} A string of the translation and scale
+   */
+  private _graphTransformToArray(): { gTransform: number[] } {
+    let gTransform: number[] = []
+    const stor = window.localStorage.getItem('graphTransform')
+    if (stor === null) {
+      gTransform = [0, 0, 1]
+      return { gTransform }
+    }
+    const temp: string[] = stor.split(' ')
+    for (let i = 0; i < temp.length; i++) {
+      gTransform[i] = parseFloat(temp[i])
+    }
+    return { gTransform }
+  }
+
 }
