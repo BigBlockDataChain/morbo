@@ -12,13 +12,24 @@ supports JavaScript and linting with ESLint.
 If using NPM, `npm i`.
 
 ### Starting development server
-A Makefile is provided that lets you run tasks in parallel and can be used to avoid
-running the TypeScript compiler and development server in two different shells. Use `make`
-to start both in parallel. Then start Electron using `npm run start`.
+1. Start TypeScript compiler and Parcel bundler/development server
+```
+# Run both in a single shell
+make
 
-Alternatively start each manually. First start up the TypeScript compiler with `npm run
-tsc`. Then in another shell start the development server with `npm run serve`. Then start
-Electron using `npm run start`.
+# Run seperately in two shells
+npm run tsc # shell 1
+npm run serve # shell 2
+```
+
+2. Start Electron
+```
+# Using make
+make electron
+
+# Manually
+MORBO_HOME=data/ npm run start
+```
 
 ### Linting
 To check for link errors, run `npm run lint` or `yarn lint`.
