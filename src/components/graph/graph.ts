@@ -40,6 +40,11 @@ export default class GraphComponent {
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
 
+  // This value is the time it takes in ms (milliseconds) for a single click
+  // to be registerd, correspondingly it is also the time remaining to click
+  // a second time in order for a double click to be registered.
+  private static readonly _SINGLE_CLICK_DELAY: number = 300
+
   private static graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
     return Object.keys(metadata)
       .map(Number)
@@ -79,6 +84,8 @@ export default class GraphComponent {
 
   private _actionStream: Subject<GraphAction> | null = null
 
+  private _lastClickWasSingle: boolean = false
+
   public constructor() {
     (document as any).d3Initialized = false
   }
@@ -111,7 +118,6 @@ export default class GraphComponent {
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
 
     this._actionStream = actionStream
-    let isSingleClick: boolean = true
 
     this._svg = d3.select(host)
       .append('svg')
@@ -119,14 +125,16 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        isSingleClick = true
-        setTimeout(() => { if (isSingleClick) {
-          this._actionStream!.next(new BackgroundClickAction())
-        } }, 300)
+        this._lastClickWasSingle = true
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new BackgroundClickAction())
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('dblclick', () => {
         d3.event.stopPropagation()
-        isSingleClick = false
+        this._lastClickWasSingle = false
         this._actionStream!.next(new BackgroundDblClickAction())
       })
     this._g = this._svg.append('g')
@@ -164,7 +172,6 @@ export default class GraphComponent {
 
   private _renderNodes(data: IGraphData): void {
     const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
-    let isSingleClick: boolean = true
 
     const nodes = this._g.selectAll('.node')
       .data(metadataItems)
@@ -173,10 +180,12 @@ export default class GraphComponent {
       .attr('class', 'node')
       .on('click', (ev: Event) => {
         d3.event.stopPropagation()
-        isSingleClick = true
-        setTimeout(() => { if (isSingleClick) {
-          this._actionStream!.next(new NodeClickAction(ev))
-        } }, 300)
+        this._lastClickWasSingle = true
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new NodeClickAction(ev))
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('contextmenu', (ev: Event) => {
         d3.event.stopPropagation()
@@ -184,7 +193,7 @@ export default class GraphComponent {
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()
-        isSingleClick = false
+        this._lastClickWasSingle = false
         this._actionStream!.next(new NodeDblClickAction(ev))
       })
       .on('mouseover.action', (d: any) => {
