@@ -40,7 +40,7 @@ export class NodeDragAction implements INodeDragAction {
 // }
 
 export const NODE_HOVER_SHORT_TYPE = 'nodeHoverShort'
-export type NodeHoverShortType    = 'nodeHoverShort'
+export type NodeHoverShortType     = 'nodeHoverShort'
 export interface INodeHoverShortAction { kind: NodeHoverShortType, node: any }
 export class NodeHoverShortAction implements INodeHoverShortAction {
   public readonly kind = NODE_HOVER_SHORT_TYPE
@@ -57,7 +57,7 @@ export class NodeHoverShortAction implements INodeHoverShortAction {
 // }
 
 export const NODE_HOVER_END_TYPE = 'nodeHoverEnd'
-export type NodeHoverEndType    = 'nodeHoverEnd'
+export type NodeHoverEndType     = 'nodeHoverEnd'
 export interface INodeHoverEndAction { kind: NodeHoverEndType, node: any }
 export class NodeHoverEndAction implements INodeHoverEndAction {
   public readonly kind = NODE_HOVER_END_TYPE
@@ -86,9 +86,9 @@ export class BackgroundDblClickAction implements IBackgroundDblClickAction {
   public readonly kind = BACKGROUND_DBL_CLICK_TYPE
 }
 
-export const ZOOM_TYPE = 'backgroundDblClick'
-export type ZoomType     = 'backgroundDblClick'
-export interface IZoomAction { kind: BackgroundDblClickType }
+export const ZOOM_TYPE = 'zoom'
+export type ZoomType   = 'zoom'
+export interface IZoomAction { kind: ZoomType }
 export class ZoomAction implements IZoomAction {
   public readonly kind = ZOOM_TYPE
 }

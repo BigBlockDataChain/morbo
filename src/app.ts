@@ -1,12 +1,14 @@
 import * as html from '@hyperapp/html'
 import {ActionResult, app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
-import {Subject} from 'rxjs'
+import {Subject, timer} from 'rxjs'
+import {debounce} from 'rxjs/operators'
 
 import {actions as graphActions} from './actions/graph'
 // import EditorView from './components/editor-component'
 import GraphView from './components/graph-view-component'
 import {GraphAction} from './components/graph/types'
+import * as graphTypes from './components/graph/types'
 // import Empty from './components/widgets/empty'
 import {getLogger} from './logger'
 import {
@@ -19,6 +21,8 @@ import {
 const logger = getLogger('main')
 
 const graphActionStream = new Subject<GraphAction>()
+
+const GRAPH_ACTION_DEBOUNCE_TIME = 50
 
 interface IConfig {
   screenHeight: number
@@ -74,9 +78,19 @@ const appActions = {
 
     actions.graph.init()
 
-    graphActionStream.subscribe(event => {
-      // TODO handle graph events
-    })
+    graphActionStream
+      .pipe(
+        debounce((event: GraphAction) => {
+          const time = (event.kind === graphTypes.ZOOM_TYPE
+                        || event.kind === graphTypes.NODE_DRAG_TYPE)
+            ? GRAPH_ACTION_DEBOUNCE_TIME
+            : 0
+          return timer(time)
+        }),
+      )
+      .subscribe((event: GraphAction) => {
+        // TODO handle graph events
+      })
 
     return {
       config: {
