@@ -5,11 +5,10 @@
  */
 
 import * as d3 from 'd3'
+import {Subject} from 'rxjs'
 
-import { Subject } from 'rxjs'
-
-import { getLogger } from '../../logger'
-import { El, IDimensions, IGraphData } from '../../types'
+import {getLogger} from '../../logger'
+import {El, IDimensions, IGraphData} from '../../types'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -34,8 +33,8 @@ export default class GraphComponent {
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
 
-  private _width: number | null = null
-  private _height: number | null = null
+  private _width: number = -1
+  private _height: number = -1
   // @ts-ignore // no unused variable
   private _host: El | null = null
   private _svg: any | null = null
@@ -66,8 +65,8 @@ export default class GraphComponent {
     actionStream: Subject<GraphAction>,
   ): void {
     if ((document as any).d3Initialized
-      && dimensions.height === this._height
-      && dimensions.width === this._width) {
+        && dimensions.height === this._height
+        && dimensions.width === this._width) {
       logger.debug('Nothing changed, skipping init')
       return
     }
@@ -83,6 +82,9 @@ export default class GraphComponent {
 
     (document as any).d3Initialized = true
     this._host = host
+
+    this._height = dimensions.height
+    this._width = dimensions.width
 
     // Used for node coloring
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
@@ -109,6 +111,7 @@ export default class GraphComponent {
       this._g.attr('transform', d3.event.transform)
       window.localStorage.setItem('graphTransform', this._graphTransformToString().str)
     }
+
     this._zoomHandler = d3.zoom()
       .scaleExtent([1 / 10, 10])
       .on('zoom.a', zoomActions)
@@ -116,10 +119,11 @@ export default class GraphComponent {
 
     this._zoomHandler(this._svg)
 
-    const gTransform = this._graphTransformToArray().gTransform
+    const graphTransform = this._graphTransformToArray().graphTransform
     this._svg
       .call(this._zoomHandler.transform,
-        d3.zoomIdentity.translate(gTransform[0], gTransform[1]).scale(gTransform[2]),
+        d3.zoomIdentity.translate(graphTransform[0], graphTransform[1])
+          .scale(graphTransform[2]),
       )
   }
 
@@ -142,11 +146,10 @@ export default class GraphComponent {
     this._renderLinks(data)
     this._renderNodes(data, callbacks)
 
-    // this._enableClickToCenter()
+    this._enableClickToCenter()
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._disableDoubleClickZoom()
-    this._enableClickToCenter()
   }
 
   /**
@@ -283,12 +286,10 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click', (d: any) => {
-      const { translation, scale } = this._getGraphTranslationAndScale()
-      const { position } = this._graphToSVGPosition(d)
-      const w = document.documentElement.clientWidth
-      const h = document.documentElement.clientHeight
-      const x = translation[0] + w / 2 - position[0]
-      const y = translation[1] + h / 2 - position[1]
+      const {translation, scale} = this._getGraphTranslationAndScale()
+      const {position} = this._graphToSVGPosition(d)
+      const x = translation[0] + this._width / 2 - position[0]
+      const y = translation[1] + this._height / 2 - position[1]
       this._svg
         .transition()
         .duration(GraphComponent._TRANSITION_DURATION)
@@ -309,21 +310,20 @@ export default class GraphComponent {
 
     d3.select('body')
       .on('keydown', () => {
-        const { translation, scale } = this._getGraphTranslationAndScale()
+        const {translation, scale} = this._getGraphTranslationAndScale()
         let offsetRight = translation[0]
         let offsetDown = translation[1]
-
         switch (d3.event.keyCode) {
-          case keymap.UP:
+          case keymap.DOWN:
             offsetDown = translation[1] - GraphComponent._PAN_MOVEMENT_OFFSET
             break
-          case keymap.DOWN:
+          case keymap.UP:
             offsetDown = translation[1] + GraphComponent._PAN_MOVEMENT_OFFSET
             break
-          case keymap.LEFT:
+          case keymap.RIGHT:
             offsetRight = translation[0] - GraphComponent._PAN_MOVEMENT_OFFSET
             break
-          case keymap.RIGHT:
+          case keymap.LEFT:
             offsetRight = translation[0] + GraphComponent._PAN_MOVEMENT_OFFSET
             break
           default:
@@ -367,9 +367,9 @@ export default class GraphComponent {
    * @private
    * @return {{array, number}} A tuple of the x, y translation and the zoom scale
    */
-  private _getGraphTranslationAndScale(): { translation: number[], scale: number } {
+  private _getGraphTranslationAndScale(): {translation: number[], scale: number} {
     const transformRaw = this._g.attr('transform')
-    if (transformRaw === null) return { translation: [0, 0], scale: 1 }
+    if (transformRaw === null) return {translation: [0, 0], scale: 1}
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
     const translation = translationRaw
       .replace('translate(', '')
@@ -377,67 +377,47 @@ export default class GraphComponent {
       .split(',')
       .map(Number)
     const scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
-    return { translation, scale }
+    return {translation, scale}
   }
 
-  /**
-   * @private
-   * @return {{array}} A tuple of the x, y position relative to the SVG
-   */
-  private _graphToSVGPosition(d: any): { position: number[] } {
-    const { points } = this._getGraphCornerPoints()
-    const w = document.documentElement.clientWidth
-    const h = document.documentElement.clientHeight
+  private _graphToSVGPosition(d: any): {position: number[]} {
+    const {points} = this._getGraphCornerPoints()
     const position = [
-      w * (d.x - points[0]) / (points[1] - points[0]),
-      h * (d.y - points[2]) / (points[3] - points[2]),
+      this._width * (d.x - points[0]) / (points[1] - points[0]),
+      this._height * (d.y - points[2]) / (points[3] - points[2]),
     ]
-    return { position }
+    return {position}
   }
 
-  /**
-   * @private
-   * @return {{array}} A tuple of the lower and upper x and y coordinates of the graph
-   */
-  private _getGraphCornerPoints(): { points: number[] } {
-    const { translation, scale } = this._getGraphTranslationAndScale()
-    const w = document.documentElement.clientWidth
-    const h = document.documentElement.clientHeight
+  private _getGraphCornerPoints(): {points: number[]} {
+    const {translation, scale} = this._getGraphTranslationAndScale()
     const points = [
       -translation[0] / scale,
-      w / scale - (translation[0] + 15) / scale,
+      this._width / scale - (translation[0] + 15) / scale,
       -translation[1] / scale,
-      h / scale - (translation[1] + 15) / scale,
+      this._height / scale - (translation[1] + 15) / scale,
     ]
-    return { points }
+    return {points}
   }
 
-  /**
-   * @private
-   * @return {{string}} A string of the translation and scale
-   */
-  private _graphTransformToString(): { str: string } {
-    const { translation, scale } = this._getGraphTranslationAndScale()
+  private _graphTransformToString(): {str: string} {
+    const {translation, scale} = this._getGraphTranslationAndScale()
     const str = translation[0] + ' ' + translation[1] + ' ' + scale
-    return { str }
+    return {str}
   }
 
-  /**
-   * @private
-   * @return {{string}} A string of the translation and scale
-   */
-  private _graphTransformToArray(): { gTransform: number[] } {
-    let gTransform: number[] = []
+  private _graphTransformToArray(): {graphTransform: number[]} {
+    let graphTransform: number[] = []
     const stor = window.localStorage.getItem('graphTransform')
     if (stor === null) {
-      gTransform = [0, 0, 1]
-      return { gTransform }
+      graphTransform = [0, 0, 1]
+      return {graphTransform}
     }
     const temp: string[] = stor.split(' ')
     for (let i = 0; i < temp.length; i++) {
-      gTransform[i] = parseFloat(temp[i])
+      graphTransform[i] = parseFloat(temp[i])
     }
-    return { gTransform }
+    return {graphTransform}
   }
 
 }
