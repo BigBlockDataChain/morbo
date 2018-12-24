@@ -42,6 +42,11 @@ export default class GraphComponent {
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
 
+  // This value is the time it takes in ms (milliseconds) for a single click
+  // to be registerd, correspondingly it is also the time remaining to click
+  // a second time in order for a double click to be registered.
+  private static readonly _SINGLE_CLICK_DELAY: number = 300
+
   private static graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
     return Object.keys(metadata)
       .map(Number)
@@ -80,6 +85,8 @@ export default class GraphComponent {
   private _mouseDownNode: any | null = null
 
   private _actionStream: Subject<GraphAction> | null = null
+
+  private _lastClickWasSingle: boolean = false
 
   public constructor() {
     (document as any).d3Initialized = false
@@ -123,10 +130,16 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new BackgroundClickAction())
+        this._lastClickWasSingle = true
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new BackgroundClickAction())
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('dblclick', () => {
         d3.event.stopPropagation()
+        this._lastClickWasSingle = false
         this._actionStream!.next(new BackgroundDblClickAction())
       })
 
@@ -183,7 +196,12 @@ export default class GraphComponent {
       .attr('class', 'node')
       .on('click', (ev: Event) => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new NodeClickAction(ev))
+        this._lastClickWasSingle = true
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new NodeClickAction(ev))
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('contextmenu', (ev: Event) => {
         d3.event.stopPropagation()
@@ -191,6 +209,7 @@ export default class GraphComponent {
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()
+        this._lastClickWasSingle = false
         this._actionStream!.next(new NodeDblClickAction(ev))
       })
       .on('mouseover.action', (d: any) => {
