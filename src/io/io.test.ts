@@ -25,15 +25,21 @@ const mockIndex: IGraphIndex = {
 
 const mockMetadata: IGraphMetadata = {
   1: {
+    id: 1,
     title: 'One',
     lastModified: '',
     created: '',
+    x: 12,
+    y: 12,
     tags: ['tagA'],
   },
   2: {
+    id: 2,
     title: 'Two',
     lastModified: '',
     created: '',
+    x: 12,
+    y: 12,
     tags: ['tagB'],
   },
 }
