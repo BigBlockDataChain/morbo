@@ -114,7 +114,7 @@ const appActions = {
   },
 
   selectNode: (node: IGraphNodeData) => (state: IState) => {
-    setTimeout(() => editorOpenChange.next(), EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY)
+    () => editorOpenChange.next()
     return {
       runtime: {
         ...state.runtime,
