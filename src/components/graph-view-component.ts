@@ -1,5 +1,5 @@
 import * as html from '@hyperapp/html'
-import {Subject} from 'rxjs'
+import {Observable, Subject} from 'rxjs'
 
 import {
   El,
@@ -17,13 +17,18 @@ export default function(
   onHomeClick: () => any,
   graphData: IGraphData,
   graphActionStream: Subject<GraphAction>,
+  onGraphResize: (el: El) => any,
+  sizeCalculationRequiredStream: Observable<void>,
 ) {
   return html.div(
     {
       id: 'graph-view-component',
-      style: {
-        width: dimensions.width + 'px',
-        height: dimensions.height + 'px',
+      oncreate: (el: El) => {
+        onGraphResize(el)
+        window.addEventListener('resize', () => onGraphResize(el))
+        sizeCalculationRequiredStream.subscribe(() => {
+          onGraphResize(el)
+        })
       },
     },
     [

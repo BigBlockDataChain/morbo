@@ -1,7 +1,24 @@
+import {Subject, timer} from 'rxjs'
+import {debounce} from 'rxjs/operators'
+
+import {GraphAction} from '../components/graph/types'
+import * as graphTypes from '../components/graph/types'
 import {
   loadIndex,
   loadMetadata,
+  writeIndex,
+  writeMetadata,
 } from '../io/io'
+import {getLogger} from '../logger'
+import {
+  El,
+  IGraphNodeData,
+} from '../types'
+import {assertNever} from '../utils'
+
+const logger = getLogger('actions/graph')
+
+const GRAPH_ACTION_DEBOUNCE_TIME = 50
 
 export const actions: any = {
   init: () => async (_: any, _actions: any) => {
@@ -22,7 +39,97 @@ export const actions: any = {
     })
   },
 
+  save: () => (state: any) => {
+    return new Promise((resolve, reject) => {
+      const writeIndexPromise = writeIndex(state.index)
+      const writeMetadataPromise = writeMetadata(state.metadata)
+
+      // TODO Does Promise all catch errors in one of the promises? If so can avoid the
+      // awaits and just reject in a catch block
+      Promise.all([
+        writeIndexPromise,
+        writeMetadataPromise,
+      ]).then(async () => {
+        try {
+          await writeMetadataPromise
+          await writeIndexPromise
+        } catch (err) {
+          logger.warn('Failed to write metadata or index', err)
+          reject(err)
+        }
+
+        resolve()
+      })
+    })
+  },
+
   setGraphData: (graph: any) => () => {
     return graph
+  },
+
+  handleGraphActions: ({
+    actionStream,
+    selectNode,
+  }: {
+    actionStream: Subject<GraphAction>,
+    selectNode: (node: IGraphNodeData) => any,
+  }) =>
+    (_: any, _actions: any) => {
+      actionStream
+        .pipe(
+          debounce((event: GraphAction) => {
+            const time = (event.kind === graphTypes.ZOOM_TYPE
+                          || event.kind === graphTypes.NODE_DRAG_TYPE)
+              ? GRAPH_ACTION_DEBOUNCE_TIME
+              : 0
+            return timer(time)
+          }),
+        )
+        .subscribe((event: GraphAction) => {
+          switch (event.kind) {
+            case graphTypes.NODE_CLICK_TYPE:
+              selectNode(event.node)
+              break
+            case graphTypes.NODE_RIGHT_CLICK_TYPE:
+              break
+            case graphTypes.NODE_DBL_CLICK_TYPE:
+              break
+            case graphTypes.NODE_DRAG_TYPE:
+              _actions.setNodePosition(event.node)
+              break
+            case graphTypes.NODE_HOVER_SHORT_TYPE:
+              break
+            case graphTypes.NODE_HOVER_END_TYPE:
+              break
+            case graphTypes.BACKGROUND_CLICK_TYPE:
+              break
+            case graphTypes.BACKGROUND_DBL_CLICK_TYPE:
+              break
+            case graphTypes.ZOOM_TYPE:
+              break
+            default:
+              assertNever(event)
+          }
+        })
+    },
+
+  resizeGraph: (graphViewEl: El) => () => {
+    return {
+      height: graphViewEl.offsetHeight,
+      width: graphViewEl.offsetWidth,
+    }
+  },
+
+  setNodePosition: (node: IGraphNodeData) => (state: any, _: any) => {
+    const metadata = {
+      ...state.metadata,
+      [node.id]: {
+        ...state.metadata[node.id],
+        x: node.x,
+        y: node.y,
+      },
+    }
+
+    return {metadata}
   },
 }

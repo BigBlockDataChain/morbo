@@ -23,33 +23,11 @@ html, body {
   height: 100%;
   width: 100%;
   display: flex;
-}
-
-#debug-panel {
-  width: 25em;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  background: #f8f8f8;
-  outline: 3px solid navy;
-}
-#debug-panel-header {
-  color: white;
-  background: navy;
-  padding: 0.25em 2em;
-  cursor: pointer;
-}
-#debug-panel-body {
-  padding: 0.5em;
-  overflow: auto;
-  max-height: 20em;
+  flex-direction: row;
 }
 
 #editor-container {
-  /* TODO: This  should be 100%, but then things overflow */
-  position: absolute;
-  right: 0;
-  width: 25%;
+  width: 512px;
   height: 100%;
   padding: 0.5em;
   box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);
@@ -78,6 +56,10 @@ html, body {
 #graph-view-component {
   background: white;
   position: relative;
+  flex: auto;
+  height: 100%;
+  overflow: hidden;
+  background: #f8f8f8;
 }
 #graph-view-component > .home-icon {
   position: absolute;
@@ -85,6 +67,7 @@ html, body {
   left: 10px;
 }
 #d3-container {
+  background: beige;
 }
 
 .home-icon {

@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron')
+const {BrowserWindow, app, ipcMain} = require('electron')
 
 const {
   default: installExtension,
@@ -29,6 +29,10 @@ function createWindow() {
 
   win.on('closed', () => {
     win = null
+  })
+
+  ipcMain.on('app_quit', (event, info) => {
+    win.close()
   })
 
   installExtension(REDUX_DEVTOOLS)

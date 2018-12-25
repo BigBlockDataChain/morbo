@@ -14,8 +14,8 @@ export class NodeRightClickAction implements INodeRightClickAction {
   public constructor(public readonly node: any) {}
 }
 
-const NODE_DBL_CLICK_TYPE    = 'nodeDblClick'
-export type NodeDblClickType = 'nodeDblClick'
+export const NODE_DBL_CLICK_TYPE = 'nodeDblClick'
+export type NodeDblClickType     = 'nodeDblClick'
 export interface INodeDblClickAction { readonly kind: NodeDblClickType, node: any }
 export class NodeDblClickAction implements INodeDblClickAction {
   public readonly kind = NODE_DBL_CLICK_TYPE
@@ -64,14 +64,6 @@ export class NodeHoverEndAction implements INodeHoverEndAction {
   public constructor(public readonly node: any) {}
 }
 
-export const EDGE_CLICK_TYPE = 'edgeClick'
-export type EdgeClickType    = 'edgeClick'
-export interface IEdgeClickAction { kind: EdgeClickType, node: any }
-export class EdgeClickAction implements IEdgeClickAction {
-  public readonly kind = EDGE_CLICK_TYPE
-  public constructor(public readonly node: any) {}
-}
-
 export const BACKGROUND_CLICK_TYPE = 'backgroundClick'
 export type BackgroundClickType    = 'backgroundClick'
 export interface IBackgroundClickAction { kind: BackgroundClickType }
@@ -102,7 +94,6 @@ export type GraphAction
   | INodeHoverShortAction
   // | INodeHoverLongAction
   | INodeHoverEndAction
-  | IEdgeClickAction
   | IBackgroundClickAction
   | IBackgroundDblClickAction
   | IZoomAction
