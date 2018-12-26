@@ -114,7 +114,6 @@ const appActions = {
   },
 
   selectNode: (node: IGraphNodeData) => (state: IState) => {
-    () => editorOpenChange.next()
     return {
       runtime: {
         ...state.runtime,
