@@ -34,8 +34,37 @@ html, body {
   flex: 0 0 512px;
 }
 
+#editor-right-buttons{
+  float: right;
+}
+
+#editor-right-buttons *{
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
+#text-edit-tools {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#text-edit-tools * {
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
+#editor-title {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#editor-tools {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
 #editor {
-  height: 100%;
+  height: 85%;
   width: 100%;
   resize: none;
   padding: 1em;
