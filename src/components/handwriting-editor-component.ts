@@ -95,12 +95,13 @@ export const actions: IActions = {
 export function view(compState: IState, compActions: IActions) {
   return html.div(
     {
+      id: 'handwriting-editor-component',
       onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas(event),
     },
     [
       html.div(
         {
-          id: 'toolbox',
+          class: 'toolbox',
         },
         [
           html.div(
@@ -138,7 +139,7 @@ export function view(compState: IState, compActions: IActions) {
             },
           ),
           html.div(
-            {id: 'palette'},
+            {class: 'palette'},
             [
               viewPaletteItem(compState.color, emptyFunction, 'palette_current_color'),
               viewPaletteItem('white', () => compActions.changeColor('white')),
@@ -152,7 +153,7 @@ export function view(compState: IState, compActions: IActions) {
       ),
       html.canvas(
         {
-          id: 'canvas',
+          class: 'canvas',
           width: 400,
           height: 400,
           oncreate: (el: HTMLCanvasElement) => compActions.canvasCreated(el),

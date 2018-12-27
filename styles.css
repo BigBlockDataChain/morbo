@@ -53,6 +53,80 @@ html, body {
   background: lightgray;
 }
 
+/* Handwriting Editor Component */
+#handwriting-editor-component .toolbox {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #bbb;
+  background: #eee;
+  height: 48px;
+  padding: 8px;
+}
+
+#handwriting-editor-component .toolbox > * {
+  margin-right: 8px;
+}
+
+#handwriting-editor-component .toolbox .tool {
+  height: 32px;
+  width: 32px;
+  user-select: none;
+  font-size: 32px;
+}
+
+#handwriting-editor-component .tool-active {
+  outline: 1px solid #666;
+  background: #aaa;
+}
+
+#handwriting-editor-component .tool_stroke_width {
+  width: 84px !important;
+}
+
+#handwriting-editor-component .toolbox > #palette {
+  display: flex;
+  flex-direction: row;
+}
+
+.palette_item {
+  outline: 1px solid #666;
+  margin-right: 8px;
+  height: 32px;
+  width: 32px;
+}
+
+#handwriting-editor-component .palette_current_color {
+  margin-right: 16px
+}
+
+#handwriting-editor-component .palette_item_black {
+  background: black;
+}
+
+#handwriting-editor-component .palette_item_white {
+  background: white;
+}
+
+#handwriting-editor-component .palette_item_blue {
+  background: blue;
+}
+
+#handwriting-editor-component .palette_item_green {
+  background: green;
+}
+
+#handwriting-editor-component .palette_item_red {
+  background: red;
+}
+
+#handwriting-editor-component canvas {
+  border-width: 0 1px 1px 0;
+  border-style: dotted;
+  border-color: #666;
+  background: white;
+}
+/* End of Handwriting Editor Component */
+
 #graph-view-component {
   background: white;
   position: relative;
