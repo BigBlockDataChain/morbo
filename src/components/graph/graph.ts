@@ -30,8 +30,8 @@ import {
 } from './types'
 
 const logger = getLogger('d3-graph')
-const graphTransform = window.localStorage.getItem('graphTransform')
-if (graphTransform === undefined || (graphTransform !== null && graphTransform.match(/NaN/))) {
+const temp1 = window.localStorage.getItem('graphTransform')
+if (temp1 === undefined || (temp1 !== null && temp1.match(/NaN/))) {
   window.localStorage.setItem('graphTransform', '0 0 1')
 }
 
@@ -314,21 +314,22 @@ export default class GraphComponent {
   }
 
   // @ts-ignore // no unused variable
-  public _enableClickToCenter(): void {
+  private _enableClickToCenter(): void {
+    let el: any = null
     if (document.getElementsByTagName('temp').length === 0) {
-      let el = document.createElement('temp')
+      el = document.createElement('temp')
       el.setAttribute('id', 'editor-container')
       document.body.appendChild(el)
     }
 
     this._nodes.on('click.centerOnNode', (d: any) => {
-      let el: any = document.getElementById('editor')
+      el = document.getElementById('editor')
       let width: number = this._width
 
       if (el === null) {
         el = document.getElementsByTagName('temp')[0]
         el = getComputedStyle(el).getPropertyValue('flex').split(' ')
-        width = this._width - parseInt(el[el.length - 1])
+        width = this._width - parseInt(el[el.length - 1], 10)
       }
 
       const {translation, scale} = this._getGraphTranslationAndScale()
