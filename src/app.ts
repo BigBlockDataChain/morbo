@@ -26,7 +26,7 @@ const graphActionStream = new Subject<GraphAction>()
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
 
-const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 500
+const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 50
 
 interface IRuntime {
   showEditor: boolean
