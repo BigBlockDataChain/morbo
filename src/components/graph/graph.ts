@@ -314,7 +314,7 @@ export default class GraphComponent {
 
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
-    this._nodes.on('click', (d: any) => {
+    this._nodes.on('click.centerOnNode', (d: any) => {
       const {translation, scale} = this._getGraphTranslationAndScale()
       const {position} = this._graphToSVGPosition(d)
       const x = translation[0] + this._width / 2 - position[0]
