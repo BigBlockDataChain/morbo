@@ -30,12 +30,15 @@ import {
 } from './types'
 
 const logger = getLogger('d3-graph')
-const temp1 = window.localStorage.getItem('graphTransform')
-if (temp1 === undefined || (temp1 !== null && temp1.match(/NaN/))) {
+const localGraphTransform = window.localStorage.getItem('graphTransform')
+if (
+  localGraphTransform === undefined
+  || (localGraphTransform !== null && localGraphTransform.match(/NaN/))
+) {
   window.localStorage.setItem('graphTransform', '0 0 1')
 }
 
-interface ILinkTuple {source: GraphNodeId, target: GraphNodeId}
+interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
 
 export default class GraphComponent {
 
@@ -315,21 +318,10 @@ export default class GraphComponent {
 
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
-    let el: any = null
-    if (document.getElementsByTagName('temp').length === 0) {
-      el = document.createElement('temp')
-      el.setAttribute('id', 'editor-container')
-      document.body.appendChild(el)
-    }
-
     this._nodes.on('click.centerOnNode', (d: any) => {
-      el = document.getElementById('editor')
       let width: number = this._width
-
-      if (el === null) {
-        el = document.getElementsByTagName('temp')[0]
-        el = getComputedStyle(el).getPropertyValue('flex').split(' ')
-        width = this._width - parseInt(el[el.length - 1], 10)
+      if (document.getElementById('editor-container') === null) {
+        width = this._width - 512
       }
 
       const {translation, scale} = this._getGraphTranslationAndScale()
