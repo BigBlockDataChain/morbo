@@ -30,11 +30,12 @@ import {
 } from './types'
 
 const logger = getLogger('d3-graph')
-if (window.localStorage.getItem('graphTransform') === undefined) {
+const graphTransform = window.localStorage.getItem('graphTransform')
+if (graphTransform === undefined || (graphTransform !== null && graphTransform.match(/NaN/))) {
   window.localStorage.setItem('graphTransform', '0 0 1')
 }
 
-interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
+interface ILinkTuple {source: GraphNodeId, target: GraphNodeId}
 
 export default class GraphComponent {
 
@@ -313,11 +314,26 @@ export default class GraphComponent {
   }
 
   // @ts-ignore // no unused variable
-  private _enableClickToCenter(): void {
+  public _enableClickToCenter(): void {
+    if (document.getElementsByTagName('temp').length === 0) {
+      let el = document.createElement('temp')
+      el.setAttribute('id', 'editor-container')
+      document.body.appendChild(el)
+    }
+
     this._nodes.on('click.centerOnNode', (d: any) => {
+      let el: any = document.getElementById('editor')
+      let width: number = this._width
+
+      if (el === null) {
+        el = document.getElementsByTagName('temp')[0]
+        el = getComputedStyle(el).getPropertyValue('flex').split(' ')
+        width = this._width - parseInt(el[el.length - 1])
+      }
+
       const {translation, scale} = this._getGraphTranslationAndScale()
       const {position} = this._graphToSVGPosition(d)
-      const x = translation[0] + this._width / 2 - position[0]
+      const x = translation[0] + width / 2 - position[0]
       const y = translation[1] + this._height / 2 - position[1]
       this._svg
         .transition()
