@@ -27,7 +27,6 @@ html, body {
 }
 
 #editor-container {
-  width: 512px;
   height: 100%;
   padding: 0.5em;
   box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);

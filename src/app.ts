@@ -26,7 +26,7 @@ const graphActionStream = new Subject<GraphAction>()
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
 
-const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 500
+const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 50
 
 interface IRuntime {
   showEditor: boolean
@@ -114,7 +114,7 @@ const appActions = {
   },
 
   selectNode: (node: IGraphNodeData) => (state: IState) => {
-    editorOpenChange.next()
+    setTimeout(() => editorOpenChange.next(), EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY)
     return {
       runtime: {
         ...state.runtime,
