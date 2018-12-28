@@ -20,6 +20,7 @@ import {
   IGraphNodeData,
   NoteDataType,
 } from './types'
+import {emptyFunction} from './utils'
 
 const logger = getLogger('main')
 
@@ -110,7 +111,8 @@ const appActions = {
     })
   },
 
-  exit: () => (_: IState, actions: any) => {
+  save: () => (_: IState, actions: any) => {
+    logger.log('Saving application data')
     return actions.graph.save()
   },
 
@@ -143,7 +145,12 @@ function view(state: IState, actions: any) {
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
-      Toolbar(),
+      Toolbar({
+        onBack: emptyFunction,
+        onHome: emptyFunction,
+        onSave: actions.save,
+        onSettings: emptyFunction,
+      }),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
@@ -173,7 +180,7 @@ const app = devtools(hyperapp)(
 )
 
 window.onbeforeunload = (e: Event) => {
-  app.exit()
+  app.save()
     .catch(() => {
       alert('Failed to save. Click okay to shutdown anyway')
     })
