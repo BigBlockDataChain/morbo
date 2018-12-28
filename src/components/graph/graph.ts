@@ -319,22 +319,22 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click.centerOnNode', (d: any) => {
-      let width: number = this._width
-      if (document.getElementById('editor-container') === null) {
-        width = this._width - 512
-      }
-
-      const {translation, scale} = this._getGraphTranslationAndScale()
-      const {position} = this._graphToSVGPosition(d)
-      const x = translation[0] + width / 2 - position[0]
-      const y = translation[1] + this._height / 2 - position[1]
-      this._svg
-        .transition()
-        .duration(GraphComponent._TRANSITION_DURATION)
-        .call(
-          this._zoomHandler.transform,
-          d3.zoomIdentity.translate(x, y).scale(scale),
-        )
+      const editorOpen = setInterval(() => {
+        if (document.getElementById('editor-container') !== null) {
+          const {translation, scale} = this._getGraphTranslationAndScale()
+          const {position} = this._graphToSVGPosition(d)
+          const x = translation[0] + this._width / 2 - position[0]
+          const y = translation[1] + this._height / 2 - position[1]
+          this._svg
+            .transition()
+            .duration(GraphComponent._TRANSITION_DURATION)
+            .call(
+              this._zoomHandler.transform,
+              d3.zoomIdentity.translate(x, y).scale(scale),
+            )
+          clearInterval(editorOpen)
+        }
+      }, 200)
     })
   }
 
