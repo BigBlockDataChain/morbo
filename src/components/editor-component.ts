@@ -69,7 +69,19 @@ export default function(
         {
           id: 'editor-tags',
         },
-        node.tags.map(html.span),
+        [
+          html.div(
+            [
+              node.tags.map(html.span),
+              html.button(
+                {
+                  disabled: true,
+                },
+                '+',
+              ),
+            ],
+          ),
+        ],
       ),
       html.div(
         {

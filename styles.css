@@ -34,7 +34,7 @@ html, body {
   flex: 0 0 512px;
 }
 
-#editor-right-buttons{
+#editor-right-buttons {
   float: right;
 }
 
@@ -58,6 +58,11 @@ html, body {
   margin-bottom: 0.3em;
 }
 
+#editor-tags * {
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
 #editor-tools {
   margin-top: 0.3em;
   margin-bottom: 0.3em;
@@ -78,6 +83,7 @@ html, body {
   padding: 4px 8px;
   background: none;
 }
+
 #editor-close:hover {
   background: lightgray;
 }
@@ -90,11 +96,13 @@ html, body {
   overflow: hidden;
   background: #f8f8f8;
 }
+
 #graph-view-component > .home-icon {
   position: absolute;
   top: 10px;
   left: 10px;
 }
+
 #d3-container {
   background: beige;
 }
@@ -108,6 +116,7 @@ html, body {
   background: black;
   opacity: 0.25;
 }
+
 .home-icon:hover {
   opacity: 0.5;
 }
@@ -122,6 +131,7 @@ html, body {
   border-right: 16px solid transparent;
   border-bottom: 8px solid black;
 }
+
 .home-icon:after {
   content: '';
   position: absolute;
