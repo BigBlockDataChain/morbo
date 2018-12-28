@@ -1,5 +1,5 @@
 import * as html from '@hyperapp/html'
-import {Observable, Subject, fromEvent} from 'rxjs'
+import {fromEvent, Observable, Subject} from 'rxjs'
 import {debounceTime} from 'rxjs/operators'
 
 import {
