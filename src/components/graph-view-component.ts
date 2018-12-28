@@ -1,5 +1,6 @@
 import * as html from '@hyperapp/html'
-import {Observable, Subject} from 'rxjs'
+import {Observable, Subject, fromEvent} from 'rxjs'
+import {debounceTime} from 'rxjs/operators'
 
 import {
   El,
@@ -8,7 +9,6 @@ import {
 } from '../types'
 import GraphComponent from './graph/graph'
 import {GraphAction} from './graph/types'
-import HomeIcon from './widgets/home-icon'
 
 const graphComponent = new GraphComponent()
 
@@ -25,14 +25,15 @@ export default function(
       id: 'graph-view-component',
       oncreate: (el: El) => {
         onGraphResize(el)
-        window.addEventListener('resize', () => onGraphResize(el))
+        fromEvent(window, 'resize')
+          .pipe(debounceTime(200))
+          .subscribe(() => onGraphResize(el))
         sizeCalculationRequiredStream.subscribe(() => {
           onGraphResize(el)
         })
       },
     },
     [
-      HomeIcon(onHomeClick),
       d3Container(dimensions, graphData, graphActionStream),
     ],
   )

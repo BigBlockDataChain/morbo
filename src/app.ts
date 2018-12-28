@@ -8,6 +8,7 @@ import {actions as graphActions} from './actions/graph'
 import Editor from './components/editor-component'
 import GraphView from './components/graph-view-component'
 import {GraphAction} from './components/graph/types'
+import Toolbar from './components/toolbar-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
 import {getLogger} from './logger'
@@ -26,7 +27,7 @@ const graphActionStream = new Subject<GraphAction>()
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
 
-const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 50
+const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 250
 
 interface IRuntime {
   showEditor: boolean
@@ -142,6 +143,7 @@ function view(state: IState, actions: any) {
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
+      Toolbar(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
