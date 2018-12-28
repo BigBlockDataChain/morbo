@@ -92,6 +92,11 @@ export default class GraphComponent {
 
   private _lastClickWasSingle: boolean = false
 
+  private _lastClickedNodeLocation: null | {x: number, y: number} = null
+
+  private _graphData: null | IGraphData = null
+  private _dimensions: null | IDimensions = null
+
   public constructor() {
     (document as any).d3Initialized = false
   }
@@ -135,6 +140,7 @@ export default class GraphComponent {
       .on('click', () => {
         d3.event.stopPropagation()
         this._lastClickWasSingle = true
+        this._lastClickedNodeLocation = null
         setTimeout(() => {
           if (this._lastClickWasSingle) {
             this._actionStream!.next(new BackgroundClickAction())
@@ -170,11 +176,23 @@ export default class GraphComponent {
       )
   }
 
-  public render(data: IGraphData): void {
+  public render(dimensions: IDimensions, data: IGraphData): void {
     if (data === null) {
       logger.log('No data for rendering')
       return
     }
+
+    if (this._graphData
+        && this._graphData.index === data.index
+        && this._graphData.metadata === data.metadata
+        && this._dimensions
+        && this._dimensions.height === dimensions.height
+        && this._dimensions.width === dimensions.width) {
+      logger.log('No data has changed, skipping render')
+      return
+    }
+    this._dimensions = dimensions
+    this._graphData = data
 
     logger.debug('Drawing graph nodes and links')
 
@@ -188,6 +206,25 @@ export default class GraphComponent {
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._disableDoubleClickZoom()
+
+    this._focusGraph()
+  }
+
+  private _focusGraph(): void {
+    if (!this._lastClickedNodeLocation) return
+
+    const {translation, scale} = this._getGraphTranslationAndScale()
+    const {position} = this._graphToSVGPosition(this._lastClickedNodeLocation)
+    const x = translation[0] + this._width / 2 - position[0]
+    const y = translation[1] + this._height / 2 - position[1]
+
+    this._svg
+      .transition()
+      .duration(GraphComponent._TRANSITION_DURATION)
+      .call(
+        this._zoomHandler.transform,
+        d3.zoomIdentity.translate(x, y).scale(scale),
+      )
   }
 
   private _renderNodes(data: IGraphData): void {
@@ -319,22 +356,18 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click.centerOnNode', (d: any) => {
-      const editorOpen = setInterval(() => {
-        if (document.getElementById('editor-container') !== null) {
-          const {translation, scale} = this._getGraphTranslationAndScale()
-          const {position} = this._graphToSVGPosition(d)
-          const x = translation[0] + this._width / 2 - position[0]
-          const y = translation[1] + this._height / 2 - position[1]
-          this._svg
-            .transition()
-            .duration(GraphComponent._TRANSITION_DURATION)
-            .call(
-              this._zoomHandler.transform,
-              d3.zoomIdentity.translate(x, y).scale(scale),
-            )
-          clearInterval(editorOpen)
-        }
-      }, 200)
+      this._lastClickedNodeLocation = {x: d.x, y: d.y}
+      const {translation, scale} = this._getGraphTranslationAndScale()
+      const {position} = this._graphToSVGPosition(d)
+      const x = translation[0] + this._width / 2 - position[0]
+      const y = translation[1] + this._height / 2 - position[1]
+      this._svg
+        .transition()
+        .duration(GraphComponent._TRANSITION_DURATION)
+        .call(
+          this._zoomHandler.transform,
+          d3.zoomIdentity.translate(x, y).scale(scale),
+        )
     })
   }
 

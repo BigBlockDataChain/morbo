@@ -56,23 +56,15 @@ function d3Container(
           {height: dimensions.height, width: dimensions.width},
           graphActionStream,
         )
-        graphComponent.render(graphData)
+        graphComponent.render(dimensions, graphData)
       },
       onupdate: (el: El, prevAttrs: any) => {
-        if (dimensions !== prevAttrs.dimensions)
-          graphComponent.init(
-            el,
-            {height: dimensions.height, width: dimensions.width},
-            graphActionStream,
-          )
-
-        if (
-          !prevAttrs.graphData
-          || graphData.index !== prevAttrs.graphData.index
-          || !prevAttrs.metdata
-          || graphData.metadata !== prevAttrs.graphData.metadata
+        graphComponent.init(
+          el,
+          {height: dimensions.height, width: dimensions.width},
+          graphActionStream,
         )
-          graphComponent.render(graphData)
+        graphComponent.render(dimensions, graphData)
       },
     },
   )
