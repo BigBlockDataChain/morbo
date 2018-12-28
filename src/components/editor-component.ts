@@ -150,7 +150,7 @@ export default function(
           id: 'editor',
           oninput: (ev: Event) => {
             actions.textEditor.setData((ev.target as HTMLTextAreaElement).value)
-        },
+          },
           value: state.textEditor.data,
         },
       ),
