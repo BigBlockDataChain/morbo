@@ -8,10 +8,11 @@ import {actions as graphActions} from './actions/graph'
 import Editor from './components/editor-component'
 import GraphView from './components/graph-view-component'
 import {GraphAction} from './components/graph/types'
-import Toolbar from './components/toolbar-component'
+import * as Toolbar from './components/toolbar-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
 import {getLogger} from './logger'
+import search from './search'
 import {
   El,
   GraphNodeId,
@@ -40,6 +41,7 @@ interface IState {
   editor: IEditorState
   settings: any
   runtime: IRuntime
+  toolbar: any,
 }
 
 interface IEditorState {
@@ -56,6 +58,7 @@ interface IGraphState {
 }
 
 const initialState: IState = {
+  toolbar: Toolbar.state,
   graph: {
     index: {},
     metadata: {},
@@ -101,6 +104,8 @@ const appActions = {
 
   editor: editorActions,
 
+  toolbar: Toolbar.actions,
+
   onCreate: (el: El) => (state: IState, actions: any) => {
     logger.debug('element created (app)', el)
 
@@ -145,12 +150,17 @@ function view(state: IState, actions: any) {
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
-      Toolbar({
-        onBack: emptyFunction,
-        onHome: emptyFunction,
-        onSave: actions.save,
-        onSettings: emptyFunction,
-      }),
+      Toolbar.view(
+        state.toolbar,
+        actions.toolbar,
+        {
+          onBack: emptyFunction,
+          onHome: emptyFunction,
+          onSave: actions.save,
+          onSettings: emptyFunction,
+        },
+        (query: string) => search(state.graph.metadata, query),
+      ),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
