@@ -1,6 +1,7 @@
 import * as html from '@hyperapp/html'
+import classNames from 'classnames'
 
-import Search from './search-component'
+import * as Search from './search-component'
 
 const SVG_ICONS = {
   BACK: './res/back.svg',
@@ -10,17 +11,38 @@ const SVG_ICONS = {
   SAVE: './res/save-disk.svg',
 }
 
-export default function({
-  onBack,
-  onHome,
-  onSave,
-  onSettings,
-}: {
-  onBack: () => void,
-  onHome: () => void,
-  onSave: () => void,
-  onSettings: () => void,
-}) {
+interface IState {
+  search: any
+  searchOpen: boolean,
+}
+
+export const state = {
+  search: Search.state,
+  searchOpen: false,
+}
+
+export const actions = {
+  search: Search.actions,
+
+  toggleSearch: () => (_state: IState) => ({searchOpen: !_state.searchOpen}),
+}
+
+export function view(
+  _state: IState,
+  _actions: any,
+  {
+    onBack,
+    onHome,
+    onSave,
+    onSettings,
+  }: {
+    onBack: () => void,
+    onHome: () => void,
+    onSave: () => void,
+    onSettings: () => void,
+  },
+  performSearch: (query: string) => Promise<void>,
+) {
   return html.div(
     {
       id: 'toolbar',
@@ -36,10 +58,16 @@ export default function({
         ],
       ),
       html.div(
-        {class: 'container'},
+        {class: classNames('container', {'search-open': _state.searchOpen})},
         [
-          // icon(SVG_ICONS.SEARCH),
-          Search(),
+          _state.searchOpen
+          ? Search.view(
+              _state.search,
+              _actions.search,
+              _actions.toggleSearch,
+              performSearch,
+            )
+          : icon(_actions.toggleSearch, SVG_ICONS.SEARCH),
         ],
       ),
     ],
