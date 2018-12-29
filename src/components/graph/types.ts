@@ -1,3 +1,5 @@
+import {IGraphNodeData} from '../../types'
+
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
 export interface INodeClickAction { readonly kind: NodeClickType, node: any }
@@ -97,3 +99,23 @@ export type GraphAction
   | IBackgroundClickAction
   | IBackgroundDblClickAction
   | IZoomAction
+
+export const FOCUS_TYPE = 'focus'
+export type FocusType   = 'focus'
+export interface IFocusCommand { kind: FocusType, node: IGraphNodeData }
+export class FocusCommand implements IFocusCommand {
+  public readonly kind = FOCUS_TYPE
+  public constructor(public readonly node: IGraphNodeData) {}
+}
+
+export const FOO_TYPE = 'foo'
+export type FooType   = 'foo'
+export interface IFooCommand { kind: FooType }
+export class FooCommand implements IFooCommand {
+  public readonly kind = FOO_TYPE
+  public constructor(public readonly node: IGraphNodeData) {}
+}
+
+export type GraphCommand
+  = IFocusCommand
+  | IFooCommand // Dummy, need it so there is a second type in this union

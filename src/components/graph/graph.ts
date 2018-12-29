@@ -4,7 +4,7 @@
  */
 
 import * as d3 from 'd3'
-import {Subject} from 'rxjs'
+import {Observable, Subject} from 'rxjs'
 
 import {getLogger} from '../../logger'
 import {
@@ -16,10 +16,14 @@ import {
   IGraphMetadata,
   IGraphNodeData,
 } from '../../types'
+import {assertNever} from '../../utils'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
+  FOCUS_TYPE,
+  FOO_TYPE,
   GraphAction,
+  GraphCommand,
   NodeClickAction,
   NodeDblClickAction,
   NodeDragAction,
@@ -105,6 +109,7 @@ export default class GraphComponent {
     host: El,
     dimensions: IDimensions,
     actionStream: Subject<GraphAction>,
+    commandStream: Observable<GraphCommand>,
   ): void {
     if ((document as any).d3Initialized
         && dimensions.height === this._height
@@ -174,6 +179,19 @@ export default class GraphComponent {
         d3.zoomIdentity.translate(graphTransform[0], graphTransform[1])
           .scale(graphTransform[2]),
       )
+
+    commandStream.subscribe((command: GraphCommand) => {
+      switch (command.kind) {
+        case FOCUS_TYPE:
+          this._lastClickedNodeLocation = {x: command.node.x, y: command.node.y}
+          this._focusGraph()
+          break
+        case FOO_TYPE:
+          break
+        default:
+          assertNever(command)
+      }
+    })
   }
 
   public render(dimensions: IDimensions, data: IGraphData): void {
@@ -207,6 +225,10 @@ export default class GraphComponent {
     this._enableNodeHighlightOnHover()
     this._disableDoubleClickZoom()
 
+    this._focusGraph()
+  }
+
+  public selectNode(node: IGraphNodeData): void {
     this._focusGraph()
   }
 

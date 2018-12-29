@@ -1,6 +1,7 @@
 import * as html from '@hyperapp/html'
 import classNames from 'classnames'
 
+import {IGraphNodeData} from '../types'
 import * as Search from './search-component'
 
 const SVG_ICONS = {
@@ -35,11 +36,13 @@ export function view(
     onHome,
     onSave,
     onSettings,
+    onSearchResultClick,
   }: {
     onBack: () => void,
     onHome: () => void,
     onSave: () => void,
     onSettings: () => void,
+    onSearchResultClick: (node: IGraphNodeData) => void,
   },
   performSearch: (query: string) => Promise<void>,
 ) {
@@ -66,6 +69,7 @@ export function view(
               _actions.search,
               _actions.toggleSearch,
               performSearch,
+              onSearchResultClick,
             )
           : icon(_actions.toggleSearch, SVG_ICONS.SEARCH),
         ],

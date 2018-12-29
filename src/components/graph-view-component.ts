@@ -8,7 +8,7 @@ import {
   IGraphData,
 } from '../types'
 import GraphComponent from './graph/graph'
-import {GraphAction} from './graph/types'
+import {GraphAction, GraphCommand} from './graph/types'
 
 const graphComponent = new GraphComponent()
 
@@ -19,6 +19,7 @@ export default function(
   graphActionStream: Subject<GraphAction>,
   onGraphResize: (el: El) => any,
   sizeCalculationRequiredStream: Observable<void>,
+  graphCommandStream: Observable<GraphCommand>,
 ) {
   return html.div(
     {
@@ -34,7 +35,7 @@ export default function(
       },
     },
     [
-      d3Container(dimensions, graphData, graphActionStream),
+      d3Container(dimensions, graphData, graphActionStream, graphCommandStream),
     ],
   )
 }
@@ -43,6 +44,7 @@ function d3Container(
   dimensions: IDimensions,
   graphData: IGraphData,
   graphActionStream: Subject<GraphAction>,
+  graphCommandStream: Observable<GraphCommand>,
 ) {
   return html.div(
     {
@@ -56,6 +58,7 @@ function d3Container(
           el,
           {height: dimensions.height, width: dimensions.width},
           graphActionStream,
+          graphCommandStream,
         )
         graphComponent.render(dimensions, graphData)
       },
@@ -64,6 +67,7 @@ function d3Container(
           el,
           {height: dimensions.height, width: dimensions.width},
           graphActionStream,
+          graphCommandStream,
         )
         graphComponent.render(dimensions, graphData)
       },
