@@ -1,6 +1,7 @@
 import * as html from '@hyperapp/html'
 
 import {
+  El,
   IGraphNodeData,
 } from '../types'
 
@@ -85,74 +86,24 @@ export default function(
       ),
       html.div(
         {
-          id: 'text-edit-tools',
+          id: 'editor',
         },
         [
-          html.button(
+          html.textarea(
             {
-              disabled: true,
+              oncreate: (el: El) => {
+                const mm = (window as any).mirrorMark(el, {showToolbar: true})
+                mm.render()
+              },
+              // Does not work currently with mirror mark editor
+              oninput: (ev: Event) => {
+                actions.textEditor.setData((ev.target as HTMLTextAreaElement).value)
+              },
+              // Does not work currently with mirror mark editor
+              value: state.textEditor.data,
             },
-            'B',
-          ),
-          html.button(
-            {
-              disabled: true,
-            },
-            'I',
-          ),
-          html.button(
-            {
-              disabled: true,
-            },
-            'U',
-          ),
-          html.select(
-            {
-              disabled: false,
-            },
-            [
-              html.option(
-                {
-                  disabled: false,
-                },
-                'Body',
-             ),
-             html.option(
-               {
-                 disabled: false,
-               },
-               'Heading 1',
-             ),
-             html.option(
-               {
-                 disabled: false,
-               },
-               'Heading 2',
-             ),
-             html.option(
-               {
-                 disabled: false,
-               },
-               'Heading 3',
-             ),
-            ],
-          ),
-          html.button(
-            {
-              disabled: true,
-            },
-            '</>',
           ),
         ],
-      ),
-      html.textarea(
-        {
-          id: 'editor',
-          oninput: (ev: Event) => {
-            actions.textEditor.setData((ev.target as HTMLTextAreaElement).value)
-          },
-          value: state.textEditor.data,
-        },
       ),
     ],
   )
