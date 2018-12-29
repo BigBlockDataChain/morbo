@@ -31,9 +31,9 @@ function createWindow() {
     win = null
   })
 
-  ipcMain.on('app_quit', (event, info) => {
-    win.close()
-  })
+  // ipcMain.on('app_quit', (event, info) => {
+  //   win.close()
+  // })
 
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension: ${name}`))

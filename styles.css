@@ -228,3 +228,28 @@ html, body {
 .node > text {
   cursor: default;
 }
+
+/*
+* context menu styles
+*/ 
+#right-click-menu{
+  z-index: 1;
+}
+
+#right-click-menu ul{
+  background-color: #ffffff;
+  border: solid 1px #999999;
+  list-style: none;
+  font-size: 14px;
+}
+
+#right-click-menu ul li button{
+  background-color: transparent;
+  width: 100%;
+  text-align: left;
+  padding: 5px;
+  border: none;
+}
+#right-click-menu ul li button:hover{
+  background-color: #999999;
+}

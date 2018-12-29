@@ -1,5 +1,5 @@
 import * as html from '@hyperapp/html'
-import {ipcRenderer} from 'electron'
+// import {ipcRenderer} from 'electron'
 import {app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
 import {Subject} from 'rxjs'
@@ -179,15 +179,15 @@ const app = devtools(hyperapp)(
   document.querySelector('#root'),
 )
 
-window.onbeforeunload = (e: Event) => {
-  app.save()
-    .catch(() => {
-      alert('Failed to save. Click okay to shutdown anyway')
-    })
-    .finally(() => {
-      ipcRenderer.send('app_quit')
-      window.onbeforeunload = null
-    })
-  // Required by Chrome to prevent default
-  e.returnValue = false
-}
+// window.onbeforeunload = (e: Event) => {
+//   app.save()
+//     .catch(() => {
+//       alert('Failed to save. Click okay to shutdown anyway')
+//     })
+//     .finally(() => {
+//       ipcRenderer.send('app_quit')
+//       window.onbeforeunload = null
+//     })
+//   // Required by Chrome to prevent default
+//   e.returnValue = false
+// }
