@@ -206,7 +206,7 @@ const app = devtools(hyperapp)(
   document.querySelector('#root'),
 )
 
-if (process.env.NODE_ENV === 'PRODUCTION'){
+if (process.env.NODE_ENV === 'PRODUCTION') {
   window.onbeforeunload = (e: Event) => {
     app.save()
     .catch(() => {
@@ -217,6 +217,6 @@ if (process.env.NODE_ENV === 'PRODUCTION'){
       window.onbeforeunload = null
     })
   // Required by Chrome to prevent default
-  e.returnValue = false
+    e.returnValue = false
   }
 }
