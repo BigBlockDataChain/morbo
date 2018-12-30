@@ -155,7 +155,7 @@ const appActions = {
 
   resetGraph: () => {
     graphCommandStream.next(new ResetGraphCommand())
-  }
+  },
 }
 
 function view(state: IState, actions: any) {
