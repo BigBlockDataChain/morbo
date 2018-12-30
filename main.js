@@ -34,7 +34,8 @@ function createWindow() {
   if (process.env.NODE_ENV === 'PRODUCTION') {
     ipcMain.on('app_quit', (event, info) => {
       win.destroy()
-  })}
+    })
+  }
 
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension: ${name}`))
