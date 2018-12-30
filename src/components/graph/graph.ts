@@ -230,13 +230,12 @@ export default class GraphComponent {
   }
 
   private _resetPosition(): void {
-    const {scale} = this._getGraphTranslationAndScale()
     this._svg
       .transition()
       .duration(GraphComponent._TRANSITION_DURATION)
       .call(
         this._zoomHandler.transform,
-        d3.zoomIdentity.translate(0, 0).scale(scale),
+        d3.zoomIdentity.translate(0, 0).scale(1),
       )
   }
 
