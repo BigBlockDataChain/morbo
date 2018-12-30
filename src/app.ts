@@ -7,7 +7,12 @@ import {Subject} from 'rxjs'
 import {actions as graphActions} from './actions/graph'
 import Editor from './components/editor-component'
 import GraphView from './components/graph-view-component'
-import {FocusCommand, GraphAction, GraphCommand} from './components/graph/types'
+import {
+  FocusCommand,
+  GraphAction,
+  GraphCommand,
+  ResetGraphCommand,
+} from './components/graph/types'
 import * as Toolbar from './components/toolbar-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
@@ -147,6 +152,10 @@ const appActions = {
   onSearchResultClick: (node: IGraphNodeData) => {
     graphCommandStream.next(new FocusCommand(node))
   },
+
+  resetGraph: () => {
+    graphCommandStream.next(new ResetGraphCommand())
+  }
 }
 
 function view(state: IState, actions: any) {
@@ -161,7 +170,7 @@ function view(state: IState, actions: any) {
         actions.toolbar,
         {
           onBack: emptyFunction,
-          onHome: emptyFunction,
+          onHome: actions.resetGraph,
           onSave: actions.save,
           onSettings: emptyFunction,
           onSearchResultClick: actions.onSearchResultClick,

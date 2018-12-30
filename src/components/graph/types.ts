@@ -108,14 +108,13 @@ export class FocusCommand implements IFocusCommand {
   public constructor(public readonly node: IGraphNodeData) {}
 }
 
-export const FOO_TYPE = 'foo'
-export type FooType   = 'foo'
-export interface IFooCommand { kind: FooType }
-export class FooCommand implements IFooCommand {
-  public readonly kind = FOO_TYPE
-  public constructor(public readonly node: IGraphNodeData) {}
+export const RESET_GRAPH_TYPE = 'resetGraph'
+export type ResetGraphType   = 'resetGraph'
+export interface IResetGraphCommand { kind: ResetGraphType }
+export class ResetGraphCommand implements IResetGraphCommand {
+  public readonly kind = RESET_GRAPH_TYPE
 }
 
 export type GraphCommand
   = IFocusCommand
-  | IFooCommand // Dummy, need it so there is a second type in this union
+  | IResetGraphCommand

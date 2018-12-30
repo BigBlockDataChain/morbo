@@ -21,7 +21,6 @@ import {
   BackgroundClickAction,
   BackgroundDblClickAction,
   FOCUS_TYPE,
-  FOO_TYPE,
   GraphAction,
   GraphCommand,
   NodeClickAction,
@@ -30,6 +29,7 @@ import {
   NodeHoverEndAction,
   NodeHoverShortAction,
   NodeRightClickAction,
+  RESET_GRAPH_TYPE,
   ZoomAction,
 } from './types'
 
@@ -96,7 +96,7 @@ export default class GraphComponent {
 
   private _lastClickWasSingle: boolean = false
 
-  private _lastClickedNodeLocation: null | {x: number, y: number} = null
+  private _locationFocusedLocation: null | {x: number, y: number} = null
 
   private _graphData: null | IGraphData = null
   private _dimensions: null | IDimensions = null
@@ -145,7 +145,7 @@ export default class GraphComponent {
       .on('click', () => {
         d3.event.stopPropagation()
         this._lastClickWasSingle = true
-        this._lastClickedNodeLocation = null
+        this._locationFocusedLocation = null
         setTimeout(() => {
           if (this._lastClickWasSingle) {
             this._actionStream!.next(new BackgroundClickAction())
@@ -183,10 +183,11 @@ export default class GraphComponent {
     commandStream.subscribe((command: GraphCommand) => {
       switch (command.kind) {
         case FOCUS_TYPE:
-          this._lastClickedNodeLocation = {x: command.node.x, y: command.node.y}
+          this._locationFocusedLocation = {x: command.node.x, y: command.node.y}
           this._focusGraph()
           break
-        case FOO_TYPE:
+        case RESET_GRAPH_TYPE:
+          this._resetPosition()
           break
         default:
           assertNever(command)
@@ -228,15 +229,22 @@ export default class GraphComponent {
     this._focusGraph()
   }
 
-  public selectNode(node: IGraphNodeData): void {
-    this._focusGraph()
+  private _resetPosition(): void {
+    const {scale} = this._getGraphTranslationAndScale()
+    this._svg
+      .transition()
+      .duration(GraphComponent._TRANSITION_DURATION)
+      .call(
+        this._zoomHandler.transform,
+        d3.zoomIdentity.translate(0, 0).scale(scale),
+      )
   }
 
   private _focusGraph(): void {
-    if (!this._lastClickedNodeLocation) return
+    if (!this._locationFocusedLocation) return
 
     const {translation, scale} = this._getGraphTranslationAndScale()
-    const {position} = this._graphToSVGPosition(this._lastClickedNodeLocation)
+    const {position} = this._graphToSVGPosition(this._locationFocusedLocation)
     const x = translation[0] + this._width / 2 - position[0]
     const y = translation[1] + this._height / 2 - position[1]
 
@@ -378,7 +386,7 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _enableClickToCenter(): void {
     this._nodes.on('click.centerOnNode', (d: any) => {
-      this._lastClickedNodeLocation = {x: d.x, y: d.y}
+      this._locationFocusedLocation = {x: d.x, y: d.y}
       const {translation, scale} = this._getGraphTranslationAndScale()
       const {position} = this._graphToSVGPosition(d)
       const x = translation[0] + this._width / 2 - position[0]
