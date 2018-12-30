@@ -1,5 +1,6 @@
 import * as html from '@hyperapp/html'
 
+import {IGraphNodeData} from '../types'
 import Empty from './widgets/empty'
 
 const SEARCH_SVG = './res/magnifying-glass.svg'
@@ -18,7 +19,7 @@ export const state: IState = {
 export const actions = {
   onInput: (value: string) => () => ({query: value}),
   searchResults: (results: any[]) => () => ({results}),
-  clearSearch: () => () => ({query: null}),
+  clearSearch: () => () => ({query: null, results: []}),
 }
 
 export function view(
@@ -26,6 +27,7 @@ export function view(
   _actions: any,
   onClose: () => void,
   performSearch: (query: string) => Promise<any>,
+  onSearchResultClick: (node: IGraphNodeData) => void,
 ) {
   return html.div(
     {
@@ -54,8 +56,8 @@ export function view(
               class: 'clear-icon',
               src: CLEAR_SVG,
               onclick: () => {
-                _actions.clearSearch()
-                onClose()
+                (() => _actions.clearSearch())();
+                (() => onClose())()
               },
             },
           ),
@@ -70,6 +72,11 @@ export function view(
               html.div(
                 {
                   class: 'search-result',
+                  onclick: () => {
+                    (() => onSearchResultClick(result))();
+                    (() => _actions.clearSearch())();
+                    (() => onClose())()
+                  },
                 },
                 result.title,
               ),

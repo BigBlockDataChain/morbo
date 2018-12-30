@@ -7,7 +7,7 @@ import {Subject} from 'rxjs'
 import {actions as graphActions} from './actions/graph'
 import Editor from './components/editor-component'
 import GraphView from './components/graph-view-component'
-import {GraphAction} from './components/graph/types'
+import {FocusCommand, GraphAction, GraphCommand} from './components/graph/types'
 import * as Toolbar from './components/toolbar-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
@@ -26,6 +26,8 @@ import {emptyFunction} from './utils'
 const logger = getLogger('main')
 
 const graphActionStream = new Subject<GraphAction>()
+const graphCommandStream = new Subject<GraphCommand>()
+const graphCommandObservable = graphCommandStream.asObservable()
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
 
@@ -141,6 +143,10 @@ const appActions = {
       },
     }
   },
+
+  onSearchResultClick: (node: IGraphNodeData) => {
+    graphCommandStream.next(new FocusCommand(node))
+  },
 }
 
 function view(state: IState, actions: any) {
@@ -158,6 +164,7 @@ function view(state: IState, actions: any) {
           onHome: emptyFunction,
           onSave: actions.save,
           onSettings: emptyFunction,
+          onSearchResultClick: actions.onSearchResultClick,
         },
         (query: string) => search(state.graph.metadata, query),
       ),
@@ -168,6 +175,7 @@ function view(state: IState, actions: any) {
         graphActionStream,
         actions.graph.resizeGraph,
         editorOpenChangeObservable,
+        graphCommandObservable,
       ),
       (state.runtime.showEditor && state.runtime.selectedNode !== null)
         ? Editor(
