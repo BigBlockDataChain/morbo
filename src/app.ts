@@ -5,11 +5,11 @@ import devtools from 'hyperapp-redux-devtools'
 import {Subject} from 'rxjs'
 
 import {actions as graphActions} from './actions/graph'
+import * as ContextMenu from './components/context-menu-component'
 import Editor from './components/editor-component'
 import GraphView from './components/graph-view-component'
 import {FocusCommand, GraphAction, GraphCommand} from './components/graph/types'
 import * as Toolbar from './components/toolbar-component'
-import * as ContextMenu from './components/context-menu-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
 import {getLogger} from './logger'
@@ -162,17 +162,16 @@ function view(state: IState, actions: any) {
       onmousedown: (ev: MouseEvent) => {
         // see https://stackoverflow.com/a/1093097/2138219
         // and then just call `actions.contextMenu.toggleMenu`
-        debugger
-        var rightclick;
-        if (ev.which) rightclick = (ev.which == 3);
-        else if (ev.button) rightclick = (ev.button == 2);
-        alert('Rightclick: ' + rightclick); // true or false
-    }
+        let rightclick
+        if (ev.which) rightclick = (ev.which === 3)
+        else if (ev.button) rightclick = (ev.button === 2)
+        alert('Rightclick: ' + rightclick) // true or false
+    },
     },
     [
       ContextMenu.view(
         state.contextMenu,
-        actions.contextMenu
+        actions.contextMenu,
       ),
       Toolbar.view(
         state.toolbar,
