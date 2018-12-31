@@ -91,16 +91,30 @@ export default function(
         [
           html.textarea(
             {
+              id: 'text-editor',
               oncreate: (el: El) => {
-                const mm = (window as any).mirrorMark(el, {showToolbar: true})
-                mm.render()
+                const mirrorMarkOptions = {
+                  showToolbar: true,
+                }
+                const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
+                mirrorMarkEditor.render()
+
+                // Get the CodeMirror (editor) object.
+                const codeMirrorEditor = mirrorMarkEditor.cm
+
+                // Set the onChange event to capture input data.
+                codeMirrorEditor.on('change', () => {
+                  const textEditor = (document as any).getElementById('text-editor')
+                  textEditor.dispatchEvent(new Event('input'))
+                })
               },
-              // Does not work currently with mirror mark editor
-              oninput: (ev: Event) => {
-                actions.textEditor.setData((ev.target as HTMLTextAreaElement).value)
+              oninput: () => {
+                // Navigate the DOM to find the text box containing user text.
+                const editorDiv = (document as any).getElementById('editor')
+                const textarea = editorDiv.childNodes[2].childNodes[0].childNodes[0]
+
+                actions.textEditor.setData(textarea.value)
               },
-              // Does not work currently with mirror mark editor
-              value: state.textEditor.data,
             },
           ),
         ],
