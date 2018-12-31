@@ -206,8 +206,9 @@ const app = devtools(hyperapp)(
   document.querySelector('#root'),
 )
 
-window.onbeforeunload = (e: Event) => {
-  app.save()
+if (process.env.NODE_ENV === 'PRODUCTION') {
+  window.onbeforeunload = (e: Event) => {
+    app.save()
     .catch(() => {
       alert('Failed to save. Click okay to shutdown anyway')
     })
@@ -216,5 +217,6 @@ window.onbeforeunload = (e: Event) => {
       window.onbeforeunload = null
     })
   // Required by Chrome to prevent default
-  e.returnValue = false
+    e.returnValue = false
+  }
 }
