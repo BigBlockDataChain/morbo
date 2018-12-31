@@ -33,7 +33,7 @@ import {
   ZoomAction,
 } from './types'
 
-import contextMenuComponent from '../context-menu-component'
+// import contextMenuComponent from '../context-menu-component'
 
 const logger = getLogger('d3-graph')
 const localGraphTransform = window.localStorage.getItem('graphTransform')
@@ -282,7 +282,7 @@ export default class GraphComponent {
 
         d3.event.stopPropagation()
         this._actionStream!.next(new NodeRightClickAction(ev))
-        contextMenuComponent(this._graphToSVGPosition(ev).position)
+        // contextMenuComponent(this._graphToSVGPosition(ev).position)
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()

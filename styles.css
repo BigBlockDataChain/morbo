@@ -276,6 +276,7 @@ html, body {
 * context menu styles
 */ 
 #right-click-menu{
+  position: absolute;
   z-index: 1;
 }
 

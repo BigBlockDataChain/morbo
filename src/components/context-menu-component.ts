@@ -1,33 +1,36 @@
-import * as d3 from 'd3'
+import * as html from '@hyperapp/html'
 
-const nodeOptions = new Map()
+export const state = {
+  menuOpen: false,
+}
 
-export default function(position: any) {
+export const actions = {
+  toggleMenu: ({menuOpen: !state.menuOpen})
+}
 
-  // dummy menu options, will eventually need to populate based on who calls it
-  nodeOptions.set('New text node', `console.log('item1 clicked')`)
-  nodeOptions.set('New handwritten node', `console.log('item2 clicked')`)
-  nodeOptions.set('Delete node', `console.log('item3 clicked')`)
+export function view(
+  state: any,
+  actions: any,
+  items: Map<string, () => void> = new Map([
+    ['New text node', function onItem1(){console.log('item 1 clicked')}],
+    ['New handwritten node', function onItem2(){console.log('item 2 clicked')}],
+    ['Delete node', function onItem3(){console.log('item 3 clicked')}]
+  ]),
+) {
+  return html.div({
+    id: 'right-click-menu',
+    display: 'none',
+  }, [
+    html.ul(menuBuilder(items))
+  ])
+}
 
-  const rmenu = document.createElement('div')
-  const rmenuItems = document.createElement('ul')
-
-  for (const [itemName, calling] of nodeOptions) {
-    const item = document.createElement('li')
-    const itemContent = document.createElement('button')
-    itemContent.innerHTML = itemName
-    itemContent.setAttribute('onClick', calling)
-    item.appendChild(itemContent)
-    rmenuItems.appendChild(item)
+function menuBuilder(items: Map<string, () => void>) {
+  let itemList = []
+  for (const [description, callback] of items) {
+    itemList.push(html.li([
+      html.button({onclick: callback}, description)
+    ]))
   }
-
-  rmenu.appendChild(rmenuItems)
-  rmenu.setAttribute('id', 'right-click-menu')
-  document.body.appendChild(rmenu)
-
-  d3.select('#right-click-menu')
-    .style('position', 'absolute')
-    .style('left', position[0] + 'px')
-    .style('top', position[1] + 'px')
-    .style('display', 'block')
+  return itemList
 }
