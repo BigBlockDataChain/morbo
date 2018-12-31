@@ -1,4 +1,5 @@
 const {BrowserWindow, app, ipcMain} = require('electron')
+const url = require('url')
 
 const {
   default: installExtension,
@@ -25,7 +26,13 @@ app.on('activate', () => {
 
 function createWindow() {
   win = new BrowserWindow({width: 1024, height: 600})
-  win.loadFile('./index.html')
+  const indexPath = url.format({
+    protocol: 'http:',
+    host: 'localhost:8080',
+    pathname: 'index.html',
+    slashes: true
+  })
+  win.loadURL(indexPath)
 
   win.on('closed', () => {
     win = null

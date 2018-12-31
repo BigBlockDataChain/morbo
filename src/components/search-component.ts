@@ -3,8 +3,8 @@ import * as html from '@hyperapp/html'
 import {IGraphNodeData} from '../types'
 import Empty from './widgets/empty'
 
-const SEARCH_SVG = './res/magnifying-glass.svg'
-const CLEAR_SVG = './res/cancel.svg'
+const searchSvg = require('../res/magnifying-glass.svg')
+const clearSvg = require('../res/cancel.svg')
 
 interface IState {
   query: null | string
@@ -39,7 +39,7 @@ export function view(
           class: 'search-input',
         },
         [
-          html.img({class: 'search-icon', src: SEARCH_SVG}),
+          html.img({class: 'search-icon', src: searchSvg}),
           html.input(
             {
               oncreate: (el: HTMLInputElement) => el.focus(),
@@ -54,7 +54,7 @@ export function view(
           html.img(
             {
               class: 'clear-icon',
-              src: CLEAR_SVG,
+              src: clearSvg,
               onclick: () => {
                 (() => _actions.clearSearch())();
                 (() => onClose())()
