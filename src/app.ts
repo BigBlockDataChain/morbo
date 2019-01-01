@@ -113,7 +113,7 @@ const editorActions = {
       detail: {data},
     })
     const parentTextArea = state.textEditor.parentTextArea
-    if(parentTextArea !== null){
+    if (parentTextArea !== null) {
       parentTextArea.dispatchEvent(updateEvent)
     }
   },
