@@ -33,8 +33,6 @@ import {
   ZoomAction,
 } from './types'
 
-// import contextMenuComponent from '../context-menu-component'
-
 const logger = getLogger('d3-graph')
 const localGraphTransform = window.localStorage.getItem('graphTransform')
 if (
@@ -145,9 +143,6 @@ export default class GraphComponent {
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
       .on('click', () => {
-        // collapses the context menu when selecting a node to move
-        d3.select('#right-click-menu').remove()
-
         d3.event.stopPropagation()
         this._lastClickWasSingle = true
         this._lastClickedNodeLocation = null
@@ -167,8 +162,6 @@ export default class GraphComponent {
       .attr('class', 'everything')
 
     const zoomActions = () => {
-      // collapses the context menu when selecting a node to move
-      d3.select('#right-click-menu').remove()
       this._g.attr('transform', d3.event.transform)
       window.localStorage.setItem('graphTransform', this._graphTransformToString().str)
     }
@@ -265,9 +258,6 @@ export default class GraphComponent {
       .append('g')
       .attr('class', 'node')
       .on('click', (ev: Event) => {
-        // collapses the context menu when selecting a node to move
-        d3.select('#right-click-menu').remove()
-
         d3.event.stopPropagation()
         this._lastClickWasSingle = true
         setTimeout(() => {
@@ -276,13 +266,9 @@ export default class GraphComponent {
           }
         }, GraphComponent._SINGLE_CLICK_DELAY)
       })
-      .on('contextmenu', (ev: IGraphNodeData) => {
-        // collapses the context menu when selecting a node to move
-        d3.select('#right-click-menu').remove()
-
+      .on('contextmenu', (ev: Event) => {
         d3.event.stopPropagation()
         this._actionStream!.next(new NodeRightClickAction(ev))
-        // contextMenuComponent(this._graphToSVGPosition(ev).position)
       })
       .on('dblclick', (ev: Event) => {
         d3.event.stopPropagation()
@@ -349,9 +335,6 @@ export default class GraphComponent {
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: any, i: number, refs: any[]) => {
-        // collapses the context menu when selecting a node to move
-        d3.select('#right-click-menu').remove()
-
         d.x += d3.event.dx
         d.y += d3.event.dy
 

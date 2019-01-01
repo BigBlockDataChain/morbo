@@ -160,13 +160,11 @@ function view(state: IState, actions: any) {
       id: 'app',
       oncreate: (el: El) => actions.onCreate(el),
       onmousedown: (ev: MouseEvent) => {
-        // see https://stackoverflow.com/a/1093097/2138219
-        // and then just call `actions.contextMenu.toggleMenu`
         let rightclick
         if (ev.which) rightclick = (ev.which === 3)
         else if (ev.button) rightclick = (ev.button === 2)
-        alert('Rightclick: ' + rightclick) // true or false
-    },
+        logger.log('Rightclick: ' + rightclick)
+      },
     },
     [
       ContextMenu.view(
@@ -194,7 +192,6 @@ function view(state: IState, actions: any) {
         editorOpenChangeObservable,
         graphCommandObservable,
       ),
-      ContextMenu.view({menuOpen: true}, {}),
       (state.runtime.showEditor && state.runtime.selectedNode !== null)
         ? Editor(
           state.runtime.selectedNode,
