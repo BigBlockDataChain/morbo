@@ -36,6 +36,7 @@ html, body {
   z-index: 1;
   display: flex;
   justify-content: space-between;
+  pointer-events: none;
 }
 
 #toolbar > .container {
@@ -51,6 +52,7 @@ html, body {
   cursor: pointer;
   background: #f9f9ec;
   opacity: 0.25;
+  pointer-events: auto;
 }
 #toolbar .icon:not(:last-child) {
   margin-right: 32px;
