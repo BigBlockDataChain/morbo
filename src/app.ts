@@ -77,6 +77,8 @@ const initialState: IState = {
     handWritingEditor: {},
     textEditor: {
       data: null,
+      mirrorMarkEditor: null,
+      parentTextArea : null,
     },
   },
   settings: {},
@@ -94,6 +96,12 @@ const editorActions = {
     setData: (data: string) => () => {
       return {data}
     },
+    setMirrorMarkEditor: (mirrorMarkEditor: any) => () => {
+      return {mirrorMarkEditor}
+    },
+    setParentTextArea: (parentTextArea: any) => () => {
+      return {parentTextArea}
+    },
   },
 
   loadTextNote: (nodeId: GraphNodeId) => async (state: any, actions: any) => {
@@ -104,8 +112,10 @@ const editorActions = {
     const updateEvent = new CustomEvent('textupdate', {
       detail: {data},
     })
-    const textEditor = (document as any).getElementById('text-editor')
-    textEditor.dispatchEvent(updateEvent)
+    const parentTextArea = state.textEditor.parentTextArea
+    if(parentTextArea !== null){
+      parentTextArea.dispatchEvent(updateEvent)
+    }
   },
 
   setNode: (node: IGraphNodeData) => () => {

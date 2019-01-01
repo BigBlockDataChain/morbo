@@ -98,26 +98,23 @@ export default function(
                 }
                 const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
+                actions.textEditor.setParentTextArea(el)
+                actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
 
                 // Get the CodeMirror (editor) object.
                 const codeMirrorEditor = mirrorMarkEditor.cm
 
                 // Set the onChange event to capture input data.
                 codeMirrorEditor.on('change', () => {
-                  const textEditor = (document as any).getElementById('text-editor')
-                  textEditor.dispatchEvent(new Event('input'))
+                  el.dispatchEvent(new Event('input'))
                 })
               },
               oninput: () => {
-                // Navigate the DOM to find the text box containing user text.
-                const editorDiv = (document as any).getElementById('editor')
-                const textarea = editorDiv.childNodes[2].childNodes[0].childNodes[0]
-
-                actions.textEditor.setData(textarea.value)
+                const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
+                actions.textEditor.setData(codeMirrorEditor.getValue())
               },
               ontextupdate: (ev: CustomEvent) => {
-                const cm = (document as any).getElementsByClassName('CodeMirror')[0]
-                const codeMirrorEditor = cm.CodeMirror
+                const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
                 codeMirrorEditor.setValue(ev.detail.data)
               },
             },
