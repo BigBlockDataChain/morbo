@@ -115,7 +115,11 @@ export default function(
 
                 actions.textEditor.setData(textarea.value)
               },
-              value: state.textEditor.data,
+              ontextupdate: (ev: CustomEvent) => {
+                const cm = (document as any).getElementsByClassName('CodeMirror')[0]
+                const codeMirrorEditor = cm.CodeMirror
+                codeMirrorEditor.setValue(ev.detail.data)
+              },
             },
           ),
         ],

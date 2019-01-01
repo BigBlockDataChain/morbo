@@ -94,6 +94,13 @@ const editorActions = {
   loadTextNote: (nodeId: GraphNodeId) => async (state: any, actions: any) => {
     const data = await loadNote(nodeId, NoteDataType.TEXT)
     actions.textEditor.setData(data)
+
+    // Dispatch a custom event to update the default CodeMirror text.
+    const updateEvent = new CustomEvent('textupdate', {
+      detail: {data},
+    })
+    const textEditor = (document as any).getElementById('text-editor')
+    textEditor.dispatchEvent(updateEvent)
   },
 
   setNode: (node: IGraphNodeData) => () => {
