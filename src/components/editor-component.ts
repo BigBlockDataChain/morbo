@@ -96,12 +96,10 @@ export default function(
                 const mirrorMarkOptions = {
                   showToolbar: true,
                 }
-                const nodeText = state.textEditor.data
                 const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
                 actions.textEditor.setParentTextArea(el)
                 actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
-                mirrorMarkEditor.insert(nodeText)
 
                 // Get the CodeMirror (editor) object.
                 const codeMirrorEditor = mirrorMarkEditor.cm
@@ -119,6 +117,7 @@ export default function(
                 const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
                 codeMirrorEditor.setValue(ev.detail.data)
               },
+              value: state.textEditor.data,
             },
           ),
         ],
