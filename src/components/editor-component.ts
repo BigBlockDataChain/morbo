@@ -117,7 +117,6 @@ export default function(
                 const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
                 codeMirrorEditor.setValue(ev.detail.data)
               },
-              value: state.textEditor.data,
             },
           ),
         ],
