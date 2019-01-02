@@ -273,3 +273,81 @@ html, body {
 .node > text {
   cursor: default;
 }
+
+#settings-panel {
+  position: absolute;
+  height: 80%;
+  width: 50%;
+  top: 15%;
+  left: 25%;
+  background: #FFF;
+  z-index: 3;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000000;
+  overflow: auto;
+}
+
+#settings-close {
+  text-align: right;
+  align-items: right;
+  margin-right: 0.1em;
+}
+
+#settings-container {
+  height: 80%;
+  width: 80%;
+  left: 9.5%;
+  top: 3%;
+  position: relative;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #000000;
+  overflow: auto;
+}
+
+#settings-title {
+  padding-top: 0em;
+  text-align: center;
+}
+
+#settings-select {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+  width: 300px;
+}
+
+#checkbox-container {
+  padding-top: 2em;
+}
+
+#settings-checkbox {
+  margin-left: 3.2em;
+  display: inline-block;
+  width: 15px;
+  vertical-align: text-top;
+}
+
+#radio-container {
+  padding-top: 1em;
+}
+
+#settings-radio {
+  margin-left: 3.2em;
+  display: inline-block;
+  width: 15px;
+  vertical-align: text-top;
+}
+
+#settings-label {
+  display: inline-block;
+  width: 300px;
+  word-break: break-all;
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#selection-container {
+  padding-top: 1em;
+  text-align: center;
+}

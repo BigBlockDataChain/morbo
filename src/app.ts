@@ -14,6 +14,7 @@ import {
   ResetGraphCommand,
 } from './components/graph/types'
 import * as Toolbar from './components/toolbar-component'
+import Settings from './components/settings-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
 import {getLogger} from './logger'
@@ -43,6 +44,7 @@ const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 250
 interface IRuntime {
   showEditor: boolean
   selectedNode: null | IGraphNodeData,
+  settingsOpen: boolean
 }
 
 interface IState {
@@ -85,6 +87,7 @@ const initialState: IState = {
   runtime: {
     showEditor: true,
     selectedNode: null,
+    settingsOpen: true,
   },
 }
 
@@ -151,6 +154,15 @@ const appActions = {
     }
   },
 
+  toggleSettingsPanel: () => (state: IState, actions: any) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        settingsOpen: !state.runtime.settingsOpen,
+      },
+    }
+  },
+
   onSearchResultClick: (node: IGraphNodeData) => {
     graphCommandStream.next(new FocusCommand(node))
   },
@@ -174,11 +186,16 @@ function view(state: IState, actions: any) {
           onBack: emptyFunction,
           onHome: actions.resetGraph,
           onSave: actions.save,
-          onSettings: emptyFunction,
+          onSettings: actions.toggleSettingsPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },
         (query: string) => search(state.graph.metadata, query),
       ),
+      (state.runtime.settingsOpen == false)
+        ? Settings(
+          actions.toggleSettingsPanel,
+        )
+        : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
