@@ -96,13 +96,12 @@ export default function(
                 const mirrorMarkOptions = {
                   showToolbar: true,
                 }
+                const nodeText = state.textEditor.data
                 const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
-<<<<<<< HEAD
                 actions.textEditor.setParentTextArea(el)
                 actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
-=======
->>>>>>> 224235f... Re-establish oninput() event listener to register user input
+                mirrorMarkEditor.insert(nodeText)
 
                 // Get the CodeMirror (editor) object.
                 const codeMirrorEditor = mirrorMarkEditor.cm
