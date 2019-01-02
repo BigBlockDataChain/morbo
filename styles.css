@@ -288,13 +288,13 @@ html, body {
   overflow: auto;
 }
 
-#settings-close {
+#settings-panel .settings-close {
   text-align: right;
   align-items: right;
   margin-right: 0.1em;
 }
 
-#settings-container {
+#settings-panel .settings-container {
   height: 80%;
   width: 80%;
   left: 9.5%;
@@ -306,40 +306,40 @@ html, body {
   overflow: auto;
 }
 
-#settings-title {
+#settings-panel .settings-title {
   padding-top: 0em;
   text-align: center;
 }
 
-#settings-select {
+#settings-panel .settings-select {
   margin-top: 0.3em;
   margin-bottom: 0.3em;
   width: 300px;
 }
 
-#checkbox-container {
+#settings-panel .checkbox-container {
   padding-top: 2em;
 }
 
-#settings-checkbox {
+#settings-panel .settings-checkbox {
   margin-left: 3.2em;
   display: inline-block;
   width: 15px;
   vertical-align: text-top;
 }
 
-#radio-container {
+#settings-panel .radio-container {
   padding-top: 1em;
 }
 
-#settings-radio {
+#settings-panel .settings-radio {
   margin-left: 3.2em;
   display: inline-block;
   width: 15px;
   vertical-align: text-top;
 }
 
-#settings-label {
+#settings-panel .settings-label {
   display: inline-block;
   width: 300px;
   word-break: break-all;
@@ -347,7 +347,7 @@ html, body {
   margin-bottom: 0.3em;
 }
 
-#selection-container {
+#settings-panel .selection-container {
   padding-top: 1em;
   text-align: center;
 }

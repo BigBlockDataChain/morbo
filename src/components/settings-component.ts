@@ -1,8 +1,6 @@
 import * as html from '@hyperapp/html'
 
-export default function(
-    onClose: () => any,
-) {
+export default function(onClose: () => any) {
   return html.div(
     {
       id: 'settings-panel',
@@ -10,7 +8,7 @@ export default function(
     [
       html.div(
         {
-          id: 'settings-close',
+          class: 'settings-close',
         },
         [
           html.button(
@@ -23,193 +21,163 @@ export default function(
       ),
       html.div(
         {
-          id: 'settings-title',
+          class: 'settings-title',
         },
-          'Settings',
+        'Settings',
       ),
       html.div(
         {
-          id: 'settings-container',
+          class: 'settings-container',
         },
         [
           html.div(
             {
-              id: 'checkbox-container',
+              class: 'checkbox-container',
             },
             [
               html.input(
                 {
-                  id: 'settings-checkbox',
+                  class: 'settings-checkbox',
                   type: 'checkbox',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-checkbox',
                 },
                 'Option Name',
               ),
               html.input(
                 {
-                  id: 'settings-checkbox',
+                  class: 'settings-checkbox',
                   type: 'checkbox',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-checkbox',
                 },
                 'Option Name',
               ),
               html.input(
                 {
-                  id: 'settings-checkbox',
+                  class: 'settings-checkbox',
                   type: 'checkbox',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-checkbox',
                 },
                 'Option Name',
               ),
-            ]
+            ],
           ),
           html.div(
             {
-              id: 'radio-container',
+              class: 'radio-container',
             },
             [
               html.input(
                 {
-                  id: 'settings-radio',
+                  class: 'settings-radio',
                   type: 'radio',
                   name: 'placeholder',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-radio',
                 },
                 'Option A',
               ),
               html.input(
                 {
-                  id: 'settings-radio',
+                  class: 'settings-radio',
                   type: 'radio',
                   name: 'placeholder',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-radio',
                 },
                 'Option B',
               ),
               html.input(
                 {
-                  id: 'settings-radio',
+                  class: 'settings-radio',
                   type: 'radio',
                   name: 'placeholder',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-radio',
                 },
                 'Option C',
               ),
               html.input(
                 {
-                  id: 'settings-radio',
+                  class: 'settings-radio',
                   type: 'radio',
                   name: 'placeholder',
                 },
               ),
               html.label(
                 {
-                  id: 'settings-label',
+                  class: 'settings-label',
                   for: 'settings-radio',
                 },
                 'Option D',
               ),
-            ]
+            ],
           ),
           html.div(
             {
-              id: 'selection-container',
+              class: 'selection-container',
             },
             [
               html.select(
                 {
-                  id: 'settings-select',
+                  class: 'settings-select',
                 },
                 [
-                  html.option(
-                   'Select',
-                  ),
-                  html.option(
-                   'Option A',
-                  ),
-                  html.option(
-                   'Option B',
-                  ),
-                  html.option(
-                   'Option C',
-                  ),
-                  html.option(
-                   'Option D',
-                  ),
+                  html.option('Select'),
+                  html.option('Option A'),
+                  html.option('Option B'),
+                  html.option('Option C'),
+                  html.option('Option D'),
                 ],
               ),
               html.select(
                 {
-                  id: 'settings-select',
+                  class: 'settings-select',
                 },
                 [
-                  html.option(
-                   'Select',
-                  ),
-                  html.option(
-                   'Option A',
-                  ),
-                  html.option(
-                   'Option B',
-                  ),
-                  html.option(
-                   'Option C',
-                  ),
-                  html.option(
-                   'Option D',
-                  ),
+                  html.option('Select'),
+                  html.option('Option A'),
+                  html.option('Option B'),
+                  html.option('Option C'),
+                  html.option('Option D'),
                 ],
               ),
               html.select(
                 {
-                  id: 'settings-select',
+                  class: 'settings-select',
                 },
                 [
-                  html.option(
-                   'Select',
-                  ),
-                  html.option(
-                   'Option A',
-                  ),
-                  html.option(
-                   'Option B',
-                  ),
-                  html.option(
-                   'Option C',
-                  ),
-                  html.option(
-                   'Option D',
-                  ),
+                  html.option('Select'),
+                  html.option('Option A'),
+                  html.option('Option B'),
+                  html.option('Option C'),
+                  html.option('Option D'),
                 ],
               ),
             ],

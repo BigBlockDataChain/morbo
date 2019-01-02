@@ -13,8 +13,8 @@ import {
   GraphCommand,
   ResetGraphCommand,
 } from './components/graph/types'
-import * as Toolbar from './components/toolbar-component'
 import Settings from './components/settings-component'
+import * as Toolbar from './components/toolbar-component'
 import Empty from './components/widgets/empty'
 import {loadNote} from './io/io'
 import {getLogger} from './logger'
@@ -191,7 +191,7 @@ function view(state: IState, actions: any) {
         },
         (query: string) => search(state.graph.metadata, query),
       ),
-      (state.runtime.settingsOpen == false)
+      (state.runtime.settingsOpen === false)
         ? Settings(
           actions.toggleSettingsPanel,
         )
