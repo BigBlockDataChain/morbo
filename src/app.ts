@@ -4,20 +4,9 @@ import {app as hyperapp} from 'hyperapp'
 import devtools from 'hyperapp-redux-devtools'
 import {Subject} from 'rxjs'
 
-import {actions as graphActions} from './actions/graph'
-import Editor from './components/editor-component'
-import GraphView from './components/graph-view-component'
-import {
-  FocusCommand,
-  GraphAction,
-  GraphCommand,
-  ResetGraphCommand,
-} from './components/graph/types'
-import * as Toolbar from './components/toolbar-component'
-import Empty from './components/widgets/empty'
-import {loadNote} from './io/io'
-import {getLogger} from './logger'
-import search from './search'
+import {loadNote} from '@lib/io'
+import {getLogger} from '@lib/logger'
+import search from '@lib/search'
 import {
   El,
   GraphNodeId,
@@ -25,10 +14,21 @@ import {
   IGraphMetadata,
   IGraphNodeData,
   NoteDataType,
-} from './types'
-import {emptyFunction} from './utils'
+} from '@lib/types'
+import {emptyFunction} from '@lib/utils'
+import {actions as graphActions} from './actions/graph'
+import Editor from './components/editor/editor-component'
+import GraphView from './components/graph/graph-view-component'
+import {
+  FocusCommand,
+  GraphAction,
+  GraphCommand,
+  ResetGraphCommand,
+} from './components/graph/types'
+import * as Toolbar from './components/toolbar/toolbar-component'
+import Empty from './components/widgets/empty'
 
-import '../styles.css'
+import './styles.css'
 
 const logger = getLogger('main')
 

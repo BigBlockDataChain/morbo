@@ -12,7 +12,12 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "target": "ESNEXT"
+    "target": "ESNEXT",
+    "baseUrl": "src",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@lib/*": ["lib/*"]
+    }
   },
   "include": [
     "src/**/*"

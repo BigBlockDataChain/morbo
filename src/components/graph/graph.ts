@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import {Observable, Subject} from 'rxjs'
 
-import {getLogger} from '../../logger'
+import {getLogger} from '@lib/logger'
 import {
   El,
   GraphNodeId,
@@ -10,8 +10,8 @@ import {
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
-} from '../../types'
-import {assertNever} from '../../utils'
+} from '@lib/types'
+import {assertNever} from '@lib/utils'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,

@@ -1,4 +1,4 @@
-import {IGraphNodeData} from '../../types'
+import {IGraphNodeData} from '@lib/types'
 
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'

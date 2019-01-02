@@ -2,7 +2,7 @@ import * as html from '@hyperapp/html'
 
 import {
   IGraphNodeData,
-} from '../types'
+} from '@lib/types'
 
 export default function(
   node: IGraphNodeData,

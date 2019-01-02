@@ -38,6 +38,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.ts'],
+    alias: {
+      ['@components']: path.resolve(SRC_DIR, 'components/'),
+      ['@lib']: path.resolve(SRC_DIR, 'lib/'),
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({template: 'index.html'}),

@@ -1,20 +1,20 @@
 import {Subject, timer} from 'rxjs'
 import {debounce} from 'rxjs/operators'
 
-import {GraphAction} from '../components/graph/types'
-import * as graphTypes from '../components/graph/types'
+import {GraphAction} from '@components/graph/types'
+import * as graphTypes from '@components/graph/types'
 import {
   loadIndex,
   loadMetadata,
   writeIndex,
   writeMetadata,
-} from '../io/io'
-import {getLogger} from '../logger'
+} from '@lib/io'
+import {getLogger} from '@lib/logger'
 import {
   El,
   IGraphNodeData,
-} from '../types'
-import {assertNever} from '../utils'
+} from '@lib/types'
+import {assertNever} from '@lib/utils'
 
 const logger = getLogger('actions/graph')
 
