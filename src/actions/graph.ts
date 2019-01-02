@@ -135,7 +135,7 @@ export const actions: any = {
   },
 
   createNewNode: (position: {x: number, y: number}) => (state: any) => {
-    const ids = Object.keys(state.index).map(Number).sort()
+    const ids = Object.keys(state.index).map(Number).sort((a: number, b: number) => a - b)
     const nextId = ids[ids.length - 1] + 1
     const nodeData: IGraphNodeData = {
       id: nextId,
