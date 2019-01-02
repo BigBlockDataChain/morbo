@@ -4,12 +4,18 @@ import classNames from 'classnames'
 import {IGraphNodeData} from '../types'
 import * as Search from './search-component'
 
+const backSvg = require('../res/back.svg')
+const homeSvg = require('../res/house.svg')
+const settingSvg = require('../res/settings.svg')
+const searchSvg = require('../res/magnifying-glass.svg')
+const saveSvg = require('../res/save-disk.svg')
+
 const SVG_ICONS = {
-  BACK: './res/back.svg',
-  HOME: './res/house.svg',
-  SETTINGS: './res/settings.svg',
-  SEARCH: './res/magnifying-glass.svg',
-  SAVE: './res/save-disk.svg',
+  BACK: backSvg,
+  HOME: homeSvg,
+  SETTINGS: settingSvg,
+  SEARCH: searchSvg,
+  SAVE: saveSvg,
 }
 
 interface IState {

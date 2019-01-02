@@ -28,6 +28,8 @@ import {
 } from './types'
 import {emptyFunction} from './utils'
 
+import '../styles.css'
+
 const logger = getLogger('main')
 
 const graphActionStream = new Subject<GraphAction>()
