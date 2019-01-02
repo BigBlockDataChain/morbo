@@ -144,18 +144,30 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
+        const {graphTransform: transform} = this._graphTransformToArray()
+        // Transform has to be negated since transform values are themselves negated
+        const position = {
+          x: d3.event.clientX - transform[0],
+          y: d3.event.clientY - transform[1],
+        }
         this._lastClickWasSingle = true
         this._locationFocusedLocation = null
         setTimeout(() => {
           if (this._lastClickWasSingle) {
-            this._actionStream!.next(new BackgroundClickAction())
+            this._actionStream!.next(new BackgroundClickAction(position))
           }
         }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('dblclick', () => {
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
-        this._actionStream!.next(new BackgroundDblClickAction())
+        const {graphTransform: transform} = this._graphTransformToArray()
+        // Transform has to be negated since transform values are themselves negated
+        const position = {
+          x: d3.event.clientX - transform[0],
+          y: d3.event.clientY - transform[1],
+        }
+        this._actionStream!.next(new BackgroundDblClickAction(position))
       })
 
     this._g = this._svg.append('g')

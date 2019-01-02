@@ -104,6 +104,7 @@ export const actions: any = {
             case graphTypes.BACKGROUND_CLICK_TYPE:
               break
             case graphTypes.BACKGROUND_DBL_CLICK_TYPE:
+              _actions.createNewNode(event.position)
               break
             case graphTypes.ZOOM_TYPE:
               break
@@ -131,5 +132,24 @@ export const actions: any = {
     }
 
     return {metadata}
+  },
+
+  createNewNode: (position: {x: number, y: number}) => (state: any) => {
+    const ids = Object.keys(state.index).map(Number).sort()
+    const nextId = ids[ids.length - 1] + 1
+    const nodeData: IGraphNodeData = {
+      id: nextId,
+      title: '',
+      lastModified: '',
+      created: '',
+      x: position.x,
+      y: position.y,
+      tags: [],
+    }
+
+    return {
+      index: {...state.index, [nextId]: []},
+      metadata: {...state.metadata, [nextId]: nodeData},
+    }
   },
 }
