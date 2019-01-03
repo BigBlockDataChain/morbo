@@ -28,6 +28,8 @@ import {
   ZoomAction,
 } from './types'
 
+import './graph.css'
+
 const logger = getLogger('d3-graph')
 
 interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }

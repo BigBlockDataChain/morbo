@@ -4,6 +4,8 @@ import {
   IGraphNodeData,
 } from '@lib/types'
 
+import './editor-component.css'
+
 export default function(
   node: IGraphNodeData,
   state: any,

@@ -4,6 +4,8 @@ import classNames from 'classnames'
 import {IGraphNodeData} from '@lib/types'
 import * as Search from './search-component'
 
+import './toolbar-component.css'
+
 const backSvg = require('../../res/back.svg')
 const homeSvg = require('../../res/house.svg')
 const settingSvg = require('../../res/settings.svg')
@@ -63,7 +65,7 @@ export function view(
         ],
       ),
       html.div(
-        {class: classNames('container', {'search-open': _state.searchOpen})},
+        {class: classNames('container', 'search', {'search-open': _state.searchOpen})},
         [
           _state.searchOpen
           ? Search.view(

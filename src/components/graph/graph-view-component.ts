@@ -10,6 +10,8 @@ import {
 import GraphComponent from './graph'
 import {GraphAction, GraphCommand} from './types'
 
+import './graph-view-component.css'
+
 const graphComponent = new GraphComponent()
 
 export default function(

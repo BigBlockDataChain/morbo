@@ -7,6 +7,8 @@ import Empty from '../widgets/empty'
 const searchSvg = require('../../res/magnifying-glass.svg')
 const clearSvg = require('../../res/cancel.svg')
 
+import './search-component.css'
+
 interface IState {
   query: null | string
   results: any[]
