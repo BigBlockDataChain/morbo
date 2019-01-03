@@ -28,6 +28,7 @@ import {
   ZoomAction,
 } from './types'
 
+import { buildMenu } from '../context-menu-component'
 import './graph.css'
 
 const logger = getLogger('d3-graph')
@@ -345,6 +346,27 @@ export default class GraphComponent {
         }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('contextmenu', (d: IGraphNodeData) => {
+        const ctxMenuTemplate: any = [
+          {
+            label: 'New',
+            click() {
+              logger.log('new clicked')
+            },
+          },
+          {
+            label: 'Edit',
+            click() {
+              logger.log('edit clicked')
+            },
+          },
+          {
+            label: 'Delete',
+            click() {
+              logger.log('delete clicked')
+            },
+          },
+        ]
+        buildMenu(ctxMenuTemplate)
         d3.event.stopPropagation()
         this._actionStream!.next(new NodeRightClickAction(d))
       })
