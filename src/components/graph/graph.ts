@@ -197,13 +197,13 @@ export default class GraphComponent {
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
-    const graphTransform = this._graphTransformToArray().graphTransform
+    const graphTransform = this._getGraphTranslationAndScale()
     this._svg
       .call(
         this._zoomHandler.transform,
         d3.zoomIdentity
-          .translate(graphTransform[0], graphTransform[1])
-          .scale(graphTransform[2]),
+          .translate(graphTransform.translation.x, graphTransform.translation.y)
+          .scale(graphTransform.scale),
       )
 
     commandStream.subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
@@ -264,11 +264,11 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        const {graphTransform: transform} = this._graphTransformToArray()
+        const {translation, scale} = this._getGraphTranslationAndScale()
         // Transform has to be negated since transform values are themselves negated
         const position = {
-          x: d3.event.clientX / transform[2] - transform[0],
-          y: d3.event.clientY / transform[2] - transform[1],
+          x: d3.event.clientX / scale - translation.x,
+          y: d3.event.clientY / scale - translation.y,
         }
         this._lastClickWasSingle = true
         this._locationFocusedLocation = null
@@ -281,14 +281,10 @@ export default class GraphComponent {
       .on('dblclick', () => {
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
-        const {graphTransform: transform} = this._graphTransformToArray()
-        // Transform has to be negated since transform values are themselves negated
-        // TODO The handling of zoom transform isn't right. The position is off. Need to
-        // figure out how to correctly derive the position based on the zoom level
-        const position = {
-          x: d3.event.clientX / transform[2] - transform[0],
-          y: d3.event.clientY / transform[2] - transform[1],
-        }
+        const {position} = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
         this._actionStream!.next(new BackgroundDblClickAction(position))
       })
     return svg
@@ -316,8 +312,8 @@ export default class GraphComponent {
 
     const {translation, scale} = this._getGraphTranslationAndScale()
     const {position} = this._graphToSVGPosition(this._locationFocusedLocation)
-    const x = translation[0] + this._width / 2 - position[0]
-    const y = translation[1] + this._height / 2 - position[1]
+    const x = translation.x + this._width / 2 - position.x
+    const y = translation.y + this._height / 2 - position.y
 
     this._svg
       .transition()
@@ -378,7 +374,6 @@ export default class GraphComponent {
       .attr('x', (d: IGraphNodeData) => d.x + this._labelfontSize / 2)
       .attr('y', (d: IGraphNodeData) => d.y + 15)
       .attr('font-size', this._labelfontSize)
-      .call(this._drag)
 
     this._nodes = this._g.selectAll('.node')
     this._nodeTextLabels = this._nodes.selectAll('text')
@@ -444,13 +439,6 @@ export default class GraphComponent {
                 .attr('y', d.y + 15)
           })
 
-        this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
-          if (n.id === d.id)
-            d3.select(refs_[i_]).select('circle')
-              .attr('cx', d.x)
-              .attr('cy', d.y)
-        })
-
         this._actionStream!.next(new NodeDragAction(d))
       })
   }
@@ -460,8 +448,8 @@ export default class GraphComponent {
       this._locationFocusedLocation = {x: d.x, y: d.y}
       const {translation, scale} = this._getGraphTranslationAndScale()
       const {position} = this._graphToSVGPosition(d)
-      const x = translation[0] + this._width / 2 - position[0]
-      const y = translation[1] + this._height / 2 - position[1]
+      const x = translation.x + this._width / 2 - position.x
+      const y = translation.y + this._height / 2 - position.y
       this._svg
         .transition()
         .duration(GraphComponent._TRANSITION_DURATION)
@@ -483,20 +471,20 @@ export default class GraphComponent {
     d3.select('body')
       .on('keydown', () => {
         const {translation, scale} = this._getGraphTranslationAndScale()
-        let offsetRight = translation[0]
-        let offsetDown = translation[1]
+        let offsetRight = translation.x
+        let offsetDown = translation.y
         switch (d3.event.keyCode) {
           case keymap.DOWN:
-            offsetDown = translation[1] - GraphComponent._PAN_MOVEMENT_OFFSET
+            offsetDown = translation.y - GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.UP:
-            offsetDown = translation[1] + GraphComponent._PAN_MOVEMENT_OFFSET
+            offsetDown = translation.y + GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.RIGHT:
-            offsetRight = translation[0] - GraphComponent._PAN_MOVEMENT_OFFSET
+            offsetRight = translation.x - GraphComponent._PAN_MOVEMENT_OFFSET
             break
           case keymap.LEFT:
-            offsetRight = translation[0] + GraphComponent._PAN_MOVEMENT_OFFSET
+            offsetRight = translation.x + GraphComponent._PAN_MOVEMENT_OFFSET
             break
           default:
             break
@@ -531,57 +519,57 @@ export default class GraphComponent {
     this._svg.on('dblclick.zoom', null)
   }
 
-  private _getGraphTranslationAndScale(): {translation: number[], scale: number} {
+  private _getGraphTranslationAndScale()
+    : {translation: {x: number, y: number}, scale: number} {
     const transformRaw = this._g.attr('transform')
-    if (transformRaw === null) return {translation: [0, 0], scale: 1}
+    if (transformRaw === null) return {translation: {x: 0, y: 0}, scale: 1}
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
-    const translation = translationRaw
+    let translation = translationRaw
       .replace('translate(', '')
       .replace(')', '')
       .split(',')
       .map(Number)
+    translation = {x: translation[0], y: translation[1]}
     const scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
     return {translation, scale}
   }
 
-  private _graphToSVGPosition(d: {x: number, y: number}): {position: number[]} {
-    const {points} = this._getGraphCornerPoints()
-    const position = [
-      this._width * (d.x - points[0]) / (points[1] - points[0]),
-      this._height * (d.y - points[2]) / (points[3] - points[2]),
-    ]
+  private _graphToSVGPosition(d: {x: number, y: number})
+    : {position: {x: number, y: number}} {
+    const {corners} = this._getGraphCornerPoints()
+    const position = {
+      x: this._width * (d.x - corners.minX) / (corners.maxX - corners.minX),
+      y: this._height * (d.y - corners.minY) / (corners.maxY - corners.minY),
+    }
     return {position}
   }
 
-  private _getGraphCornerPoints(): {points: number[]} {
+  private _svgToGraphPosition(d: {x: number, y: number})
+    : {position: {x: number, y: number}} {
+    const {corners} = this._getGraphCornerPoints()
+    const position = {
+      x: (d.x / this._width) * (corners.maxX - corners.minX) + corners.minX,
+      y: (d.y / this._height) * (corners.maxY - corners.minY) + corners.minY,
+    }
+    return {position}
+  }
+
+  private _getGraphCornerPoints()
+    : {corners: {minX: number, maxX: number, minY: number, maxY: number}} {
     const {translation, scale} = this._getGraphTranslationAndScale()
-    const points = [
-      -translation[0] / scale,
-      this._width / scale - (translation[0] + 15) / scale,
-      -translation[1] / scale,
-      this._height / scale - (translation[1] + 15) / scale,
-    ]
-    return {points}
+    const corners = {
+      minX: -translation.x / scale,
+      maxX: this._width / scale - translation.x / scale,
+      minY: -translation.y / scale,
+      maxY: this._height / scale - translation.y / scale,
+    }
+    return {corners}
   }
 
   private _graphTransformToString(): {str: string} {
     const {translation, scale} = this._getGraphTranslationAndScale()
-    const str = translation[0] + ' ' + translation[1] + ' ' + scale
+    const str = translation.x + ' ' + translation.y + ' ' + scale
     return {str}
-  }
-
-  private _graphTransformToArray(): {graphTransform: number[]} {
-    let graphTransform: number[] = []
-    const stor = GraphComponent._getGraphTransform()
-    if (stor === null) {
-      graphTransform = [0, 0, 1]
-      return {graphTransform}
-    }
-    const temp: string[] = stor.split(' ')
-    for (let i = 0; i < temp.length; i++) {
-      graphTransform[i] = parseFloat(temp[i])
-    }
-    return {graphTransform}
   }
 
 }
