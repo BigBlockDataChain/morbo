@@ -1,0 +1,25 @@
+/*
+* context menu styles
+*/
+#context-menu {
+  position: absolute;
+  z-index: 1;
+}
+
+#context-menu ul {
+  background-color: #ffffff;
+  border: solid 1px #999999;
+  list-style: none;
+  font-size: 14px;
+}
+
+#context-menu ul li button {
+  background-color: transparent;
+  width: 100%;
+  text-align: left;
+  padding: 5px;
+  border: none;
+}
+#context-menu ul li button:hover {
+  background-color: #999999;
+}

@@ -2,9 +2,9 @@ import * as html from '@hyperapp/html'
 import classname from 'classnames'
 import {ActionResult} from 'hyperapp'
 
-import {getLogger} from '../logger'
-import {El} from '../types'
-import {emptyFunction} from '../utils'
+import {getLogger} from '@lib/logger'
+import {El} from '@lib/types'
+import {emptyFunction} from '@lib/utils'
 
 type CanvasContext = CanvasRenderingContext2D
 

@@ -2,7 +2,9 @@ import * as html from '@hyperapp/html'
 
 import {
   IGraphNodeData,
-} from '../types'
+} from '@lib/types'
+
+import './editor-component.css'
 
 export default function(
   node: IGraphNodeData,

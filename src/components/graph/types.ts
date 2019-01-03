@@ -1,4 +1,4 @@
-import {IGraphNodeData} from '../../types'
+import {IGraphNodeData} from '@lib/types'
 
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
@@ -68,16 +68,21 @@ export class NodeHoverEndAction implements INodeHoverEndAction {
 
 export const BACKGROUND_CLICK_TYPE = 'backgroundClick'
 export type BackgroundClickType    = 'backgroundClick'
-export interface IBackgroundClickAction { kind: BackgroundClickType }
+export interface IBackgroundClickAction { kind: BackgroundClickType, position: IPosition }
 export class BackgroundClickAction implements IBackgroundClickAction {
   public readonly kind = BACKGROUND_CLICK_TYPE
+  public constructor(public readonly position: IPosition) {}
 }
 
 export const BACKGROUND_DBL_CLICK_TYPE = 'backgroundDblClick'
 export type BackgroundDblClickType     = 'backgroundDblClick'
-export interface IBackgroundDblClickAction { kind: BackgroundDblClickType }
+export interface IBackgroundDblClickAction {
+  kind: BackgroundDblClickType,
+  position: IPosition,
+}
 export class BackgroundDblClickAction implements IBackgroundDblClickAction {
   public readonly kind = BACKGROUND_DBL_CLICK_TYPE
+  public constructor(public readonly position: IPosition) {}
 }
 
 export const ZOOM_TYPE = 'zoom'
@@ -108,14 +113,15 @@ export class FocusCommand implements IFocusCommand {
   public constructor(public readonly node: IGraphNodeData) {}
 }
 
-export const FOO_TYPE = 'foo'
-export type FooType   = 'foo'
-export interface IFooCommand { kind: FooType }
-export class FooCommand implements IFooCommand {
-  public readonly kind = FOO_TYPE
-  public constructor(public readonly node: IGraphNodeData) {}
+export const RESET_GRAPH_TYPE = 'resetGraph'
+export type ResetGraphType   = 'resetGraph'
+export interface IResetGraphCommand { kind: ResetGraphType }
+export class ResetGraphCommand implements IResetGraphCommand {
+  public readonly kind = RESET_GRAPH_TYPE
 }
 
 export type GraphCommand
   = IFocusCommand
-  | IFooCommand // Dummy, need it so there is a second type in this union
+  | IResetGraphCommand
+
+interface IPosition { x: number, y: number }

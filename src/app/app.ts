@@ -1,19 +1,20 @@
 import * as html from '@hyperapp/html'
-import {ipcRenderer} from 'electron'
-import {app as hyperapp} from 'hyperapp'
-import devtools from 'hyperapp-redux-devtools'
 import {Subject} from 'rxjs'
 
-import {actions as graphActions} from './actions/graph'
-import * as ContextMenu from './components/context-menu-component'
-import Editor from './components/editor-component'
-import GraphView from './components/graph-view-component'
-import {FocusCommand, GraphAction, GraphCommand} from './components/graph/types'
-import * as Toolbar from './components/toolbar-component'
-import Empty from './components/widgets/empty'
-import {loadNote} from './io/io'
-import {getLogger} from './logger'
-import search from './search'
+import * as ContextMenu from '@components/context-menu/context-menu-component'
+import Editor from '@components/editor/editor-component'
+import GraphView from '@components/graph/graph-view-component'
+import {
+  FocusCommand,
+  GraphAction,
+  GraphCommand,
+  ResetGraphCommand,
+} from '@components/graph/types'
+import * as Toolbar from '@components/toolbar/toolbar-component'
+import Empty from '@components/widgets/empty'
+import {loadNote} from '@lib/io'
+import {getLogger} from '@lib/logger'
+import search from '@lib/search'
 import {
   El,
   GraphNodeId,
@@ -21,8 +22,11 @@ import {
   IGraphMetadata,
   IGraphNodeData,
   NoteDataType,
-} from './types'
-import {emptyFunction} from './utils'
+} from '@lib/types'
+import {emptyFunction} from '@lib/utils'
+import {actions as graphActions} from './actions/graph'
+
+import './app.css'
 
 const logger = getLogger('main')
 
@@ -61,7 +65,7 @@ interface IGraphState {
   width: number
 }
 
-const initialState: IState = {
+export const initialState: IState = {
   toolbar: Toolbar.state,
   contextMenu: ContextMenu.state,
   graph: {
@@ -104,7 +108,7 @@ const editorActions = {
   },
 }
 
-const appActions = {
+export const appActions = {
   graph: graphActions,
 
   editor: editorActions,
@@ -152,9 +156,13 @@ const appActions = {
   onSearchResultClick: (node: IGraphNodeData) => {
     graphCommandStream.next(new FocusCommand(node))
   },
+
+  resetGraph: () => {
+    graphCommandStream.next(new ResetGraphCommand())
+  },
 }
 
-function view(state: IState, actions: any) {
+export function view(state: IState, actions: any) {
   return html.div(
     {
       id: 'app',
@@ -176,7 +184,7 @@ function view(state: IState, actions: any) {
         actions.toolbar,
         {
           onBack: emptyFunction,
-          onHome: emptyFunction,
+          onHome: actions.resetGraph,
           onSave: actions.save,
           onSettings: emptyFunction,
           onSearchResultClick: actions.onSearchResultClick,
@@ -202,25 +210,4 @@ function view(state: IState, actions: any) {
         : Empty(),
     ],
   )
-}
-
-// @ts-ignore // no unused variables
-const app = devtools(hyperapp)(
-  initialState,
-  appActions,
-  view,
-  document.querySelector('#root'),
-)
-
-window.onbeforeunload = (e: Event) => {
-  app.save()
-    .catch(() => {
-      alert('Failed to save. Click okay to shutdown anyway')
-    })
-    .finally(() => {
-      ipcRenderer.send('app_quit')
-      window.onbeforeunload = null
-    })
-  // Required by Chrome to prevent default
-  e.returnValue = false
 }
