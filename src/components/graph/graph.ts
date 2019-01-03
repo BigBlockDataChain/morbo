@@ -449,7 +449,7 @@ export default class GraphComponent {
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
-
+          
         this._actionStream!.next(new NodeDragAction(d))
       })
   }
@@ -576,7 +576,7 @@ export default class GraphComponent {
 
   private _graphTransformToString(): string {
     const transform = this._getGraphTranslationAndScale()
-    return '${transform.translation.x} ${transform.translation.y} ${transform.scale}'
+    return `${transform.translation.x} ${transform.translation.y} ${transform.scale}`
   }
 
 }
