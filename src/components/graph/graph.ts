@@ -442,6 +442,13 @@ export default class GraphComponent {
                 .attr('y', d.y + 15)
           })
 
+        this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
+          if (n.id === d.id)
+            d3.select(refs_[i_]).select('circle')
+              .attr('cx', d.x)
+              .attr('cy', d.y)
+        })
+          
         this._actionStream!.next(new NodeDragAction(d))
       })
   }
