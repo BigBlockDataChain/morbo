@@ -449,7 +449,7 @@ export default class GraphComponent {
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
-          
+
         this._actionStream!.next(new NodeDragAction(d))
       })
   }
