@@ -6,7 +6,7 @@ import {
   IGraphIndex,
   IGraphMetadata,
   NoteDataType,
-} from '../types'
+} from '@lib/types'
 import {
   readFile,
   writeFile,

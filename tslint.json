@@ -13,7 +13,8 @@
         "quotemark": [true, "single"],
         "semicolon": [true, "never"],
         "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
-        "variable-name": [true, "allow-leading-underscore", "allow-trailing-underscore"]
+        "variable-name": [true, "allow-leading-underscore", "allow-trailing-underscore"],
+        "no-var-requires": false
     },
     "rulesDirectory": []
 }

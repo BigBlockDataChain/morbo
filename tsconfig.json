@@ -1,21 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ESNEXT",
-    "module": "ESNext",
-    "outDir": "./src-js",
-    "noEmitOnError": true,
-    "skipLibCheck": true,
     "allowJs": true,
-
-    "strict": true,
-    "noImplicitAny": true,
-    "noUnusedLocals": true,
-
+    "esModuleInterop": true,
+    "lib": ["ESNEXT", "dom"],
+    "module": "ESNext",
     "moduleResolution": "node",
-
-    "esModuleInterop": true
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": false,
+    "outDir": "./dist/",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNEXT",
+    "baseUrl": "src",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@lib/*": ["lib/*"]
+    }
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
   ]
 }

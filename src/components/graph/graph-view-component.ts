@@ -6,9 +6,11 @@ import {
   El,
   IDimensions,
   IGraphData,
-} from '../types'
-import GraphComponent from './graph/graph'
-import {GraphAction, GraphCommand} from './graph/types'
+} from '@lib/types'
+import GraphComponent from './graph'
+import {GraphAction, GraphCommand} from './types'
+
+import './graph-view-component.css'
 
 const graphComponent = new GraphComponent()
 

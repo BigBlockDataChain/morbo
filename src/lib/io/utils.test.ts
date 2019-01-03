@@ -1,4 +1,4 @@
-import {NoteDataType} from '../types'
+import {NoteDataType} from '@lib/types'
 import {getFileExtensionFromNoteDataType} from './utils'
 
 describe('getFileExtensionFromNoteDataType', () => {

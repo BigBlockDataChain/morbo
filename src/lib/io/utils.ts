@@ -1,4 +1,4 @@
-import {NoteDataType} from '../types'
+import {NoteDataType} from '@lib/types'
 
 export function getFileExtensionFromNoteDataType(dataType: NoteDataType): string {
   switch (dataType) {
