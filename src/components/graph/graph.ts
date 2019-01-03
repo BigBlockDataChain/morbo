@@ -33,8 +33,9 @@ import './graph.css'
 const logger = getLogger('d3-graph')
 
 interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
-interface ITransform { translation: {x: number, y: number}, scale: number }
+interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
+interface IPosition { x: number, y: number }
 
 export default class GraphComponent {
 
@@ -122,7 +123,7 @@ export default class GraphComponent {
 
   private _lastClickWasSingle: boolean = false
 
-  private _locationFocusedLocation: null | {x: number, y: number} = null
+  private _locationFocusedLocation: null | IPosition = null
 
   private _graphData: null | IGraphData = null
   private _dimensions: null | IDimensions = null
@@ -177,15 +178,15 @@ export default class GraphComponent {
 
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
-      GraphComponent._updateGraphTransform(this._graphTransformToString().str)
+      GraphComponent._updateGraphTransform(this._graphTransformToString())
 
-      const {transform} = this._getGraphTranslationAndScale()
+      const graphTransform = this._getGraphTranslationAndScale()
 
       // Scale elements on zoom
       if (this._nodes) {
         this._nodeCircleRadius = GraphComponent._NODE_CIRCLE_RADIUS / 2
-                               + GraphComponent._NODE_CIRCLE_RADIUS / transform.scale
-        this._labelfontSize = 1.5 * GraphComponent._LABEL_FONT_SIZE / transform.scale
+                               + GraphComponent._NODE_CIRCLE_RADIUS / graphTransform.scale
+        this._labelfontSize = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransform.scale
         this._nodes.selectAll('circle')
           .attr('r', this._nodeCircleRadius)
         this._nodes.selectAll('text')
@@ -199,7 +200,7 @@ export default class GraphComponent {
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
-    const {transform} = this._getGraphTranslationAndScale()
+    const transform = this._getGraphTranslationAndScale()
     this._svg
       .call(
         this._zoomHandler.transform,
@@ -266,7 +267,7 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        const {transform} = this._getGraphTranslationAndScale()
+        const transform = this._getGraphTranslationAndScale()
         // Transform has to be negated since transform values are themselves negated
         const position = {
           x: d3.event.clientX / transform.scale - transform.translation.x,
@@ -312,7 +313,7 @@ export default class GraphComponent {
   private _focusGraph(): void {
     if (!this._locationFocusedLocation) return
 
-    const {transform} = this._getGraphTranslationAndScale()
+    const transform = this._getGraphTranslationAndScale()
     const position = this._graphToSVGPosition(this._locationFocusedLocation)
     const x = transform.translation.x + this._width / 2 - position.x
     const y = transform.translation.y + this._height / 2 - position.y
@@ -448,7 +449,7 @@ export default class GraphComponent {
               .attr('cx', d.x)
               .attr('cy', d.y)
         })
-          
+
         this._actionStream!.next(new NodeDragAction(d))
       })
   }
@@ -456,7 +457,7 @@ export default class GraphComponent {
   private _enableClickToCenter(): void {
     this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
       this._locationFocusedLocation = {x: d.x, y: d.y}
-      const {transform} = this._getGraphTranslationAndScale()
+      const transform = this._getGraphTranslationAndScale()
       const position = this._graphToSVGPosition(d)
       const x = transform.translation.x + this._width / 2 - position.x
       const y = transform.translation.y + this._height / 2 - position.y
@@ -480,7 +481,7 @@ export default class GraphComponent {
 
     d3.select('body')
       .on('keydown', () => {
-        const {transform} = this._getGraphTranslationAndScale()
+        const transform = this._getGraphTranslationAndScale()
         let offsetRight = transform.translation.x
         let offsetDown = transform.translation.y
         switch (d3.event.keyCode) {
@@ -508,7 +509,7 @@ export default class GraphComponent {
             d3.zoomIdentity.translate(offsetRight, offsetDown).scale(transform.scale),
           )
 
-        GraphComponent._updateGraphTransform(this._graphTransformToString().str)
+        GraphComponent._updateGraphTransform(this._graphTransformToString())
         this._actionStream!.next(new ZoomAction())
       })
   }
@@ -529,10 +530,10 @@ export default class GraphComponent {
     this._svg.on('dblclick.zoom', null)
   }
 
-  private _getGraphTranslationAndScale(): {transform: ITransform} {
+  private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
     const transform: ITransform = {translation: {x: 0, y: 0}, scale: 1}
-    if (transformRaw === null) return {transform}
+    if (transformRaw === null) return transform
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
     const translationValues = translationRaw
       .replace('translate(', '')
@@ -541,11 +542,11 @@ export default class GraphComponent {
       .map(Number)
     transform.translation = {x: translationValues[0], y: translationValues[1]}
     transform.scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
-    return {transform}
+    return transform
   }
 
-  private _graphToSVGPosition(d: {x: number, y: number}): {x: number, y: number} {
-    const {corners} = this._getGraphCornerPoints()
+  private _graphToSVGPosition(d: IPosition): IPosition {
+    const corners = this._getGraphCornerPoints()
     const position = {
       x: this._width * (d.x - corners.minX) / (corners.maxX - corners.minX),
       y: this._height * (d.y - corners.minY) / (corners.maxY - corners.minY),
@@ -553,8 +554,8 @@ export default class GraphComponent {
     return position
   }
 
-  private _svgToGraphPosition(d: {x: number, y: number}): {x: number, y: number} {
-    const {corners} = this._getGraphCornerPoints()
+  private _svgToGraphPosition(d: IPosition): IPosition {
+    const corners = this._getGraphCornerPoints()
     const position = {
       x: (d.x / this._width) * (corners.maxX - corners.minX) + corners.minX,
       y: (d.y / this._height) * (corners.maxY - corners.minY) + corners.minY,
@@ -562,21 +563,20 @@ export default class GraphComponent {
     return position
   }
 
-  private _getGraphCornerPoints(): {corners: ICorner} {
-    const {transform} = this._getGraphTranslationAndScale()
-    const corners = {
+  private _getGraphCornerPoints(): ICorner {
+    const transform = this._getGraphTranslationAndScale()
+    const corners: ICorner = {
       minX: -transform.translation.x / transform.scale,
       maxX: this._width / transform.scale - transform.translation.x / transform.scale,
       minY: -transform.translation.y / transform.scale,
       maxY: this._height / transform.scale - transform.translation.y / transform.scale,
     }
-    return {corners}
+    return corners
   }
 
-  private _graphTransformToString(): {str: string} {
-    const {transform} = this._getGraphTranslationAndScale()
-    const str ='${transform.translation.x} ${transform.translation.y} ${transform.scale}'
-    return {str}
+  private _graphTransformToString(): string {
+    const transform = this._getGraphTranslationAndScale()
+    return '${transform.translation.x} ${transform.translation.y} ${transform.scale}'
   }
 
 }
