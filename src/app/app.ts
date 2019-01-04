@@ -1,7 +1,7 @@
 import * as html from '@hyperapp/html'
 import {Subject} from 'rxjs'
 
-import Editor from '@components/editor/editor-component'
+import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import {
   FocusCommand,
@@ -11,7 +11,6 @@ import {
 } from '@components/graph/types'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
-import {loadNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import search from '@lib/search'
 import {
@@ -37,23 +36,12 @@ const editorOpenChangeObservable = editorOpenChange.asObservable()
 
 const EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY = 250
 
-interface IRuntime {
-  showEditor: boolean
-  selectedNode: null | IGraphNodeData,
-}
-
 interface IState {
   graph: IGraphState
-  editor: IEditorState
+  editor: any
   settings: any
   runtime: IRuntime
-  toolbar: any,
-}
-
-interface IEditorState {
-  node: null | IGraphNodeData
-  handWritingEditor: any
-  textEditor: any
+  toolbar: any
 }
 
 interface IGraphState {
@@ -63,20 +51,19 @@ interface IGraphState {
   width: number
 }
 
+interface IRuntime {
+  showEditor: boolean
+  selectedNode: null | IGraphNodeData,
+}
+
 export const initialState: IState = {
   toolbar: Toolbar.state,
+  editor: Editor.state,
   graph: {
     index: {},
     metadata: {},
     height: 0,
     width: 0,
-  },
-  editor: {
-    node: null,
-    handWritingEditor: {},
-    textEditor: {
-      data: null,
-    },
   },
   settings: {},
   runtime: {
@@ -85,31 +72,9 @@ export const initialState: IState = {
   },
 }
 
-const editorActions = {
-  handWritingEditor: {
-  },
-
-  textEditor: {
-    setData: (data: string) => () => {
-      return {data}
-    },
-  },
-
-  loadTextNote: (nodeId: GraphNodeId) => async (state: any, actions: any) => {
-    const data = await loadNote(nodeId, NoteDataType.TEXT)
-    actions.textEditor.setData(data)
-  },
-
-  setNode: (node: IGraphNodeData) => () => {
-    return {node}
-  },
-}
-
 export const appActions = {
   graph: graphActions,
-
-  editor: editorActions,
-
+  editor: Editor.actions,
   toolbar: Toolbar.actions,
 
   onCreate: (el: El) => (state: IState, actions: any) => {
@@ -186,10 +151,10 @@ export function view(state: IState, actions: any) {
         graphCommandObservable,
       ),
       (state.runtime.showEditor && state.runtime.selectedNode !== null)
-        ? Editor(
-          state.runtime.selectedNode,
+        ? Editor.view(
           state.editor,
           actions.editor,
+          state.runtime.selectedNode,
           actions.onEditorClose,
         )
         : Empty(),
