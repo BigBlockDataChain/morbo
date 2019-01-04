@@ -1,3 +1,4 @@
+/* tslint:disable */
 import * as codemirror from 'codemirror'
 
 import './styles.css'
