@@ -26,7 +26,7 @@ module.exports = {
         use: [{loader: 'style-loader'}, {loader: 'css-loader'}],
       },
       {
-        test: /\.ts$/,
+        test: /\.(tsx|ts)$/,
         use: 'ts-loader',
         exclude: /node_modules|\.test.ts$/,
       },
@@ -37,7 +37,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.ts'],
+    extensions: ['.js', '.ts', '.tsx'],
     alias: {
       ['@components']: path.resolve(SRC_DIR, 'components/'),
       ['@lib']: path.resolve(SRC_DIR, 'lib/'),

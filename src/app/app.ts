@@ -1,6 +1,10 @@
 import * as html from '@hyperapp/html'
 import {Subject} from 'rxjs'
 
+import OcrLive, {
+  IOCRState, 
+  IOCRActions, 
+} from '@components/editor/ocr-live-component'
 import Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import {
@@ -27,6 +31,7 @@ import {actions as graphActions} from './actions/graph'
 
 import './app.css'
 
+const MyScriptJS = require('myscript/dist/myscript.esm')
 const logger = getLogger('main')
 
 const graphActionStream = new Subject<GraphAction>()
@@ -54,6 +59,7 @@ interface IEditorState {
   node: null | IGraphNodeData
   handWritingEditor: any
   textEditor: any
+  liveOcrEditor: IOCRState
 }
 
 interface IGraphState {
@@ -77,6 +83,9 @@ export const initialState: IState = {
     textEditor: {
       data: null,
     },
+    liveOcrEditor: {
+      editor: null,
+    }
   },
   settings: {},
   runtime: {
@@ -86,6 +95,29 @@ export const initialState: IState = {
 }
 
 const editorActions = {
+  OCREditorActions: {
+    setEditorRef: (e: HTMLDivElement) => (state: any, actions: any) => {
+      const editor = MyScriptJS.register(e, {
+        recognitionParams: {
+          type: 'TEXT',
+          protocol: 'WEBSOCKET',
+          apiVersion: 'V4',
+          server: {
+            scheme: 'https',
+            host: 'webdemoapi.myscript.com',
+            applicationKey: 'a4d2a539-b109-4444-8ef7-753d7012e99a',
+            hmacKey: 'eb627a17-ffee-47e6-9808-37c4e199ca09',
+          },
+        },
+      });
+      window.addEventListener("resize", () => {editor.resize()});
+      return {editor}
+    },
+    removeEditorRef: (e: HTMLDivElement) => (state: any, actions: any) => {
+      // window.removeEventListener("resize", resizeCallBack)
+    }
+  },
+  
   handWritingEditor: {
   },
 
@@ -164,6 +196,10 @@ export function view(state: IState, actions: any) {
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
+      OcrLive(
+        state.editor.liveOcrEditor,
+        actions.editor.OCREditorActions,
+      ),
       Toolbar.view(
         state.toolbar,
         actions.toolbar,
