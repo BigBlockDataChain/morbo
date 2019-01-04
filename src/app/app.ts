@@ -2,6 +2,7 @@ import * as html from '@hyperapp/html'
 import {Subject} from 'rxjs'
 
 import Editor from '@components/editor/editor-component'
+import HandWritingEditor, { Tool } from '@components/editor/handwriting-editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import {
   FocusCommand,
@@ -87,6 +88,13 @@ export const initialState: IState = {
 
 const editorActions = {
   handWritingEditor: {
+    changeColor: (color: string) => () => {},
+    strokeWidthChange: (width: number) => () => {},
+    selectTool: (tool: Tool) => () => {},
+    canvasCreated: (el: HTMLCanvasElement) => () => {},
+    mouseDownOnCanvas: (event: MouseEvent) => () => {},
+    mouseUpOnCanvas: (event: MouseEvent) => () => {},
+    mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => {}
   },
 
   textEditor: {

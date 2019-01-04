@@ -10,7 +10,7 @@ type CanvasContext = CanvasRenderingContext2D
 
 const logger = getLogger('handwriting-editor-component')
 
-enum Tool {
+export enum Tool {
   ERASER,
   PEN,
 }
@@ -92,7 +92,7 @@ export const actions: IActions = {
   },
 }
 
-export function view(compState: IState, compActions: IActions) {
+export default function view(compState: IState, compActions: IActions) {
   return html.div(
     {
       id: 'handwriting-editor-component',
