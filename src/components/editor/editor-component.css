@@ -55,8 +55,18 @@
   height: 85%;
   width: 100%;
   resize: none;
-  padding: 1em;
+  padding: 16px 0 0;
   border: 0 !important;
+}
+
+#editor .cm-s-mirrormark {
+  height: 100%;
+}
+
+#editor .CodeMirror-scroll {
+  height: 100% !important;
+  cursor: text;
+  padding: 0.5em;
 }
 
 #editor-close {
