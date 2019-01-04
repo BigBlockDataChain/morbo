@@ -1,95 +1,85 @@
 import * as html from '@hyperapp/html'
 
+import {loadNote} from '@lib/io'
 import {
   El,
+  GraphNodeId,
   IGraphNodeData,
+  NoteDataType,
 } from '@lib/types'
+import './mirror-mark'
 
 import './editor-component.css'
 
-export default function(
+interface IEditorState {
+  node: null | IGraphNodeData,
+  handWritingEditor: any,
+  textEditor: any,
+}
+
+export const state: IEditorState = {
+  node: null,
+  handWritingEditor: {},
+  textEditor: {
+    data: null,
+    mirrorMarkEditor: null,
+    parentTextArea : null,
+  },
+}
+
+export const actions = {
+  handWritingEditor: {
+  },
+
+  textEditor: {
+    setData: (data: string) => () => {
+      return {data}
+    },
+    setMirrorMarkEditor: (mirrorMarkEditor: any) => () => {
+      return {mirrorMarkEditor}
+    },
+    setParentTextArea: (parentTextArea: any) => () => {
+      return {parentTextArea}
+    },
+  },
+
+  loadTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
+    const data = await loadNote(nodeId, NoteDataType.TEXT)
+    _actions.textEditor.setData(data)
+
+    // Dispatch a custom event to update the default CodeMirror text.
+    const updateEvent = new CustomEvent('textupdate', {
+      detail: {data},
+    })
+    const parentTextArea = _state.textEditor.parentTextArea
+    if (parentTextArea !== null) {
+      parentTextArea.dispatchEvent(updateEvent)
+    }
+  },
+
+  setNode: (node: IGraphNodeData) => () => {
+    return {node}
+  },
+}
+
+export function view(
+  _state: any,
+  _actions: any,
   node: IGraphNodeData,
-  state: any,
-  actions: any,
   onClose: () => any,
 ) {
-  if (node !== state.node) {
-    actions.setNode(node)
-    actions.textEditor.setData(null)
-    actions.loadTextNote(node.id)
+  if (node !== _state.node) {
+    _actions.setNode(node)
+    _actions.textEditor.setData(null)
+    _actions.loadTextNote(node.id)
   }
 
   return html.div(
-    {
-      id: 'editor-container',
-    },
+    {id: 'editor-container'},
     [
-      html.button(
-        {
-          id: 'editor-close',
-          onclick: (ev: Event) => onClose(),
-        },
-        'x',
-      ),
-      html.button(
-        {
-          disabled: true,
-        },
-        'save',
-      ),
+      ...headerButtons(node, onClose),
       html.div(
-        {
-          id: 'editor-right-buttons',
-        },
-        [
-          html.button(
-            {
-              disabled: true,
-            },
-            'delete',
-          ),
-          html.button(
-            {
-              disabled: true,
-            },
-            'edit',
-          ),
-          html.button(
-            {
-              disabled: true,
-            },
-            'maximize',
-          ),
-        ],
-      ),
-      html.div(
-        {
-          id: 'editor-title',
-        },
-        node.title,
-      ),
-      html.div(
-        {
-          id: 'editor-tags',
-        },
-        [
-          html.div(
-            [
-              node.tags.map(html.span),
-              html.button(
-                {
-                  disabled: true,
-                },
-                '+',
-              ),
-            ],
-          ),
-        ],
-      ),
-      html.div(
-        {
-          id: 'editor',
-        },
+        {id: 'editor'},
         [
           html.textarea(
             {
@@ -100,8 +90,8 @@ export default function(
                 }
                 const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
-                actions.textEditor.setParentTextArea(el)
-                actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
+                _actions.textEditor.setParentTextArea(el)
+                _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
 
                 // Get the CodeMirror (editor) object.
                 const codeMirrorEditor = mirrorMarkEditor.cm
@@ -112,11 +102,11 @@ export default function(
                 })
               },
               oninput: () => {
-                const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
-                actions.textEditor.setData(codeMirrorEditor.getValue())
+                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
+                _actions.textEditor.setData(codeMirrorEditor.getValue())
               },
               ontextupdate: (ev: CustomEvent) => {
-                const codeMirrorEditor = state.textEditor.mirrorMarkEditor.cm
+                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
                 codeMirrorEditor.setValue(ev.detail.data)
               },
             },
@@ -125,4 +115,57 @@ export default function(
       ),
     ],
   )
+}
+
+function headerButtons(node: IGraphNodeData, onClose: () => any) {
+  return [
+    html.button(
+      {
+        id: 'editor-close',
+        onclick: (ev: Event) => onClose(),
+      },
+      'x',
+    ),
+    html.button(
+      {disabled: true},
+      'save',
+    ),
+    html.div(
+      {id: 'editor-right-buttons'},
+      [
+        html.button(
+          {disabled: true},
+          'delete',
+        ),
+        html.button(
+          {disabled: true},
+          'edit',
+        ),
+        html.button(
+          {disabled: true},
+          'maximize',
+        ),
+      ],
+    ),
+    html.div(
+      {id: 'editor-title'},
+      node.title,
+    ),
+    html.div(
+      {id: 'editor-tags'},
+      [
+        html.div(
+          [
+            node.tags.map(html.span),
+            html.button(
+              {
+                disabled: true,
+              },
+              '+',
+            ),
+          ],
+        ),
+      ],
+    ),
+  ]
 }
