@@ -8,6 +8,7 @@ import {
   NoteDataType,
 } from '@lib/types'
 import './mirror-mark'
+import mirrorMark from './mirror-mark'
 
 import './editor-component.css'
 
@@ -88,7 +89,7 @@ export function view(
                 const mirrorMarkOptions = {
                   showToolbar: true,
                 }
-                const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
+                const mirrorMarkEditor = mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
                 _actions.textEditor.setParentTextArea(el)
                 _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
