@@ -1,8 +1,9 @@
-import * as html from '@hyperapp/html'
-import {Subject} from 'rxjs'
-
 import Editor from '@components/editor/editor-component'
-import HandWritingEditor, { Tool } from '@components/editor/handwriting-editor-component'
+import {
+  actions as HandWritingEditorActions,
+  IHandWritingEditorState,
+  state as initialHandWritingEditorState,
+} from '@components/editor/handwriting-editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import {
   FocusCommand,
@@ -12,6 +13,7 @@ import {
 } from '@components/graph/types'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
+import * as html from '@hyperapp/html'
 import {loadNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import search from '@lib/search'
@@ -24,6 +26,7 @@ import {
   NoteDataType,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
+import {Subject} from 'rxjs'
 import {actions as graphActions} from './actions/graph'
 
 import './app.css'
@@ -53,7 +56,7 @@ interface IState {
 
 interface IEditorState {
   node: null | IGraphNodeData
-  handWritingEditor: any
+  handWritingEditor: IHandWritingEditorState
   textEditor: any
 }
 
@@ -74,7 +77,7 @@ export const initialState: IState = {
   },
   editor: {
     node: null,
-    handWritingEditor: {},
+    handWritingEditor: initialHandWritingEditorState,
     textEditor: {
       data: null,
     },
@@ -87,15 +90,7 @@ export const initialState: IState = {
 }
 
 const editorActions = {
-  handWritingEditor: {
-    changeColor: (color: string) => () => {},
-    strokeWidthChange: (width: number) => () => {},
-    selectTool: (tool: Tool) => () => {},
-    canvasCreated: (el: HTMLCanvasElement) => () => {},
-    mouseDownOnCanvas: (event: MouseEvent) => () => {},
-    mouseUpOnCanvas: (event: MouseEvent) => () => {},
-    mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => {}
-  },
+  handWritingEditor: HandWritingEditorActions,
 
   textEditor: {
     setData: (data: string) => () => {

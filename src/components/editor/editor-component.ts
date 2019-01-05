@@ -1,3 +1,5 @@
+import HandWritingEditor from '@components/editor/handwriting-editor-component'
+import Empty from '@components/widgets/empty'
 import * as html from '@hyperapp/html'
 
 import {
@@ -35,6 +37,13 @@ export default function(
           disabled: true,
         },
         'save',
+      ),
+      html.button(
+        {
+          onclick: actions.handWritingEditor.open,
+          disabled: false,
+        },
+        'ocr',
       ),
       html.div(
         {
@@ -156,6 +165,12 @@ export default function(
           value: state.textEditor.data,
         },
       ),
+      (state.handWritingEditor.isOpen)
+        ? HandWritingEditor(
+          state.handWritingEditor,
+          actions.handWritingEditor,
+        )
+        : html.span(), /* Empty() prevents the oncreate lifecycle method execution */
     ],
   )
 }
