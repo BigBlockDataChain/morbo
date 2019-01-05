@@ -245,6 +245,7 @@ export default class GraphComponent {
     this._enableClickToCenter()
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
+    this._enableLinkHighlightOnHover()
     this._disableDoubleClickZoom()
 
     this._focusGraph()
@@ -268,7 +269,7 @@ export default class GraphComponent {
       .on('click', () => {
         d3.event.stopPropagation()
         const transform = this._getGraphTranslationAndScale()
-        // Transform has to be negated since transform values are themselves negated
+        // TODO: Fix, see dblclick handler's position calculation
         const position = {
           x: d3.event.clientX / transform.scale - transform.translation.x,
           y: d3.event.clientY / transform.scale - transform.translation.y,
@@ -311,6 +312,9 @@ export default class GraphComponent {
    * Center graph on _locationFocusedLocation
    */
   private _focusGraph(): void {
+    // TODO: Rework _locationFocusedLocation maybe (so it doesn't have to get set for this
+    //   method to work, maybe it can be an optional parameter to override the previous
+    //   location otherwise it will set the graph to the existing value on the variable)
     if (!this._locationFocusedLocation) return
 
     const transform = this._getGraphTranslationAndScale()
@@ -369,6 +373,7 @@ export default class GraphComponent {
       .attr('r', this._nodeCircleRadius)
       .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
       .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
+      .attr('stroke-width', '4px')
       .call(this._drag)
 
     nodes
@@ -407,6 +412,24 @@ export default class GraphComponent {
       })
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+      .attr('stroke-width', '6px')
+      // Jump to other side of the link
+      .on('click', (d: ILinkTuple) => {
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
+        const sourceNode = this._graphData!.metadata[d.source]
+        const targetNode = this._graphData!.metadata[d.target]
+
+        const distToSource = distance(position, sourceNode)
+        const distToTarget = distance(position, targetNode)
+
+        this._locationFocusedLocation = (distToSource < distToTarget)
+           ? {x: targetNode.x, y: targetNode.y}
+           : {x: sourceNode.x, y: sourceNode.y}
+        this._focusGraph()
+      })
     this._links = this._g.selectAll('.link')
   }
 
@@ -518,11 +541,27 @@ export default class GraphComponent {
     this._nodes
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', '2px')
+          .select('circle')
+          .attr('r', this._nodeCircleRadius * 1.5)
+          .attr('stroke-width', '9px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', '1px')
+          .select('circle')
+          .attr('r', this._nodeCircleRadius)
+          .attr('stroke-width', '6px')
+      })
+  }
+
+  private _enableLinkHighlightOnHover(): void {
+    this._links
+      .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
+        d3.select(refs[i])
+          .style('stroke-width', '12px')
+      })
+      .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
+        d3.select(refs[i])
+          .style('stroke-width', '6px')
       })
   }
 
@@ -579,4 +618,11 @@ export default class GraphComponent {
     return `${transform.translation.x} ${transform.translation.y} ${transform.scale}`
   }
 
+}
+
+/**
+ * Cartesian distance between two points
+ */
+function distance(a: IPosition, b: IPosition): number {
+  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))
 }
