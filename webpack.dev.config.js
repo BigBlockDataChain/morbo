@@ -47,7 +47,7 @@ module.exports = {
     new HtmlWebpackPlugin({template: 'index.html'}),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development'),
-      // 'process.env.MORBO_HOME': JSON.stringify('..\\..\\..\\morbo\\data'),
+      'process.env.MORBO_HOME': JSON.stringify('./data'),
     })
   ],
   devtool: 'inline-source-map',
@@ -58,14 +58,14 @@ module.exports = {
       chunks: false,
       children: false,
     },
-    // before() {
-    //   spawn(
-    //     'electron',
-    //     ['.'],
-    //     {shell: true, env: process.env, stdio: 'inherit'},
-    //   )
-    //   .on('close', code => process.exit(0))
-    //   .on('error', spawnError => console.error(spawnError))
-    // }
+    before() {
+      spawn(
+        'electron',
+        ['.'],
+        {shell: true, env: process.env, stdio: 'inherit'},
+      )
+      .on('close', code => process.exit(0))
+      .on('error', spawnError => console.error(spawnError))
+    }
   }
 }
