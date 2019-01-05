@@ -10,7 +10,7 @@ export function readFile(path: string): Promise<string> {
   return new Promise((resolve, reject) => {
     fs.readFile(path, (err: any, data: string) => {
       if (err) reject(err)
-      resolve(data.toString())
+      resolve(path.endsWith('.png') ? data : data.toString())
     })
   })
 }

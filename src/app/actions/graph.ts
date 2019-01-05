@@ -13,6 +13,7 @@ import {getLogger} from '@lib/logger'
 import {
   El,
   IGraphNodeData,
+  NoteDataType,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 
@@ -145,6 +146,7 @@ export const actions: any = {
       x: position.x,
       y: position.y,
       tags: [],
+      type: NoteDataType.TEXT
     }
 
     return {

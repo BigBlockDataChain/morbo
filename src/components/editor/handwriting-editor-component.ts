@@ -1,38 +1,45 @@
 import * as html from '@hyperapp/html'
+import {getLogger} from '@lib/logger'
+import {El, IGraphNodeData} from '@lib/types'
+import {emptyFunction} from '@lib/utils'
 import classname from 'classnames'
 import {ActionResult} from 'hyperapp'
-
-import {getLogger} from '@lib/logger'
-import {El} from '@lib/types'
-import {emptyFunction} from '@lib/utils'
+import './handwriting-editor-component.css'
+import { fabric } from 'fabric'
 
 type CanvasContext = CanvasRenderingContext2D
 
 const logger = getLogger('handwriting-editor-component')
 
-export enum Tool {
+enum Tool {
   ERASER,
   PEN,
 }
 
+export type IHandwritingEditorState = IState
+export type IHandwritingEditorActions = IActions
+
 interface IState {
+  imageBytes?: any,
+  canvas?: fabric.Canvas
   selectedTool: Tool
   canvasEl: null | HTMLCanvasElement
   canvasCtx: null | CanvasContext
   color: string
   stroke_width: number
-  isMouseDown: boolean
-  mouseLastLocation: [number, number]
 }
 
 interface IActions {
-  changeColor: (color: string) => () => ActionResult<IState>
-  strokeWidthChange: (width: number) => () => ActionResult<IState>
-  selectTool: (tool: Tool) => () => ActionResult<IState>
-  canvasCreated: (el: HTMLCanvasElement) => () => ActionResult<IState>
-  mouseDownOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
-  mouseUpOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
-  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => ActionResult<IState>
+  setImage: (imageBytes: any) => () => ActionResult<IState>
+  changeColor: (color: string) => (compState: IState) => ActionResult<IState>
+  strokeWidthChange: (width: number) => (compState: IState) => ActionResult<IState>
+  selectTool: (tool: Tool) => (compState: IState) => ActionResult<IState>
+  canvasCreated: (el: HTMLCanvasElement) => (compState: IState) => ActionResult<IState>
+  save: () => () => ActionResult<IState>
+  done: () => () => ActionResult<IState>
+  submit: () => (compState: IState, compActions: IActions)
+    => Promise<ActionResult<IState>>
+  cancel: () => () => ActionResult<IState>
 }
 
 export const state: IState = {
@@ -41,54 +48,131 @@ export const state: IState = {
   canvasCtx: null,
   color: 'black',
   stroke_width: 3,
-  isMouseDown: false,
-  mouseLastLocation: [0, 0],
 }
 
 export const actions: IActions = {
-  changeColor: (color: string) => () => ({color}),
+  save: () => () => {
+    /* TODO: save png */
 
-  strokeWidthChange: (width: number) => () => ({stroke_width: width}),
+  },
 
-  selectTool: (tool: Tool) => () => ({selectedTool: tool}),
+  setImage: (imageBytes: any) => () => ({ imageBytes }),
 
-  canvasCreated: (el: HTMLCanvasElement) => () => ({
-    canvasEl: el,
-    canvasCtx: el.getContext('2d'),
-  }),
+  submit: () => (compState: IState, compActions: IActions) => {
+    if (!compState.canvasEl) {
+      return Promise.reject()
+    }
+    // TODO
+    return Promise.reject()
+  },
 
-  mouseDownOnCanvas: (event: MouseEvent) => () => ({
-    mouseLastLocation: [event.offsetX, event.offsetY],
-    isMouseDown: true,
-    event_type: event.type,
-  }),
+  done: () => () => {
+    /* TODO: formalize the method by which editor can be accessed */
+    const editor = document.getElementById('editor')
+    if (editor) {
+      editor.focus()
+      // document.execCommand('insertText', false, result.text.trim())
+    }
 
-  mouseUpOnCanvas: (event: MouseEvent) => () => ({
-    isMouseDown: false,
-    event_type: event.type,
-  }),
+    return {
+    }
+  },
 
-  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => {
-    const newMouseLocation: [number, number] = [event.offsetX, event.offsetY]
-    const nextState = {mouseLastLocation: newMouseLocation}
+  cancel: () => () => {
+    return { }
+  },
 
-    if (compState.canvasEl === null || compState.canvasCtx === null)
-      return logger.warn('Canvas is not initialized')
+  changeColor: (color: string) => (compState: IState) => {
+    if (compState.canvas) {
+      compState.canvas.freeDrawingColor = color
+    }
 
-    if (!compState.isMouseDown) return nextState
+    return {color}
+  },
 
-    const ctx = compState.canvasCtx
+  strokeWidthChange: (width: number) => (compState: IState) => {
+    if (compState.canvas) {
+      compState.canvas.freeDrawingLineWidth = width
+    }
 
-    ctx.strokeStyle
-      = compState.selectedTool === Tool.PEN ? compState.color : 'white'
-    ctx.lineWidth = compState.stroke_width
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(...compState.mouseLastLocation)
-    ctx.lineTo(...newMouseLocation)
-    ctx.stroke()
+    return {stroke_width: width}
+  },
 
-    return nextState
+  selectTool: (tool: Tool) => (compState: IState) => {
+    if (compState.canvas) {
+      compState.canvas.isDrawingMode = tool === Tool.PEN
+    }
+
+    return {selectedTool: tool}
+  },
+
+  canvasCreated: (el: HTMLCanvasElement) => (compState: IState) => {
+    console.log('CREATED....', el)
+    const canvas = new fabric.Canvas('handwriting-canvas', {
+      isDrawingMode: compState.selectedTool === Tool.PEN,
+      freeDrawingColor: compState.color,
+      freeDrawingLineWidth: compState.stroke_width,
+    })
+    canvas.setWidth(el.clientWidth)
+
+    let obj = {} as any
+
+    // zooming/panning
+    canvas.on('mouse:down', function(opt: any) {
+      var evt = opt.e
+      if (evt.altKey === true) {
+        obj.isDragging = true
+        obj.selection = false
+        obj.lastPosX = evt.clientX
+        obj.lastPosY = evt.clientY
+      }
+    })
+    canvas.on('mouse:move', function(opt: any) {
+      if (obj.isDragging) {
+        var e = opt.e
+        obj.viewportTransform[4] += e.clientX - obj.lastPosX
+        obj.viewportTransform[5] += e.clientY - obj.lastPosY
+        obj.requestRenderAll()
+        obj.lastPosX = e.clientX
+        obj.lastPosY = e.clientY
+      }
+    })
+    canvas.on('mouse:up', function(opt: any) {
+      obj.isDragging = false
+      obj.selection = true
+    })
+
+    canvas.on('mouse:wheel', function(opt: any) {
+      const delta = opt.e.deltaY
+      const pointer = canvas.getPointer(opt.e)
+      var zoom = canvas.getZoom()
+      zoom = zoom + delta/200
+      if (zoom > 20) zoom = 20
+      if (zoom < 0.01) zoom = 0.01
+      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY } as any, zoom)
+      opt.e.preventDefault()
+      opt.e.stopPropagation()
+    })
+
+    if (compState.imageBytes) {
+      // Load existing image into the canvas
+      const imageBytes = compState.imageBytes
+      if (!compState.canvasCtx) return {}
+
+      const base64Image = btoa(String.fromCharCode.apply(null, imageBytes))
+
+      const image = new Image()
+      image.onload = () => {
+        compState.canvasCtx!.drawImage(image, 0, 0)
+      }
+      image.src = `data:image/png;base64,${base64Image}`
+    }
+
+    return ({
+      canvas,
+      canvasEl: el,
+      canvasCtx: el.getContext('2d'),
+    })
   },
 }
 
@@ -96,7 +180,8 @@ export default function view(compState: IState, compActions: IActions) {
   return html.div(
     {
       id: 'handwriting-editor-component',
-      onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas(event),
+      class: 'handwriting-editor-component-wrapper',
+      // onmouseup: compActions.save,
     },
     [
       html.div(
@@ -149,18 +234,21 @@ export default function view(compState: IState, compActions: IActions) {
               viewPaletteItem('blue', () => compActions.changeColor('blue')),
             ],
           ),
+          html.br(),
+          html.div(
+            {class: 'ocr'},
+            [
+              html.button({onclick: compActions.submit}, 'Insert'),
+              html.button({onclick: compActions.cancel}, 'Cancel'),
+            ],
+          ),
         ],
       ),
       html.canvas(
         {
+          id: 'handwriting-canvas',
           class: 'canvas',
-          width: 400,
-          height: 400,
           oncreate: (el: HTMLCanvasElement) => compActions.canvasCreated(el),
-
-          onmousedown: (event: MouseEvent) => compActions.mouseDownOnCanvas(event),
-          onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas(event),
-          onmousemove: (event: MouseEvent) => compActions.mouseMoveOnCanvas(event),
         },
       ),
     ],
@@ -170,7 +258,7 @@ export default function view(compState: IState, compActions: IActions) {
 function viewPaletteItem(color: string, onclick: (el: El) => any, classNames?: string) {
   return html.div(
     {
-      className: `palette_item palette_item_${color} ` + classNames,
+      className: `palette_item palette_item_${color} ${classNames ? classNames : ''}`,
       onclick,
     },
   )

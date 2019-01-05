@@ -1,5 +1,15 @@
+import OcrEditor, {
+  actions as ocrEditorActions,
+  IOcrEditorState,
+  state as ocrEditorState
+} from '@components/editor/ocr-editor-component'
+import HandwritingEditor, {
+  actions as handwritingEditorActions,
+  IHandwritingEditorState,
+  state as handwritingEditorState
+} from '@components/editor/handwriting-editor-component'
 import * as html from '@hyperapp/html'
-
+import Empty from '@components/widgets/empty'
 import {loadNote} from '@lib/io'
 import {
   El,
@@ -14,13 +24,15 @@ import './editor-component.css'
 
 interface IEditorState {
   node: null | IGraphNodeData,
-  handWritingEditor: any,
+  ocrEditor: IOcrEditorState,
+  handwritingEditor: IHandwritingEditorState,
   textEditor: any,
 }
 
 export const state: IEditorState = {
   node: null,
-  handWritingEditor: {},
+  ocrEditor: ocrEditorState as IOcrEditorState,
+  handwritingEditor: handwritingEditorState as IHandwritingEditorState,
   textEditor: {
     data: null,
     mirrorMarkEditor: null,
@@ -29,8 +41,8 @@ export const state: IEditorState = {
 }
 
 export const actions = {
-  handWritingEditor: {
-  },
+  ocrEditor: ocrEditorActions,
+  handwritingEditor: handwritingEditorActions,
 
   textEditor: {
     setData: (data: string) => () => {
@@ -58,6 +70,11 @@ export const actions = {
     }
   },
 
+  loadHandwritingNote: (noteId: GraphNodeId) => async (_state: any, _actions: any) => {
+    const image = await loadNote(noteId, NoteDataType.HANDWRITING)
+    _actions.handwritingEditor.setImage(image)
+  },
+
   setNode: (node: IGraphNodeData) => () => {
     return {node}
   },
@@ -70,51 +87,94 @@ export function view(
   onClose: () => any,
 ) {
   if (node !== _state.node) {
-    _actions.setNode(node)
-    _actions.textEditor.setData(null)
-    _actions.loadTextNote(node.id)
+    if (node.type === NoteDataType.TEXT) {
+      _actions.setNode(node)
+      _actions.textEditor.setData(null)
+      _actions.loadTextNote(node.id)
+    } else if (node.type == NoteDataType.HANDWRITING) {
+      // Loading delayed until context is loaded
+      // _actions.loadHandwritingNote(node.id)
+    }
   }
 
   return html.div(
     {id: 'editor-container'},
     [
       ...headerButtons(node, onClose),
-      html.div(
-        {id: 'editor'},
-        [
-          html.textarea(
-            {
-              id: 'text-editor',
-              oncreate: (el: El) => {
-                const mirrorMarkOptions = {
-                  showToolbar: true,
-                }
-                const mirrorMarkEditor = mirrorMark(el, mirrorMarkOptions)
-                mirrorMarkEditor.render()
-                _actions.textEditor.setParentTextArea(el)
-                _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
-
-                // Get the CodeMirror (editor) object.
-                const codeMirrorEditor = mirrorMarkEditor.cm
-
-                // Set the onChange event to capture input data.
-                codeMirrorEditor.on('change', () => {
-                  el.dispatchEvent(new Event('input'))
-                })
-              },
-              oninput: () => {
-                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
-                _actions.textEditor.setData(codeMirrorEditor.getValue())
-              },
-              ontextupdate: (ev: CustomEvent) => {
-                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
-                codeMirrorEditor.setValue(ev.detail.data)
-              },
-            },
-          ),
-        ],
-      ),
+      node.type === NoteDataType.TEXT ? textEditor(_state, _actions, node, onClose) : Empty(),
+      node.type === NoteDataType.HANDWRITING ? handwritingEditor(_state, _actions, node, onClose) : Empty(),
+      (state.ocrEditor.isOpen)
+        ? OcrEditor(
+          state.ocrEditor,
+          actions.ocrEditor,
+        )
+        : html.span(), /* Empty() prevents the oncreate lifecycle method execution */
     ],
+  )
+}
+
+function textEditor(
+  _state: any,
+  _actions: any,
+  node: IGraphNodeData,
+  onClose: () => any,
+) {
+  return (
+    html.div(
+      {id: 'editor'},
+      [
+        html.textarea(
+          {
+            id: 'text-editor',
+            oncreate: (el: El) => {
+              const mirrorMarkOptions = {
+                showToolbar: true,
+              }
+              const mirrorMarkEditor = mirrorMark(el, mirrorMarkOptions)
+              mirrorMarkEditor.render()
+              _actions.textEditor.setParentTextArea(el)
+              _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
+
+              // Get the CodeMirror (editor) object.
+              const codeMirrorEditor = mirrorMarkEditor.cm
+
+              // Set the onChange event to capture input data.
+              codeMirrorEditor.on('change', () => {
+                el.dispatchEvent(new Event('input'))
+              })
+            },
+            oninput: () => {
+              const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
+              _actions.textEditor.setData(codeMirrorEditor.getValue())
+            },
+            ontextupdate: (ev: CustomEvent) => {
+              const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
+              codeMirrorEditor.setValue(ev.detail.data)
+            },
+          },
+        ),
+      ],
+    )
+  )
+}
+
+
+function handwritingEditor(
+  _state: any,
+  _actions: any,
+  node: IGraphNodeData,
+  onClose: () => any,
+) {
+  return (
+    html.div(
+      {
+        id: 'handwriting-editor',
+        oncreate: () => {_actions.loadHandwritingNote(node.id)},
+      },
+      [
+        HandwritingEditor(_state.handwritingEditor, _actions.handwritingEditor),
+      ],
+    )
   )
 }
 
@@ -130,6 +190,13 @@ function headerButtons(node: IGraphNodeData, onClose: () => any) {
     html.button(
       {disabled: true},
       'save',
+    ),
+    html.button(
+      {
+        onclick: actions.ocrEditor.open,
+        disabled: false,
+      },
+      'ocr',
     ),
     html.div(
       {id: 'editor-right-buttons'},

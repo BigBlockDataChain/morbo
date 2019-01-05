@@ -1,0 +1,46 @@
+.handwriting-editor-component-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.handwriting-editor-component-wrapper canvas{
+  border: 1px solid black;
+  background-color: white;
+}
+
+.toolbox {
+  display: flex;
+}
+
+.tool {
+  font-size: 24px;
+}
+
+.tool-active {
+  border: 1px solid black;
+}
+
+.tool-pen {
+
+}
+
+.tool-eraser {
+
+}
+
+.palette {
+  display: flex;
+}
+
+.palette_item {
+  width: 24px;
+  height: 24px;
+  border: 1px solid black;
+}
+
+.palette_current_color { }
+.palette_item_white { background-color: white; }
+.palette_item_black { background-color: black; }
+.palette_item_red { background-color: red; }
+.palette_item_blue { background-color: blue; }
+.palette_item_green { background-color: green; }
