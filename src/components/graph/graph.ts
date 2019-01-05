@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import {Observable, Subject} from 'rxjs'
 
+import {registerContextMenu, showContextMenu} from '@lib/context-menu'
 import {getLogger} from '@lib/logger'
 import {
   El,
@@ -10,11 +11,14 @@ import {
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  IPosition,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
+  CreateNewNodeAction,
+  DeleteNodeAction,
   FOCUS_TYPE,
   GraphAction,
   GraphCommand,
@@ -28,7 +32,6 @@ import {
   ZoomAction,
 } from './types'
 
-import { buildMenu } from '../context-menu-component'
 import './graph.css'
 
 const logger = getLogger('d3-graph')
@@ -36,7 +39,6 @@ const logger = getLogger('d3-graph')
 interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
 interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
-interface IPosition { x: number, y: number }
 
 export default class GraphComponent {
 
@@ -120,11 +122,14 @@ export default class GraphComponent {
   private _drag: any | null = null
   private _nodeTextLabels: any | null = null
 
+  private _selectedNode: GraphNodeId | null = null
+
   private _actionStream: Subject<GraphAction> | null = null
 
   private _lastClickWasSingle: boolean = false
 
   private _locationFocusedLocation: null | IPosition = null
+  private _lastRightClickLocation: null | IPosition = null
 
   private _graphData: null | IGraphData = null
   private _dimensions: null | IDimensions = null
@@ -211,6 +216,8 @@ export default class GraphComponent {
       )
 
     commandStream.subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
+
+    this._registerContextMenus()
   }
 
   /**
@@ -251,6 +258,61 @@ export default class GraphComponent {
     this._focusGraph()
   }
 
+  public _registerContextMenus(): void {
+    registerContextMenu('graph.node', [
+      {
+        label: 'New child note',
+        click: () => setTimeout(() => {
+          logger.log('new clicked')
+          const position = {
+            x: this._graphData!.metadata[this._selectedNode!].x + 10,
+            y: this._graphData!.metadata[this._selectedNode!].y + 10,
+          }
+          this._actionStream!.next(
+            new CreateNewNodeAction(position, this._selectedNode!))
+        }, 50),
+      },
+      {type: 'separator'},
+      {
+        label: 'Edit',
+        click() {
+          logger.log('edit clicked')
+        },
+      },
+      {type: 'separator'},
+      {
+        label: 'Make Parent of...',
+        click() {
+          logger.log('Make parent of...')
+        },
+      },
+      {
+        label: 'Make Child of...',
+        click() {
+          logger.log('Make child of...')
+        },
+      },
+      {type: 'separator'},
+      {
+        label: 'Delete',
+        click: () => setTimeout(() => {
+          logger.log('delete clicked')
+          this._actionStream!.next(new DeleteNodeAction(this._selectedNode!))
+        }, 50),
+      },
+    ])
+    registerContextMenu('graph.background', [
+      {
+        label: 'New note',
+        click: () => setTimeout(() => {
+          logger.log('new clicked')
+          this._actionStream!.next(
+            new CreateNewNodeAction(this._lastRightClickLocation!, null))
+        }, 50),
+      },
+    ])
+  }
+
   private _resetPosition(): void {
     this._svg
       .transition()
@@ -266,7 +328,17 @@ export default class GraphComponent {
       .append('svg')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
+      .on('contextmenu', () => {
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
+        this._lastRightClickLocation = position
+        this._setSelectedNode(null)
+        showContextMenu('graph.background')
+      })
       .on('click', () => {
+        this._setSelectedNode(null)
         d3.event.stopPropagation()
         const transform = this._getGraphTranslationAndScale()
         // Transform has to be negated since transform values are themselves negated
@@ -283,6 +355,7 @@ export default class GraphComponent {
         }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('dblclick', () => {
+        this._setSelectedNode(null)
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
         const position = this._svgToGraphPosition({
@@ -297,7 +370,7 @@ export default class GraphComponent {
   private _handleCommandStream(command: GraphCommand): void {
     switch (command.kind) {
       case FOCUS_TYPE:
-        this._locationFocusedLocation = {x: command.node.x, y: command.node.y}
+        this._locationFocusedLocation = command.position
         this._focusGraph()
         break
       case RESET_GRAPH_TYPE:
@@ -337,51 +410,35 @@ export default class GraphComponent {
       .append('g')
       .attr('class', 'node')
       .on('click', (d: IGraphNodeData) => {
+        this._setSelectedNode(d.id)
         d3.event.stopPropagation()
         this._lastClickWasSingle = true
         setTimeout(() => {
           if (this._lastClickWasSingle) {
-            this._actionStream!.next(new NodeClickAction(d))
+            this._actionStream!.next(new NodeClickAction(d.id))
           }
         }, GraphComponent._SINGLE_CLICK_DELAY)
       })
       .on('contextmenu', (d: IGraphNodeData) => {
-        const ctxMenuTemplate: any = [
-          {
-            label: 'New',
-            click() {
-              logger.log('new clicked')
-            },
-          },
-          {
-            label: 'Edit',
-            click() {
-              logger.log('edit clicked')
-            },
-          },
-          {
-            label: 'Delete',
-            click() {
-              logger.log('delete clicked')
-            },
-          },
-        ]
-        buildMenu(ctxMenuTemplate)
+        this._setSelectedNode(d.id)
+        // TODO make menu label a constant
+        showContextMenu('graph.node')
         d3.event.stopPropagation()
-        this._actionStream!.next(new NodeRightClickAction(d))
+        this._actionStream!.next(new NodeRightClickAction(d.id))
       })
       .on('dblclick', (d: IGraphNodeData) => {
+        this._setSelectedNode(d.id)
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
-        this._actionStream!.next(new NodeDblClickAction(d))
+        this._actionStream!.next(new NodeDblClickAction(d.id))
       })
       .on('mouseover.action', (d: IGraphNodeData) => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverShortAction(d))
+        this._actionStream!.next(new NodeHoverShortAction(d.id))
       })
       .on('mouseout.action', (d: IGraphNodeData) => {
         d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverEndAction(d))
+        this._actionStream!.next(new NodeHoverEndAction(d.id))
       })
 
     nodes
@@ -429,6 +486,7 @@ export default class GraphComponent {
       })
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+
     this._links = this._g.selectAll('.link')
   }
 
@@ -472,7 +530,7 @@ export default class GraphComponent {
               .attr('cy', d.y)
         })
 
-        this._actionStream!.next(new NodeDragAction(d))
+        this._actionStream!.next(new NodeDragAction(d.id))
       })
   }
 
@@ -546,6 +604,24 @@ export default class GraphComponent {
         d3.select(refs[i])
           .style('stroke-width', '1px')
       })
+  }
+
+  private _setSelectedNode(id: GraphNodeId | null): void {
+    if (this._selectedNode !== null)
+      this._nodes
+        .filter((d: IGraphNodeData) => d.id === this._selectedNode)
+        .selectAll('circle')
+        .style('stroke-width', '1px')
+        .style('stroke', 'black')
+
+    if (id !== null)
+      this._nodes
+        .filter((d: IGraphNodeData) => d.id === id)
+        .selectAll('circle')
+        .style('stroke-width', '2px')
+        .style('stroke', 'purple')
+
+    this._selectedNode = id
   }
 
   private _disableDoubleClickZoom(): void {

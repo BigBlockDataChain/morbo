@@ -12,7 +12,9 @@ import {
 import {getLogger} from '@lib/logger'
 import {
   El,
+  GraphNodeId,
   IGraphNodeData,
+  IPosition,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 
@@ -72,7 +74,7 @@ export const actions: any = {
     selectNode,
   }: {
     actionStream: Subject<GraphAction>,
-    selectNode: (node: IGraphNodeData) => any,
+    selectNode: (nodeId: GraphNodeId) => any,
   }) =>
     (_: any, _actions: any) => {
       actionStream
@@ -87,15 +89,27 @@ export const actions: any = {
         )
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
+            case graphTypes.CREATE_NEW_NODE_TYPE:
+              _actions.createNewNode({position: event.position, parent: event.parent})
+              break
+            case graphTypes.EDIT_NODE_TYPE:
+              selectNode(event.id)
+              break
+            case graphTypes.DELETE_NODE_TYPE:
+              // TODO Have to setup 'exit' on D3 node rendering code to remove delete node
+              // and deleted links to avoid runtime errors
+              // _actions.deleteNode(event.nodeId)
+              break
             case graphTypes.NODE_CLICK_TYPE:
-              selectNode(event.node)
               break
             case graphTypes.NODE_RIGHT_CLICK_TYPE:
               break
             case graphTypes.NODE_DBL_CLICK_TYPE:
+              selectNode(event.nodeId)
               break
             case graphTypes.NODE_DRAG_TYPE:
-              _actions.setNodePosition(event.node)
+              // TODO Was causing some runtime errors, investigate cause and fix
+              // _actions.setNodePosition(event.nodeId)
               break
             case graphTypes.NODE_HOVER_SHORT_TYPE:
               break
@@ -104,7 +118,9 @@ export const actions: any = {
             case graphTypes.BACKGROUND_CLICK_TYPE:
               break
             case graphTypes.BACKGROUND_DBL_CLICK_TYPE:
-              _actions.createNewNode(event.position)
+              // NOTE: Disabled for now, not sure if it's a good interaction mechanism due
+              // to chance to accidental click resulting in poor user experience
+              // _actions.createNewNode({position: event.position})
               break
             case graphTypes.ZOOM_TYPE:
               break
@@ -134,22 +150,54 @@ export const actions: any = {
     return {metadata}
   },
 
-  createNewNode: (position: {x: number, y: number}) => (state: any) => {
-    const ids = Object.keys(state.index).map(Number).sort((a: number, b: number) => a - b)
-    const nextId = ids[ids.length - 1] + 1
-    const nodeData: IGraphNodeData = {
-      id: nextId,
-      title: '',
-      lastModified: '',
-      created: '',
-      x: position.x,
-      y: position.y,
-      tags: [],
-    }
+  createNewNode: (
+    {position, parent}: {position: IPosition, parent: null | GraphNodeId},
+  ) =>
+    (state: any) => {
+      const ids = Object.keys(state.index)
+        .map(Number)
+        .sort((a: number, b: number) => a - b)
+      const nextId = ids[ids.length - 1] + 1 || 0
+      const nodeData: IGraphNodeData = {
+        id: nextId,
+        title: 'File ' + nextId,
+        lastModified: '',
+        created: '',
+        x: position.x,
+        y: position.y,
+        tags: [],
+      }
 
+      // Set parent if specified
+      let index
+      if (parent !== null) {
+        const originalParentIndex = state.index[parent]
+        index = {
+          ...state.index,
+          [parent]: [...originalParentIndex, nextId],
+          [nextId]: [],
+        }
+      } else {
+        index = {
+          ...state.index,
+          [nextId]: [],
+        }
+      }
+
+      return {
+        index,
+        metadata: {...state.metadata, [nextId]: nodeData},
+      }
+    },
+
+  deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+    const index = {...state.index}
+    delete index[nodeId]
+    const metadata = {...state.metadata}
+    delete metadata[nodeId]
     return {
-      index: {...state.index, [nextId]: []},
-      metadata: {...state.metadata, [nextId]: nodeData},
+      index,
+      metadata,
     }
   },
 }

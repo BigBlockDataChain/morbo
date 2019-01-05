@@ -53,7 +53,7 @@ interface IGraphState {
 
 interface IRuntime {
   showEditor: boolean
-  selectedNode: null | IGraphNodeData,
+  selectedNode: null | GraphNodeId,
 }
 
 export const initialState: IState = {
@@ -92,13 +92,13 @@ export const appActions = {
     return actions.graph.save()
   },
 
-  selectNode: (node: IGraphNodeData) => (state: IState) => {
+  selectNode: (nodeId: GraphNodeId) => (state: IState) => {
     setTimeout(() => editorOpenChange.next(), EDITOR_OPEN_CHANGE_OBSERVABLE_DELAY)
     return {
       runtime: {
         ...state.runtime,
         showEditor: true,
-        selectedNode: node,
+        selectedNode: nodeId,
       },
     }
   },
@@ -114,7 +114,7 @@ export const appActions = {
   },
 
   onSearchResultClick: (node: IGraphNodeData) => {
-    graphCommandStream.next(new FocusCommand(node))
+    graphCommandStream.next(new FocusCommand({x: node.x, y: node.y}))
   },
 
   resetGraph: () => {
@@ -154,7 +154,7 @@ export function view(state: IState, actions: any) {
         ? Editor.view(
           state.editor,
           actions.editor,
-          state.runtime.selectedNode,
+          state.graph.metadata[state.runtime.selectedNode],
           actions.onEditorClose,
         )
         : Empty(),
