@@ -14,7 +14,8 @@
         "semicolon": [true, "never"],
         "trailing-comma": [true, {"multiline": "always", "singleline": "never"}],
         "variable-name": [true, "allow-leading-underscore", "allow-trailing-underscore"],
-        "no-var-requires": false
+        "no-var-requires": false,
+        "no-empty": false
     },
     "rulesDirectory": []
 }
