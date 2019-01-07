@@ -11,6 +11,18 @@ import './mirror-mark'
 
 import './editor-component.css'
 
+const saveSvg = require('../../res/save-disk.svg')
+const deleteSvg = require('../../res/cancel.svg')
+const editSvg = require('../../res/edit.svg')
+const maximizeSvg = require('../../res/maximize.svg')
+
+const SVG_ICONS = {
+  SAVE: saveSvg,
+  DELETE: deleteSvg,
+  EDIT: editSvg,
+  MAXIMIZE: maximizeSvg,
+}
+
 interface IEditorState {
   node: null | IGraphNodeData,
   handWritingEditor: any,
@@ -119,31 +131,24 @@ export function view(
 
 function headerButtons(node: IGraphNodeData, onClose: () => any) {
   return [
-    html.button(
-      {
-        id: 'editor-close',
-        onclick: (ev: Event) => onClose(),
-      },
-      'x',
-    ),
-    html.button(
-      {disabled: true},
-      'save',
-    ),
     html.div(
-      {id: 'editor-right-buttons'},
+      {class: 'container'},
       [
         html.button(
-          {disabled: true},
-          'delete',
+          {
+            id: 'editor-close',
+            onclick: (ev: Event) => onClose(),
+          },
+          'x',
         ),
-        html.button(
-          {disabled: true},
-          'edit',
-        ),
-        html.button(
-          {disabled: true},
-          'maximize',
+        html.div(
+          { id: 'editor-right-buttons' },
+          [
+            icon(SVG_ICONS.SAVE),
+            icon(SVG_ICONS.DELETE),
+            icon(SVG_ICONS.EDIT),
+            icon(SVG_ICONS.MAXIMIZE),
+          ],
         ),
       ],
     ),
@@ -168,4 +173,19 @@ function headerButtons(node: IGraphNodeData, onClose: () => any) {
       ],
     ),
   ]
+}
+
+function icon(imgSrc: string) {
+  return html.div(
+    {
+      class: 'icon',
+    },
+    [
+      html.img(
+        {
+          src: imgSrc,
+        },
+      ),
+    ],
+  )
 }
