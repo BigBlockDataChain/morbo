@@ -100,13 +100,13 @@ export function view(
   return html.div(
     {id: 'editor-container'},
     [
-      ...headerButtons(node, onClose),
+      ...headerButtons(_state, _actions, node, onClose),
       node.type === NoteDataType.TEXT ? textEditor(_state, _actions, node, onClose) : Empty(),
       node.type === NoteDataType.HANDWRITING ? handwritingEditor(_state, _actions, node, onClose) : Empty(),
-      (state.ocrEditor.isOpen)
+      (_state.ocrEditor.isOpen)
         ? OcrEditor(
-          state.ocrEditor,
-          actions.ocrEditor,
+          _state.ocrEditor,
+          _actions.ocrEditor,
         )
         : html.span(), /* Empty() prevents the oncreate lifecycle method execution */
     ],
@@ -158,7 +158,6 @@ function textEditor(
   )
 }
 
-
 function handwritingEditor(
   _state: any,
   _actions: any,
@@ -172,13 +171,18 @@ function handwritingEditor(
         oncreate: () => {_actions.loadHandwritingNote(node.id)},
       },
       [
-        HandwritingEditor(_state.handwritingEditor, _actions.handwritingEditor),
+        HandwritingEditor(_state.handwritingEditor, _actions.handwritingEditor, node.id),
       ],
     )
   )
 }
 
-function headerButtons(node: IGraphNodeData, onClose: () => any) {
+function headerButtons(
+  _state: any,
+  _actions: any,
+  node: IGraphNodeData,
+  onClose: () => any,
+) {
   return [
     html.button(
       {
@@ -193,7 +197,7 @@ function headerButtons(node: IGraphNodeData, onClose: () => any) {
     ),
     html.button(
       {
-        onclick: actions.ocrEditor.open,
+        onclick: _actions.ocrEditor.open,
         disabled: false,
       },
       'ocr',

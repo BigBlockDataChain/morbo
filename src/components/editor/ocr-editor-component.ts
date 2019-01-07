@@ -347,10 +347,14 @@ export const actions: IActions = {
     })
   },
 
-  open: () => () => ({
-    isOpen: true,
-    ocrProgress: undefined,
-  }),
+  open: () => () => {
+    console.log('ASDF');
+
+    return {
+      isOpen: true,
+      ocrProgress: undefined,
+    }
+  },
 
   done: (result: Page) => () => {
     /* TODO: formalize the method by which editor can be accessed */
