@@ -9,8 +9,8 @@ import {
   GraphCommand,
   ResetGraphCommand,
 } from '@components/graph/types'
-import * as Toolbar from '@components/toolbar/toolbar-component'
 import Settings from '@components/settings/settings-component'
+import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
 import {getLogger} from '@lib/logger'
 import search from '@lib/search'
