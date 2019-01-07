@@ -1,10 +1,13 @@
 import * as html from '@hyperapp/html'
+import {ActionResult} from 'hyperapp'
 
-import {IGraphNodeData} from '../types'
-import Empty from './widgets/empty'
+import {IGraphNodeData} from '@lib/types'
+import Empty from '../widgets/empty'
 
-const searchSvg = require('../res/magnifying-glass.svg')
-const clearSvg = require('../res/cancel.svg')
+const searchSvg = require('../../res/magnifying-glass.svg')
+const clearSvg = require('../../res/cancel.svg')
+
+import './search-component.css'
 
 interface IState {
   query: null | string
@@ -16,7 +19,13 @@ export const state: IState = {
   results: [],
 }
 
-export const actions = {
+interface IActions {
+  onInput: (value: string) => () => ActionResult<IState>,
+  searchResults: (results: any[]) => () => void,
+  clearSearch: () => () => ActionResult<IState>,
+}
+
+export const actions: IActions = {
   onInput: (value: string) => () => ({query: value}),
   searchResults: (results: any[]) => () => ({results}),
   clearSearch: () => () => ({query: null, results: []}),
@@ -34,6 +43,7 @@ export function view(
       id: 'search',
     },
     [
+      // Input box
       html.div(
         {
           class: 'search-input',
@@ -63,6 +73,7 @@ export function view(
           ),
         ],
       ),
+      // Results
       _state.results.length > 0
         ? html.div(
             {

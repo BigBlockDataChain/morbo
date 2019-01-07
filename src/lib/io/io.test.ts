@@ -1,6 +1,6 @@
 import {basename} from 'path'
 
-import {IGraphIndex, IGraphMetadata, NoteDataType} from '../types'
+import {IGraphIndex, IGraphMetadata, NoteDataType} from '@lib/types'
 import {
   loadIndex,
   loadMetadata,

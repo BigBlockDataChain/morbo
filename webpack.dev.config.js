@@ -8,7 +8,7 @@ const SRC_DIR = path.resolve(__dirname, 'src')
 const OUTPUT_DIR = path.resolve(__dirname, 'dist')
 
 module.exports = {
-  entry: SRC_DIR + '/app.ts',
+  entry: SRC_DIR + '/index.ts',
   mode: 'production',
   output: {
     path: OUTPUT_DIR,
@@ -38,6 +38,10 @@ module.exports = {
   },
   resolve: {
     extensions: ['.js', '.ts'],
+    alias: {
+      ['@components']: path.resolve(SRC_DIR, 'components/'),
+      ['@lib']: path.resolve(SRC_DIR, 'lib/'),
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({template: 'index.html'}),

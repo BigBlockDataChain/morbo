@@ -18,6 +18,7 @@
     "@types/d3": "^5.0.1",
     "@types/d3-zoom": "^1.7.3",
     "classnames": "^2.2.6",
+    "codemirror": "^5.42.2",
     "d3": "^5.7.0",
     "electron": "^3.0.13",
     "hyperapp": "^1.2.9",
@@ -52,6 +53,12 @@
       "ts",
       "js"
     ],
+    "moduleNameMapper": {
+      "@components(.*)$": "<rootDir>/src/components/$1",
+      "@lib(.*)$": "<rootDir>/src/lib/$1",
+      "\\.(svg)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(css)$": "<rootDir>/__mocks__/styleMock.js"
+    },
     "transform": {
       "\\.(ts)$": "ts-jest"
     },

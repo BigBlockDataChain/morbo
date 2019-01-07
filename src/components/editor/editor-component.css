@@ -1,0 +1,82 @@
+#editor-container {
+  height: 100%;
+  padding: 0.5em;
+  box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);
+  background: #eee;
+  flex: 0 0 100%;
+  z-index: 2;
+}
+@media (min-width: 1280px) {
+  #editor-container {
+    flex: 0 0 800px;
+  }
+}
+@media (min-width: 1600px) {
+  #editor-container {
+    flex: 0 0 1024px;
+  }
+}
+
+#editor-right-buttons {
+  float: right;
+}
+
+#editor-right-buttons *{
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
+#text-edit-tools {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#text-edit-tools * {
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
+#editor-title {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#editor-tags * {
+  margin-left: 0.1em;
+  margin-right: 0.1em;
+}
+
+#editor-tools {
+  margin-top: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+#editor {
+  height: 85%;
+  width: 100%;
+  resize: none;
+  padding: 16px 0 0;
+  border: 0 !important;
+}
+
+#editor .cm-s-mirrormark {
+  height: 100%;
+}
+
+#editor .CodeMirror-scroll {
+  height: 100% !important;
+  cursor: text;
+  padding: 0.5em;
+}
+
+#editor-close {
+  border: none;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: none;
+}
+
+#editor-close:hover {
+  background: lightgray;
+}

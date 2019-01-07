@@ -1,5 +1,7 @@
 import * as html from '@hyperapp/html'
 
+import './settings-component.css'
+
 export default function(onClose: () => any) {
   return html.div(
     {
