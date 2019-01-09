@@ -41,9 +41,13 @@ export default class GraphComponent {
 
   private static readonly _LABEL_FONT_SIZE = 8
   private static readonly _NODE_CIRCLE_RADIUS = 10
+  private static readonly _NODE_CIRCLE_STROKE = 4
+  private static readonly _NODE_CIRCLE_STROKE_HOVER = 6
   private static readonly _NODE_CIRCLE_COLOR = 'white'
   private static readonly _NODE_CIRCLE_STROKE_COLOR = 'black'
   private static readonly _LINK_STROKE_COLOR = 'black'
+  private static readonly _LINK_STROKE = 6
+  private static readonly _LINK_STROKE_HOVER = 12
 
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
@@ -373,7 +377,7 @@ export default class GraphComponent {
       .attr('r', this._nodeCircleRadius)
       .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
       .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
-      .attr('stroke-width', '4px')
+      .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
       .call(this._drag)
 
     nodes
@@ -412,7 +416,7 @@ export default class GraphComponent {
       })
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
-      .attr('stroke-width', '6px')
+      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
       // Jump to other side of the link
       .on('click', (d: ILinkTuple) => {
         const position = this._svgToGraphPosition({
@@ -543,13 +547,13 @@ export default class GraphComponent {
         d3.select(refs[i])
           .select('circle')
           .attr('r', this._nodeCircleRadius * 1.5)
-          .attr('stroke-width', '9px')
+          .attr('stroke-width', GraphComponent._NODE_CIRCLE_HOVER + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
           .select('circle')
           .attr('r', this._nodeCircleRadius)
-          .attr('stroke-width', '6px')
+          .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
       })
   }
 
@@ -557,11 +561,11 @@ export default class GraphComponent {
     this._links
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', '12px')
+          .style('stroke-width', GraphComponent._LINK_STROKE_HOVER + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', '6px')
+          .style('stroke-width', GraphComponent._LINK_STROKE + 'px')
       })
   }
 
