@@ -547,7 +547,7 @@ export default class GraphComponent {
         d3.select(refs[i])
           .select('circle')
           .attr('r', this._nodeCircleRadius * 1.5)
-          .attr('stroke-width', GraphComponent._NODE_CIRCLE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])

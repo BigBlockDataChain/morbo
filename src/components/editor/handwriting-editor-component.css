@@ -1,9 +1,10 @@
 .handwriting-editor-component-wrapper {
+  max-width: 97vw;
   width: 100%;
   height: 100%;
 }
 
-.handwriting-editor-component-wrapper canvas{
+.handwriting-editor-component-wrapper canvas {
   border: 1px solid black;
   background-color: white;
 }

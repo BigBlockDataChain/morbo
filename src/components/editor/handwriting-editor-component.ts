@@ -30,7 +30,7 @@ interface IState {
 }
 
 interface IActions {
-  save: (imageData: any, noteId: number) => (compState: IState) => ActionResult<IState>
+  save: (data: {imageData: any, noteId: number}) => (compState: IState) => ActionResult<IState>
   setImage: (imageBytes: string) => (compState: IState, compActions: IActions)
     => ActionResult<IState>
   changeColor: (color: string) => () => ActionResult<IState>
@@ -38,28 +38,19 @@ interface IActions {
   selectTool: (tool: Tool) => () => ActionResult<IState>
   canvasCreated: (el: HTMLCanvasElement) => () => ActionResult<IState>
   mouseDownOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
-  mouseUpOnCanvas: (event: MouseEvent, noteId: number) => (compState: IState, compActions: IActions) => ActionResult<IState>
-  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => ActionResult<IState>
+  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) => (compState: IState, compActions: IActions) => ActionResult<IState>
+  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState, compActions: IActions) => ActionResult<IState>
   done: () => () => ActionResult<IState>
   submit: () => (compState: IState, compActions: IActions)
     => Promise<ActionResult<IState>>
+  updateCanvasSize: (size: {width: number, height: number})
+    => (compState: IState, compActions: IActions)
+    => ActionResult<IState>
   cancel: () => () => ActionResult<IState>
 }
 
-const BASE64_MARKER = ';base64,';
-
-function convertDataURIToBinary(dataURI: string) {
-  const base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length
-  const base64 = dataURI.substring(base64Index)
-  const raw = window.atob(base64)
-  const rawLength = raw.length
-  const array = new Uint8Array(new ArrayBuffer(rawLength))
-
-  for(let i = 0; i < rawLength; i++) {
-    array[i] = raw.charCodeAt(i)
-  }
-  return array
-}
+const SIZE_INCREASE_THRESHOLD = 50;
+const SIZE_INCREASE_ON_THRESHOLD_REACH = 150
 
 export const state: IState = {
   selectedTool: Tool.PEN,
@@ -72,21 +63,45 @@ export const state: IState = {
 }
 
 export const actions: IActions = {
-  save: (imageData: any, noteId: number) => (compState: IState) => {
+  save: (data: {imageData: any, noteId: number}) => (compState: IState) => {
     writeNote(
-      noteId,
+      data.noteId,
       NoteDataType.HANDWRITING,
-      imageData
+      data.imageData
     )
   },
 
-  setImage: (imageBytes: any) => (compState: IState, compActions: IActions) => {
+  updateCanvasSize: (size: {width: number, height: number}) =>
+  (state: IState, actions: IActions) => {
+
+    if (state.canvasEl) {
+      // get current image data
+      const imageData = state.canvasCtx!.getImageData(
+        0, 0, state.canvasEl.width, state.canvasEl.height
+      )
+
+      console.log('Updating canvas size to', size.width, size.height);
+
+      if (size.width) state.canvasEl.width = size.width
+      if (size.height) state.canvasEl.height = size.height
+
+      // restore image after resize
+      state.canvasCtx!.putImageData(imageData, 0, 0)
+    }
+
+    return {}
+  },
+
+  setImage: (buffer: any) => (compState: IState, compActions: IActions) => {
     if (!compState.canvasCtx) return {}
 
-    const base64Image = btoa(String.fromCharCode.apply(null, imageBytes));
+    const base64Image = btoa(String.fromCharCode.apply(null, buffer));
 
     const image = new Image()
     image.onload = () => {
+      const height = image.naturalHeight
+      const width = image.naturalWidth
+      compActions.updateCanvasSize({width, height})
       compState.canvasCtx!.drawImage(image, 0, 0)
     }
     image.src = `data:image/png;base64,${base64Image}`
@@ -139,20 +154,23 @@ export const actions: IActions = {
     })
   },
 
-  mouseUpOnCanvas: (event: MouseEvent, noteId: number) => (compState: IState, compActions: IActions) => {
+  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) => (compState: IState, compActions: IActions) => {
     if (compState.canvasEl) {
-      const imageData = compState.canvasEl.toDataURL('image/png')
+      const dataURI = compState.canvasEl.toDataURL('image/png')
 
-      compActions.save(imageData, noteId)
+      const base64Data = dataURI.replace(/^data:image\/png;base64,/, '');
+      const buffer = new Buffer(base64Data, 'base64')
+
+      compActions.save({imageData:buffer, noteId: args.noteId})
     }
 
     return ({
       isMouseDown: false,
-      event_type: event.type,
+      event_type: args.event.type,
     })
   },
 
-  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState) => {
+  mouseMoveOnCanvas: (event: MouseEvent) => (compState: IState, compActions: IActions) => {
     const newMouseLocation: [number, number] = [event.offsetX, event.offsetY]
     const nextState = {mouseLastLocation: newMouseLocation}
 
@@ -162,6 +180,22 @@ export const actions: IActions = {
     if (!compState.isMouseDown) return nextState
 
     const ctx = compState.canvasCtx
+    const canvasEl = compState.canvasEl
+
+    const rect = canvasEl.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;// relative to canvas 0, 0
+    const mouseY = event.clientY - rect.top; // relative to canvas 0, 0
+    const canvasWidth = canvasEl.width
+    const canvasHeight = canvasEl.height
+    if (mouseX > canvasWidth - SIZE_INCREASE_THRESHOLD) {
+      console.log('HEIGHT=', canvasHeight);
+      compActions.updateCanvasSize({width: canvasWidth + SIZE_INCREASE_ON_THRESHOLD_REACH, height:canvasHeight})
+    }
+
+    if (mouseY > canvasHeight - SIZE_INCREASE_THRESHOLD) {
+      compActions.updateCanvasSize({width:canvasWidth, height:canvasHeight + SIZE_INCREASE_ON_THRESHOLD_REACH})
+    }
+
 
     switch (compState.selectedTool) {
       case Tool.PEN:
@@ -191,13 +225,11 @@ export const actions: IActions = {
 }
 
 export default function view(compState: IState, compActions: IActions, noteId: number) {
-  console.log(noteId)
-
   return html.div(
     {
       id: 'handwriting-editor-component',
       class: 'handwriting-editor-component-wrapper',
-      onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas(event, noteId),
+      onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas({event, noteId}),
     },
     [
       html.div(
@@ -267,7 +299,7 @@ export default function view(compState: IState, compActions: IActions, noteId: n
           height: 400,
           oncreate: (el: HTMLCanvasElement) => compActions.canvasCreated(el),
           onmousedown: (event: MouseEvent) => compActions.mouseDownOnCanvas(event),
-          onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas(event, noteId),
+          onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas({event, noteId}),
           onmousemove: (event: MouseEvent) => compActions.mouseMoveOnCanvas(event),
         },
       ),
