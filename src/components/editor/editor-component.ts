@@ -58,9 +58,10 @@ export const actions = {
       parentTextArea.dispatchEvent(updateEvent)
     }
   },
-  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) =>{
+
+  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
     const data = _state.textEditor.data
-    writeNote(nodeId, NoteDataType.TEXT, data)
+    await writeNote(nodeId, NoteDataType.TEXT, data)
   },
 
   setNode: (node: IGraphNodeData) => () => {
@@ -84,7 +85,7 @@ export function view(
   return html.div(
     {id: 'editor-container'},
     [
-      ...headerButtons(node, onClose),
+      ...headerButtons(node, _actions, onClose),
       html.div(
         {id: 'editor'},
         [
@@ -124,7 +125,7 @@ export function view(
   )
 }
 
-function headerButtons(node: IGraphNodeData, onClose: () => any){
+function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) {
   return [
     html.button(
       {
@@ -136,7 +137,9 @@ function headerButtons(node: IGraphNodeData, onClose: () => any){
     html.button(
       {
         id: 'editor-save',
-        onclick: (ev: Event) => onClose(),
+        onclick: () => {
+          _actions.saveTextNote(node.id)
+        },
       },
       'save',
     ),
