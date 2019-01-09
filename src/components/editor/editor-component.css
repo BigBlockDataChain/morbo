@@ -80,3 +80,15 @@
 #editor-close:hover {
   background: lightgray;
 }
+
+#editor-save {
+  border: none;
+  border-radius: 50%;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: none;
+}
+
+#editor-save:hover {
+  background: lightgray;
+}

@@ -1,6 +1,7 @@
 import * as html from '@hyperapp/html'
 
 import {loadNote} from '@lib/io'
+import {writeNote} from '@lib/io'
 import {
   El,
   GraphNodeId,
@@ -57,6 +58,10 @@ export const actions = {
       parentTextArea.dispatchEvent(updateEvent)
     }
   },
+  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) =>{
+    const data = _state.textEditor.data
+    writeNote(nodeId, NoteDataType.TEXT, data)
+  },
 
   setNode: (node: IGraphNodeData) => () => {
     return {node}
@@ -73,6 +78,7 @@ export function view(
     _actions.setNode(node)
     _actions.textEditor.setData(null)
     _actions.loadTextNote(node.id)
+    _actions.saveTextNote(node.id)
   }
 
   return html.div(
@@ -118,7 +124,7 @@ export function view(
   )
 }
 
-function headerButtons(node: IGraphNodeData, onClose: () => any) {
+function headerButtons(node: IGraphNodeData, onClose: () => any){
   return [
     html.button(
       {
@@ -128,7 +134,10 @@ function headerButtons(node: IGraphNodeData, onClose: () => any) {
       'x',
     ),
     html.button(
-      {disabled: true},
+      {
+        id: 'editor-save',
+        onclick: (ev: Event) => onClose(),
+      },
       'save',
     ),
     html.div(
