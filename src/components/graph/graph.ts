@@ -208,19 +208,11 @@ export default class GraphComponent {
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._enableLinkHighlightOnHover()
+    this._enableLinkClickJumpingToOppositeNode()
     this._disableDoubleClickZoom()
 
+    // Focus graph on last clicked location
     this._focusGraph()
-  }
-
-  private _resetPosition(): void {
-    this._svg
-      .transition()
-      .duration(GraphComponent._TRANSITION_DURATION)
-      .call(
-        this._zoomHandler.transform,
-        d3.zoomIdentity.translate(0, 0).scale(1),
-      )
   }
 
   private _createSvg(host: El, dimensions: IDimensions) {
@@ -230,12 +222,10 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        const transform = this._getGraphTranslationAndScale()
-        // TODO: Fix, see dblclick handler's position calculation
-        const position = {
-          x: d3.event.clientX / transform.scale - transform.translation.x,
-          y: d3.event.clientY / transform.scale - transform.translation.y,
-        }
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
         this._lastClickWasSingle = true
         this._locationFocusedLocation = null
         setTimeout(() => {
@@ -256,78 +246,22 @@ export default class GraphComponent {
     return svg
   }
 
-  private _handleCommandStream(command: GraphCommand): void {
-    switch (command.kind) {
-      case FOCUS_TYPE:
-        this._locationFocusedLocation = {x: command.node.x, y: command.node.y}
-        this._focusGraph()
-        break
-      case RESET_GRAPH_TYPE:
-        this._resetPosition()
-        break
-      default:
-        assertNever(command)
-    }
-  }
-
-  /**
-   * Center graph on _locationFocusedLocation
-   */
-  private _focusGraph(): void {
-    // TODO: Rework _locationFocusedLocation maybe (so it doesn't have to get set for this
-    //   method to work, maybe it can be an optional parameter to override the previous
-    //   location otherwise it will set the graph to the existing value on the variable)
-    if (!this._locationFocusedLocation) return
-
-    const transform = this._getGraphTranslationAndScale()
-    const position = this._graphToSVGPosition(this._locationFocusedLocation)
-    const x = transform.translation.x + this._width / 2 - position.x
-    const y = transform.translation.y + this._height / 2 - position.y
-
-    this._svg
-      .transition()
-      .duration(GraphComponent._TRANSITION_DURATION)
-      .call(
-        this._zoomHandler.transform,
-        d3.zoomIdentity.translate(x, y).scale(transform.scale),
-      )
-  }
-
   private _renderNodes(data: IGraphData): void {
     const metadataItems = graphMetadataToList(data.metadata)
 
+    // Node groups
     const nodes = this._g.selectAll('.node')
       .data(metadataItems)
       .enter()
       .append('g')
       .attr('class', 'node')
-      .on('click', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._lastClickWasSingle = true
-        setTimeout(() => {
-          if (this._lastClickWasSingle) {
-            this._actionStream!.next(new NodeClickAction(d))
-          }
-        }, GraphComponent._SINGLE_CLICK_DELAY)
-      })
-      .on('contextmenu', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeRightClickAction(d))
-      })
-      .on('dblclick', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._lastClickWasSingle = false
-        this._actionStream!.next(new NodeDblClickAction(d))
-      })
-      .on('mouseover.action', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverShortAction(d))
-      })
-      .on('mouseout.action', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverEndAction(d))
-      })
+      .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
+      .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
+      .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
+      .on('mouseover.action', (d: IGraphNodeData) => this._onNodeMouseOver(d))
+      .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
 
+    // Node circles
     nodes
       .append('circle')
       .attr('cx', (d: IGraphNodeData) => d.x)
@@ -338,6 +272,7 @@ export default class GraphComponent {
       .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
       .call(this._drag)
 
+    // Node labels
     nodes
       .append('text')
       .text((d: IGraphNodeData) => d.title)
@@ -375,7 +310,94 @@ export default class GraphComponent {
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
       .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
-      // Jump to other side of the link
+    this._links = this._g.selectAll('.link')
+  }
+
+  private _handleCommandStream(command: GraphCommand): void {
+    switch (command.kind) {
+      case FOCUS_TYPE:
+        this._locationFocusedLocation = {x: command.node.x, y: command.node.y}
+        this._focusGraph()
+        break
+      case RESET_GRAPH_TYPE:
+        this._resetPosition()
+        break
+      default:
+        assertNever(command)
+    }
+  }
+
+  private _resetPosition(): void {
+    this._svg
+      .transition()
+      .duration(GraphComponent._TRANSITION_DURATION)
+      .call(
+        this._zoomHandler.transform,
+        d3.zoomIdentity.translate(0, 0).scale(1),
+      )
+  }
+
+  /**
+   * Center graph on _locationFocusedLocation
+   */
+  private _focusGraph(): void {
+    // TODO: Rework _locationFocusedLocation maybe (so it doesn't have to get set for this
+    //   method to work, maybe it can be an optional parameter to override the previous
+    //   location otherwise it will set the graph to the existing value on the variable)
+    if (!this._locationFocusedLocation) return
+
+    const transform = this._getGraphTranslationAndScale()
+    const position = this._graphToSVGPosition(this._locationFocusedLocation)
+    const x = transform.translation.x + this._width / 2 - position.x
+    const y = transform.translation.y + this._height / 2 - position.y
+
+    this._svg
+      .transition()
+      .duration(GraphComponent._TRANSITION_DURATION)
+      .call(
+        this._zoomHandler.transform,
+        d3.zoomIdentity.translate(x, y).scale(transform.scale),
+      )
+  }
+
+  private _onNodeClick(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._lastClickWasSingle = true
+    setTimeout(() => {
+      if (this._lastClickWasSingle) {
+        this._actionStream!.next(new NodeClickAction(d))
+      }
+    }, GraphComponent._SINGLE_CLICK_DELAY)
+  }
+
+  private _onNodeDblClick(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._lastClickWasSingle = false
+    this._actionStream!.next(new NodeDblClickAction(d))
+  }
+
+  private _onNodeContextMenu(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeRightClickAction(d))
+  }
+
+  private _onNodeMouseOver(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeHoverShortAction(d))
+  }
+
+  private _onNodeMouseOut(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeHoverEndAction(d))
+  }
+
+  // EXTENDED GRAPH FUNCTIONALITY //////////////////////////////////////////////
+
+  /**
+   * Jump to other side of the link on click
+   */
+  private _enableLinkClickJumpingToOppositeNode() {
+    this._links
       .on('click', (d: ILinkTuple) => {
         const position = this._svgToGraphPosition({
           x: d3.event.clientX,
@@ -392,20 +414,23 @@ export default class GraphComponent {
            : {x: sourceNode.x, y: sourceNode.y}
         this._focusGraph()
       })
-    this._links = this._g.selectAll('.link')
   }
 
   private _enableDrag(): void {
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: IGraphNodeData, i: number, refs: any[]) => {
+        // TODO: A refactor of this logic may be good. Reduce duplication and handle
+        // updates in a nicer way regardless of whether a text label was used to drag a
+        // node of node itself
+
+        // NOTE: If node labels change such that they are not outside the node circle --
+        // as it is currently -- then there is no need to handle dragging on the labels
+
         d.x += d3.event.dx
         d.y += d3.event.dy
 
-        d3.select(refs[i])
-          .attr('cx', d.x)
-          .attr('cy', d.y)
-
+        // Update link positions
         this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
           if (l.source === d.id)
             d3.select(refs_[i_])
@@ -421,6 +446,7 @@ export default class GraphComponent {
           logger.warn(
             'enableDrag called before this._nodeTextLabels has been initialized')
         else
+          // Update text label positions
           this._nodeTextLabels.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
             if (n.id === d.id)
               d3.select(refs_[i_])
@@ -428,6 +454,7 @@ export default class GraphComponent {
                 .attr('y', d.y + 15)
           })
 
+        // Update text label positions
         this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
           if (n.id === d.id)
             d3.select(refs_[i_]).select('circle')
@@ -530,6 +557,8 @@ export default class GraphComponent {
   private _disableDoubleClickZoom(): void {
     this._svg.on('dblclick.zoom', null)
   }
+
+  // UTILITIES /////////////////////////////////////////////////////////////////
 
   private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
