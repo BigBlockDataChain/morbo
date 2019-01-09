@@ -10,8 +10,11 @@ import {
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  IPosition,
 } from '@lib/types'
-import {assertNever} from '@lib/utils'
+import {assertNever, cartesianDistance} from '@lib/utils'
+import * as graphTransform from './graph-transform'
+import {GraphTransformType} from './graph-transform'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -35,7 +38,6 @@ const logger = getLogger('d3-graph')
 interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
 interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
-interface IPosition { x: number, y: number }
 
 export default class GraphComponent {
 
@@ -55,59 +57,12 @@ export default class GraphComponent {
   private static readonly _ZOOM_MIN = 1
   private static readonly _ZOOM_MAX = 2.5
 
-  private static _GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY = 'graphTransformation'
-
   /*
    * This value is the time it takes in ms (milliseconds) for a single click
    * to be registered, correspondingly it is also the time remaining to click
    * a second time in order for a double click to be registered.
    */
   private static readonly _SINGLE_CLICK_DELAY: number = 300
-
-  private static graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
-    return Object.keys(metadata)
-      .map(Number)
-      .map((k: GraphNodeId) => metadata[k])
-  }
-
-  private static flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
-    const keys = Object.keys(index).map(Number)
-    return keys.reduce(
-      (accum: ILinkTuple[], source: GraphNodeId) => {
-        accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
-        return accum
-      },
-      [],
-    )
-  }
-
-  /**
-   * If local storage does not have a graph transformation, set it to a default value
-   */
-  private static _initializeGraphTransform() {
-    const localGraphTransform = window.localStorage
-      .getItem(GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY)
-
-    if (localGraphTransform === null || localGraphTransform.match(/NaN/))
-      window.localStorage
-        .setItem(GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, '0 0 1')
-  }
-
-  /**
-   * Get graph transformation from local storage
-   */
-  private static _getGraphTransform(): string | null {
-    return window.localStorage.getItem(
-      GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY)
-  }
-
-  /**
-   * Update local storage with up to date graph transformation
-   */
-  private static _updateGraphTransform(transform: string): void {
-    window.localStorage.setItem(
-      GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, transform)
-  }
 
   private _width: number = -1
   private _height: number = -1
@@ -168,7 +123,7 @@ export default class GraphComponent {
         logger.debug('Can not remove svg, it has not been set')
       }
 
-    GraphComponent._initializeGraphTransform()
+    graphTransform.initializeGraphTransform()
 
     this._d3Initialized = true
     this._height = dimensions.height
@@ -182,15 +137,17 @@ export default class GraphComponent {
 
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
-      GraphComponent._updateGraphTransform(this._graphTransformToString())
+      graphTransform.updateGraphTransform(this._graphTransformToString())
 
-      const graphTransform = this._getGraphTranslationAndScale()
+      const graphTransformation = this._getGraphTranslationAndScale()
 
       // Scale elements on zoom
       if (this._nodes) {
-        this._nodeCircleRadius = GraphComponent._NODE_CIRCLE_RADIUS / 2
-                               + GraphComponent._NODE_CIRCLE_RADIUS / graphTransform.scale
-        this._labelfontSize = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransform.scale
+        this._nodeCircleRadius
+          = GraphComponent._NODE_CIRCLE_RADIUS / 2
+          + GraphComponent._NODE_CIRCLE_RADIUS / graphTransformation.scale
+        this._labelfontSize
+          = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransformation.scale
         this._nodes.selectAll('circle')
           .attr('r', this._nodeCircleRadius)
         this._nodes.selectAll('text')
@@ -336,7 +293,7 @@ export default class GraphComponent {
   }
 
   private _renderNodes(data: IGraphData): void {
-    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+    const metadataItems = graphMetadataToList(data.metadata)
 
     const nodes = this._g.selectAll('.node')
       .data(metadataItems)
@@ -393,8 +350,8 @@ export default class GraphComponent {
   }
 
   private _renderLinks(data: IGraphData): void {
-    const linkData = GraphComponent.flattenGraphIndex(data.index)
-    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+    const linkData = flattenGraphIndex(data.index)
+    const metadataItems = graphMetadataToList(data.metadata)
 
     this._links = this._g.selectAll('.link')
     this._links
@@ -426,8 +383,8 @@ export default class GraphComponent {
         const sourceNode = this._graphData!.metadata[d.source]
         const targetNode = this._graphData!.metadata[d.target]
 
-        const distToSource = distance(position, sourceNode)
-        const distToTarget = distance(position, targetNode)
+        const distToSource = cartesianDistance(position, sourceNode)
+        const distToTarget = cartesianDistance(position, targetNode)
 
         this._locationFocusedLocation = (distToSource < distToTarget)
            ? {x: targetNode.x, y: targetNode.y}
@@ -536,7 +493,7 @@ export default class GraphComponent {
             d3.zoomIdentity.translate(offsetRight, offsetDown).scale(transform.scale),
           )
 
-        GraphComponent._updateGraphTransform(this._graphTransformToString())
+        graphTransform.updateGraphTransform(this._graphTransformToString())
         this._actionStream!.next(new ZoomAction())
       })
   }
@@ -547,7 +504,7 @@ export default class GraphComponent {
         d3.select(refs[i])
           .select('circle')
           .attr('r', this._nodeCircleRadius * 1.5)
-          .attr('stroke-width', GraphComponent._NODE_CIRCLE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
@@ -617,16 +574,26 @@ export default class GraphComponent {
     return corners
   }
 
-  private _graphTransformToString(): string {
+  private _graphTransformToString(): GraphTransformType {
     const transform = this._getGraphTranslationAndScale()
-    return `${transform.translation.x} ${transform.translation.y} ${transform.scale}`
+    return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
 }
 
-/**
- * Cartesian distance between two points
- */
-function distance(a: IPosition, b: IPosition): number {
-  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))
+function graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
+  return Object.keys(metadata)
+    .map(Number)
+    .map((k: GraphNodeId) => metadata[k])
+}
+
+function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
+  const keys = Object.keys(index).map(Number)
+  return keys.reduce(
+    (accum: ILinkTuple[], source: GraphNodeId) => {
+      accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
+      return accum
+    },
+    [],
+  )
 }
