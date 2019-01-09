@@ -1,3 +1,8 @@
+/*
+ * TODO
+ * Convert graph transform type of {x, y, scale} or something similar to the existing type
+ */
+
 import {getLogger} from '@lib/logger'
 
 const logger = getLogger('graph-transform')
@@ -9,6 +14,8 @@ type TransformX = number
 type TransformY = number
 type TransformScale = number
 export type GraphTransformType = [TransformX, TransformY, TransformScale]
+
+let lastTransform: null | GraphTransformType = null
 
 /**
  * If local storage does not have a graph transformation, set it to a default value
@@ -29,6 +36,8 @@ export function initializeGraphTransform() {
  * Get graph transformation from local storage
  */
 export function getGraphTransform(): GraphTransformType | null {
+  if (lastTransform !== null) return lastTransform
+
   const result = window.localStorage.getItem(_GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY)
   return result !== null
     ? result.split(' ').map(Number) as GraphTransformType
@@ -39,7 +48,13 @@ export function getGraphTransform(): GraphTransformType | null {
  * Update local storage with up to date graph transformation
  */
 export function updateGraphTransform(transform: GraphTransformType): void {
+  const transformString = transform.join(' ')
+
+  if (lastTransform !== null && lastTransform.join(' ') === transformString)
+    return
+
   logger.debug('Updating graph transform to', transform)
+  lastTransform = transform
   window.localStorage
     .setItem(_GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, transform.join(' '))
 }

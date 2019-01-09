@@ -161,14 +161,15 @@ export default class GraphComponent {
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
-    const transform = this._getGraphTranslationAndScale()
-    this._svg
-      .call(
-        this._zoomHandler.transform,
-        d3.zoomIdentity
-          .translate(transform.translation.x, transform.translation.y)
-          .scale(transform.scale),
-      )
+    const transform = graphTransform.getGraphTransform()
+    if (transform !== null)
+      this._svg
+        .call(
+          this._zoomHandler.transform,
+          d3.zoomIdentity
+            .translate(transform[0], transform[1])
+            .scale(transform[2]),
+        )
 
     commandStream.subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
   }
