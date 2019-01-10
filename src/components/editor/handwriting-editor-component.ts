@@ -47,6 +47,8 @@ interface IActions {
     => (compState: IState, compActions: IActions)
     => ActionResult<IState>
   cancel: () => () => ActionResult<IState>
+  uploadFile: () => (compState: IState) => ActionResult<IState>
+  clearImage: () => (compState: IState) => ActionResult<IState>
 }
 
 const SIZE_INCREASE_THRESHOLD = 50;
@@ -57,7 +59,7 @@ export const state: IState = {
   canvasEl: null,
   canvasCtx: null,
   color: 'black',
-  stroke_width: 3,
+  stroke_width: 2,
   isMouseDown: false,
   mouseLastLocation: [0, 0],
 }
@@ -222,6 +224,19 @@ export const actions: IActions = {
 
     return nextState
   },
+
+  uploadFile: () => (compState: IState) => {},
+  clearImage: () => (compState: IState) => {
+    if (compState.canvasCtx) {
+      compState.canvasCtx.clearRect(
+        0,
+        0,
+        compState.canvasCtx.canvas.width,
+        compState.canvasCtx.canvas.height
+      )
+    }
+  },
+
 }
 
 export default function view(compState: IState, compActions: IActions, noteId: number) {
@@ -233,76 +248,75 @@ export default function view(compState: IState, compActions: IActions, noteId: n
     },
     [
       html.div(
+        {class: 'handwriting-editor-component-menu'},
+        [
+          html.button({onclick: compActions.uploadFile}, 'Upload File'),
+          html.button({disabled: true, onclick: compActions.clearImage}, 'Clear'),
+        ],
+      ),
+      html.div(
         {
           class: 'toolbox',
         },
         [
           html.div(
             {
-              className: classname(
-                'tool',
-                'tool_pen',
-                {'tool-active': compState.selectedTool === Tool.PEN},
-              ),
-              onclick: () => compActions.selectTool(Tool.PEN),
+              class: `tool ${compState.selectedTool === Tool.PEN ? 'tool_pen' : 'tool_eraser'}`,
+              onclick: () => compActions.selectTool(compState.selectedTool === Tool.PEN ? Tool.ERASER : Tool.PEN),
             },
-            ['✎'],
+            [compState.selectedTool === Tool.PEN ? '✎' : '✗'],
           ),
-          html.div(
-            {
-              className: classname(
-                'tool',
-                'tool_eraser',
-                {'tool-active': compState.selectedTool === Tool.ERASER},
-              ),
-              onclick: () => compActions.selectTool(Tool.ERASER),
-            },
-            ['✗'],
-          ),
-          html.input(
-            {
-              className: 'tool tool_stroke_width',
-              type: 'range',
-              min: 1,
-              max: 100,
-              value: compState.stroke_width,
-              onchange: (event: Event) =>
-                compActions.strokeWidthChange(
-                  +(event.target! as HTMLInputElement).value), // `+`: string -> number
-            },
-          ),
+
+          html.div({class: `handwriting-editor-size small ${compState.selectedTool === Tool.ERASER ? 'eraser' : 'pen'} ${compState.stroke_width === 2 ? 'selected' : ''}`, onclick: () => compActions.strokeWidthChange(2)}),
+          html.div({class: `handwriting-editor-size medium ${compState.selectedTool === Tool.ERASER ? 'eraser' : 'pen'} ${compState.stroke_width === 16 ? 'selected' : ''}`, onclick: () => compActions.strokeWidthChange(16)}),
+          html.div({class: `handwriting-editor-size large ${compState.selectedTool === Tool.ERASER ? 'eraser' : 'pen'} ${compState.stroke_width === 32 ? 'selected' : ''}`, onclick: () => compActions.strokeWidthChange(32)}),
+          // html.input(
+          //   {
+          //     className: 'tool tool_stroke_width',
+          //     type: 'range',
+          //     min: 1,
+          //     max: 100,
+          //     value: compState.stroke_width,
+          //     onchange: (event: Event) =>
+          //       compActions.strokeWidthChange(
+          //         +(event.target! as HTMLInputElement).value), // `+`: string -> number
+          //   },
+          // ),
           html.div(
             {class: 'palette'},
             [
-              viewPaletteItem(compState.color, emptyFunction, 'palette_current_color'),
               viewPaletteItem('white', () => compActions.changeColor('white')),
               viewPaletteItem('black', () => compActions.changeColor('black')),
               viewPaletteItem('red', () => compActions.changeColor('red')),
+              viewPaletteItem('orange', () => compActions.changeColor('orange')),
+              viewPaletteItem('yellow', () => compActions.changeColor('yellow')),
               viewPaletteItem('green', () => compActions.changeColor('green')),
               viewPaletteItem('blue', () => compActions.changeColor('blue')),
-            ],
-          ),
-          html.br(),
-          html.div(
-            {class: 'ocr'},
-            [
-              html.button({onclick: compActions.submit}, 'Insert'),
-              html.button({onclick: compActions.cancel}, 'Cancel'),
+              viewPaletteItem('indigo', () => compActions.changeColor('indigo')),
+              viewPaletteItem('violet', () => compActions.changeColor('violet')),
+              viewPaletteItem(compState.color, emptyFunction, 'palette_current_color'),
             ],
           ),
         ],
       ),
-      html.canvas(
+      html.div(
         {
-          class: 'canvas',
-          width: 400,
-          height: 400,
-          oncreate: (el: HTMLCanvasElement) => compActions.canvasCreated(el),
-          onmousedown: (event: MouseEvent) => compActions.mouseDownOnCanvas(event),
-          onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas({event, noteId}),
-          onmousemove: (event: MouseEvent) => compActions.mouseMoveOnCanvas(event),
+          class: 'handwriting-component-canvas-wrapper'
         },
-      ),
+        [
+          html.canvas(
+            {
+              class: 'canvas',
+              width: 400,
+              height: 400,
+              oncreate: (el: HTMLCanvasElement) => compActions.canvasCreated(el),
+              onmousedown: (event: MouseEvent) => compActions.mouseDownOnCanvas(event),
+              onmouseup: (event: MouseEvent) => compActions.mouseUpOnCanvas({event, noteId}),
+              onmousemove: (event: MouseEvent) => compActions.mouseMoveOnCanvas(event),
+            },
+          ),
+        ],
+      )
     ],
   )
 }

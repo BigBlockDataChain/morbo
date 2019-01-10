@@ -1,47 +1,137 @@
 .handwriting-editor-component-wrapper {
-  max-width: 97vw;
-  width: 100%;
+  /* max-width: 97vw; */
+  /* width: 100%; */
+  /* max-height: calc(100% - 26px - 18px - 22px - 22px); */
+}
+
+.handwriting-editor-component-menu {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.handwriting-component-canvas-wrapper {
+  padding-top: 5px;
+  overflow: auto;
   height: 100%;
 }
 
 .handwriting-editor-component-wrapper canvas {
-  border: 1px solid black;
   background-color: white;
 }
 
 .toolbox {
   display: flex;
+  position: absolute;
+  bottom: 15px;
+  right: 30px;
+  align-items: flex-end;
+}
+
+.handwriting-editor-size {
+  width: 30px;
+  height: 30px;
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 50%;
+  cursor: pointer;
+  margin: 2px;
+}
+.handwriting-editor-size::after {
+  content: ' ';
+  background-color: gray;
+  display: block;
+}
+.handwriting-editor-size.pen::after {
+  border-radius: 50%;
+}
+.handwriting-editor-size.eraser::after {
+  border-radius: 0%;
+}
+.handwriting-editor-size.small::after {
+  width: 4px;
+  height: 4px;
+  transform: translate(11px, 11px);
+}
+.handwriting-editor-size.medium::after {
+  width: 10px;
+  height: 10px;
+  transform: translate(8px, 8px);
+}
+.handwriting-editor-size.large::after {
+  width: 20px;
+  height: 20px;
+  transform: translate(3px, 3px);
+}
+.handwriting-editor-size:hover {
+  transform: scale(1.1);
+}
+.handwriting-editor-size:active {
+  transform: scale(1.05);
+}
+.handwriting-editor-size.selected {
+  border-color: black;
+}
+.handwriting-editor-size.selected::after {
+  background-color: black;
 }
 
 .tool {
-  font-size: 24px;
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid black;
+  margin: 2px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.tool:hover {
+  transform: scale(1.1);
+}
+.tool:active {
+  transform: scale(1.05);
 }
 
 .tool-active {
-  border: 1px solid black;
+  /* border: 1px solid black; */
+  display: block;
 }
 
-.tool-pen {
-
-}
-
-.tool-eraser {
-
-}
+.tool-pen { }
+.tool-eraser { }
 
 .palette {
   display: flex;
+  flex-flow: column;
 }
 
 .palette_item {
-  width: 24px;
-  height: 24px;
-  border: 1px solid black;
+  width: 30px;
+  cursor: pointer;
+  height: 30px;
+  display: block;
+  border-radius: 50%;
+  border: 2px solid black;
+  margin: 2px;
 }
 
-.palette_current_color { }
+.palette_item:hover {
+  transform: scale(1.1);
+}
+.palette_item:active {
+  transform: scale(1.05);
+}
+
+.palette_current_color { border-style: groove;}
+.palette_current_color:hover { transform: scale(1); cursor: auto; }
 .palette_item_white { background-color: white; }
 .palette_item_black { background-color: black; }
 .palette_item_red { background-color: red; }
-.palette_item_blue { background-color: blue; }
+.palette_item_orange { background-color: orange; }
+.palette_item_yellow { background-color: yellow; }
 .palette_item_green { background-color: green; }
+.palette_item_blue { background-color: blue; }
+.palette_item_indigo { background-color: indigo; }
+.palette_item_violet { background-color: violet; }

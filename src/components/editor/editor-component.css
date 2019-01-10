@@ -5,6 +5,7 @@
   background: #eee;
   flex: 0 0 100%;
   z-index: 2;
+  overflow-y: auto;
 }
 @media (min-width: 1280px) {
   #editor-container {
