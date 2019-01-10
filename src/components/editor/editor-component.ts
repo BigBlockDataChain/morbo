@@ -129,7 +129,10 @@ function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) 
     html.button(
       {
         id: 'editor-close',
-        onclick: (ev: Event) => onClose(),
+        onclick: (ev: Event) => {
+          _actions.saveTextNote(node.id),
+          onClose()
+        }
       },
       'x',
     ),
