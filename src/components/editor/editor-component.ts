@@ -75,6 +75,10 @@ export function view(
   onClose: () => any,
 ) {
   if (node !== _state.node) {
+    if (_state.node !== null) {
+      _actions.saveTextNote(_state.node.id)
+    }
+
     _actions.setNode(node)
     _actions.textEditor.setData(null)
     _actions.loadTextNote(node.id)
