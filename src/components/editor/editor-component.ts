@@ -79,7 +79,6 @@ export function view(
     _actions.setNode(node)
     _actions.textEditor.setData(null)
     _actions.loadTextNote(node.id)
-    _actions.saveTextNote(node.id)
   }
 
   return html.div(
