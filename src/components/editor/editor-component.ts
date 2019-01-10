@@ -1,7 +1,6 @@
 import * as html from '@hyperapp/html'
 
-import {loadNote} from '@lib/io'
-import {writeNote} from '@lib/io'
+import {loadNote, writeNote} from '@lib/io'
 import {
   El,
   GraphNodeId,
@@ -132,7 +131,7 @@ function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) 
         onclick: (ev: Event) => {
           _actions.saveTextNote(node.id),
           onClose()
-        }
+        },
       },
       'x',
     ),
