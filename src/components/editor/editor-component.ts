@@ -141,37 +141,27 @@ export function view(
 
 function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) {
   return [
-<<<<<<< HEAD
-=======
-    html.button(
-      {
-        id: 'editor-close',
-        onclick: (ev: Event) => {
-          _actions.saveTextNote(node.id),
-          onClose()
-        },
-      },
-      'x',
-    ),
-    html.button(
-      {
-        id: 'editor-save',
-        onclick: () => {
-          _actions.saveTextNote(node.id)
-        },
-      },
-      'save',
-    ),
->>>>>>> 7785d94aceb828d094f6fcaaf2162e666ba0f5c0
     html.div(
       {class: 'container'},
       [
         html.button(
           {
             id: 'editor-close',
-            onclick: (ev: Event) => onClose(),
+            onclick: (ev: Event) => {
+              _actions.saveTextNote(node.id),
+              onClose()
+            },
           },
           'x',
+        ),
+        html.button(
+          {
+            id: 'editor-save',
+            onclick: () => {
+              _actions.saveTextNote(node.id)
+            },
+          },
+          'save',
         ),
         html.div(
           { id: 'editor-right-buttons' },
