@@ -10,8 +10,11 @@ import {
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  IPosition,
 } from '@lib/types'
-import {assertNever} from '@lib/utils'
+import {assertNever, cartesianDistance} from '@lib/utils'
+import * as graphTransform from './graph-transform'
+import {GraphTransformType} from './graph-transform'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -35,7 +38,6 @@ const logger = getLogger('d3-graph')
 interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
 interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
-interface IPosition { x: number, y: number }
 
 export default class GraphComponent {
 
@@ -55,59 +57,12 @@ export default class GraphComponent {
   private static readonly _ZOOM_MIN = 1
   private static readonly _ZOOM_MAX = 2.5
 
-  private static _GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY = 'graphTransformation'
-
   /*
    * This value is the time it takes in ms (milliseconds) for a single click
    * to be registered, correspondingly it is also the time remaining to click
    * a second time in order for a double click to be registered.
    */
   private static readonly _SINGLE_CLICK_DELAY: number = 300
-
-  private static graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
-    return Object.keys(metadata)
-      .map(Number)
-      .map((k: GraphNodeId) => metadata[k])
-  }
-
-  private static flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
-    const keys = Object.keys(index).map(Number)
-    return keys.reduce(
-      (accum: ILinkTuple[], source: GraphNodeId) => {
-        accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
-        return accum
-      },
-      [],
-    )
-  }
-
-  /**
-   * If local storage does not have a graph transformation, set it to a default value
-   */
-  private static _initializeGraphTransform() {
-    const localGraphTransform = window.localStorage
-      .getItem(GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY)
-
-    if (localGraphTransform === null || localGraphTransform.match(/NaN/))
-      window.localStorage
-        .setItem(GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, '0 0 1')
-  }
-
-  /**
-   * Get graph transformation from local storage
-   */
-  private static _getGraphTransform(): string | null {
-    return window.localStorage.getItem(
-      GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY)
-  }
-
-  /**
-   * Update local storage with up to date graph transformation
-   */
-  private static _updateGraphTransform(transform: string): void {
-    window.localStorage.setItem(
-      GraphComponent._GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, transform)
-  }
 
   private _width: number = -1
   private _height: number = -1
@@ -168,7 +123,7 @@ export default class GraphComponent {
         logger.debug('Can not remove svg, it has not been set')
       }
 
-    GraphComponent._initializeGraphTransform()
+    graphTransform.initializeGraphTransform()
 
     this._d3Initialized = true
     this._height = dimensions.height
@@ -182,15 +137,17 @@ export default class GraphComponent {
 
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
-      GraphComponent._updateGraphTransform(this._graphTransformToString())
+      graphTransform.updateGraphTransform(this._graphTransformToString())
 
-      const graphTransform = this._getGraphTranslationAndScale()
+      const graphTransformation = this._getGraphTranslationAndScale()
 
       // Scale elements on zoom
       if (this._nodes) {
-        this._nodeCircleRadius = GraphComponent._NODE_CIRCLE_RADIUS / 2
-                               + GraphComponent._NODE_CIRCLE_RADIUS / graphTransform.scale
-        this._labelfontSize = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransform.scale
+        this._nodeCircleRadius
+          = GraphComponent._NODE_CIRCLE_RADIUS / 2
+          + GraphComponent._NODE_CIRCLE_RADIUS / graphTransformation.scale
+        this._labelfontSize
+          = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransformation.scale
         this._nodes.selectAll('circle')
           .attr('r', this._nodeCircleRadius)
         this._nodes.selectAll('text')
@@ -204,14 +161,15 @@ export default class GraphComponent {
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
-    const transform = this._getGraphTranslationAndScale()
-    this._svg
-      .call(
-        this._zoomHandler.transform,
-        d3.zoomIdentity
-          .translate(transform.translation.x, transform.translation.y)
-          .scale(transform.scale),
-      )
+    const transform = graphTransform.getGraphTransform()
+    if (transform !== null)
+      this._svg
+        .call(
+          this._zoomHandler.transform,
+          d3.zoomIdentity
+            .translate(transform[0], transform[1])
+            .scale(transform[2]),
+        )
 
     commandStream.subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
   }
@@ -250,19 +208,11 @@ export default class GraphComponent {
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._enableLinkHighlightOnHover()
+    this._enableLinkClickJumpingToOppositeNode()
     this._disableDoubleClickZoom()
 
+    // Focus graph on last clicked location
     this._focusGraph()
-  }
-
-  private _resetPosition(): void {
-    this._svg
-      .transition()
-      .duration(GraphComponent._TRANSITION_DURATION)
-      .call(
-        this._zoomHandler.transform,
-        d3.zoomIdentity.translate(0, 0).scale(1),
-      )
   }
 
   private _createSvg(host: El, dimensions: IDimensions) {
@@ -272,12 +222,10 @@ export default class GraphComponent {
       .attr('height', dimensions.height)
       .on('click', () => {
         d3.event.stopPropagation()
-        const transform = this._getGraphTranslationAndScale()
-        // TODO: Fix, see dblclick handler's position calculation
-        const position = {
-          x: d3.event.clientX / transform.scale - transform.translation.x,
-          y: d3.event.clientY / transform.scale - transform.translation.y,
-        }
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
         this._lastClickWasSingle = true
         this._locationFocusedLocation = null
         setTimeout(() => {
@@ -298,6 +246,73 @@ export default class GraphComponent {
     return svg
   }
 
+  private _renderNodes(data: IGraphData): void {
+    const metadataItems = graphMetadataToList(data.metadata)
+
+    // Node groups
+    const nodes = this._g.selectAll('.node')
+      .data(metadataItems)
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
+      .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
+      .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
+      .on('mouseover.action', (d: IGraphNodeData) => this._onNodeMouseOver(d))
+      .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
+
+    // Node circles
+    nodes
+      .append('circle')
+      .attr('cx', (d: IGraphNodeData) => d.x)
+      .attr('cy', (d: IGraphNodeData) => d.y)
+      .attr('r', this._nodeCircleRadius)
+      .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
+      .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
+      .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
+      .call(this._drag)
+
+    // Node labels
+    nodes
+      .append('text')
+      .text((d: IGraphNodeData) => d.title)
+      .attr('x', (d: IGraphNodeData) => d.x + this._labelfontSize / 2)
+      .attr('y', (d: IGraphNodeData) => d.y + 15)
+      .attr('font-size', this._labelfontSize)
+      .call(this._drag)
+
+    this._nodes = this._g.selectAll('.node')
+    this._nodeTextLabels = this._nodes.selectAll('text')
+  }
+
+  private _renderLinks(data: IGraphData): void {
+    const linkData = flattenGraphIndex(data.index)
+    const metadataItems = graphMetadataToList(data.metadata)
+
+    this._links = this._g.selectAll('.link')
+    this._links
+      .data(linkData)
+      .enter()
+      .append('line')
+      .attr('class', 'link')
+      .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
+        const sourceNode = metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l.source)[0]
+        d3.select(refs[i]).attr('y1', sourceNode.y)
+        return sourceNode.x
+      })
+      .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
+        const targetNode = metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l.target)[0]
+        d3.select(refs[i]).attr('y2', targetNode.y)
+        return targetNode.x
+      })
+      .attr('fill', 'none')
+      .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+    this._links = this._g.selectAll('.link')
+  }
+
   private _handleCommandStream(command: GraphCommand): void {
     switch (command.kind) {
       case FOCUS_TYPE:
@@ -310,6 +325,16 @@ export default class GraphComponent {
       default:
         assertNever(command)
     }
+  }
+
+  private _resetPosition(): void {
+    this._svg
+      .transition()
+      .duration(GraphComponent._TRANSITION_DURATION)
+      .call(
+        this._zoomHandler.transform,
+        d3.zoomIdentity.translate(0, 0).scale(1),
+      )
   }
 
   /**
@@ -335,89 +360,44 @@ export default class GraphComponent {
       )
   }
 
-  private _renderNodes(data: IGraphData): void {
-    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
-
-    const nodes = this._g.selectAll('.node')
-      .data(metadataItems)
-      .enter()
-      .append('g')
-      .attr('class', 'node')
-      .on('click', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._lastClickWasSingle = true
-        setTimeout(() => {
-          if (this._lastClickWasSingle) {
-            this._actionStream!.next(new NodeClickAction(d))
-          }
-        }, GraphComponent._SINGLE_CLICK_DELAY)
-      })
-      .on('contextmenu', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeRightClickAction(d))
-      })
-      .on('dblclick', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._lastClickWasSingle = false
-        this._actionStream!.next(new NodeDblClickAction(d))
-      })
-      .on('mouseover.action', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverShortAction(d))
-      })
-      .on('mouseout.action', (d: IGraphNodeData) => {
-        d3.event.stopPropagation()
-        this._actionStream!.next(new NodeHoverEndAction(d))
-      })
-
-    nodes
-      .append('circle')
-      .attr('cx', (d: IGraphNodeData) => d.x)
-      .attr('cy', (d: IGraphNodeData) => d.y)
-      .attr('r', this._nodeCircleRadius)
-      .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
-      .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
-      .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
-      .call(this._drag)
-
-    nodes
-      .append('text')
-      .text((d: IGraphNodeData) => d.title)
-      .attr('x', (d: IGraphNodeData) => d.x + this._labelfontSize / 2)
-      .attr('y', (d: IGraphNodeData) => d.y + 15)
-      .attr('font-size', this._labelfontSize)
-      .call(this._drag)
-
-    this._nodes = this._g.selectAll('.node')
-    this._nodeTextLabels = this._nodes.selectAll('text')
+  private _onNodeClick(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._lastClickWasSingle = true
+    setTimeout(() => {
+      if (this._lastClickWasSingle) {
+        this._actionStream!.next(new NodeClickAction(d))
+      }
+    }, GraphComponent._SINGLE_CLICK_DELAY)
   }
 
-  private _renderLinks(data: IGraphData): void {
-    const linkData = GraphComponent.flattenGraphIndex(data.index)
-    const metadataItems = GraphComponent.graphMetadataToList(data.metadata)
+  private _onNodeDblClick(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._lastClickWasSingle = false
+    this._actionStream!.next(new NodeDblClickAction(d))
+  }
 
-    this._links = this._g.selectAll('.link')
+  private _onNodeContextMenu(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeRightClickAction(d))
+  }
+
+  private _onNodeMouseOver(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeHoverShortAction(d))
+  }
+
+  private _onNodeMouseOut(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+    this._actionStream!.next(new NodeHoverEndAction(d))
+  }
+
+  // EXTENDED GRAPH FUNCTIONALITY //////////////////////////////////////////////
+
+  /**
+   * Jump to other side of the link on click
+   */
+  private _enableLinkClickJumpingToOppositeNode() {
     this._links
-      .data(linkData)
-      .enter()
-      .append('line')
-      .attr('class', 'link')
-      .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
-        const sourceNode = metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.source)[0]
-        d3.select(refs[i]).attr('y1', sourceNode.y)
-        return sourceNode.x
-      })
-      .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
-        const targetNode = metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.target)[0]
-        d3.select(refs[i]).attr('y2', targetNode.y)
-        return targetNode.x
-      })
-      .attr('fill', 'none')
-      .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
-      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
-      // Jump to other side of the link
       .on('click', (d: ILinkTuple) => {
         const position = this._svgToGraphPosition({
           x: d3.event.clientX,
@@ -426,28 +406,31 @@ export default class GraphComponent {
         const sourceNode = this._graphData!.metadata[d.source]
         const targetNode = this._graphData!.metadata[d.target]
 
-        const distToSource = distance(position, sourceNode)
-        const distToTarget = distance(position, targetNode)
+        const distToSource = cartesianDistance(position, sourceNode)
+        const distToTarget = cartesianDistance(position, targetNode)
 
         this._locationFocusedLocation = (distToSource < distToTarget)
            ? {x: targetNode.x, y: targetNode.y}
            : {x: sourceNode.x, y: sourceNode.y}
         this._focusGraph()
       })
-    this._links = this._g.selectAll('.link')
   }
 
   private _enableDrag(): void {
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: IGraphNodeData, i: number, refs: any[]) => {
+        // TODO: A refactor of this logic may be good. Reduce duplication and handle
+        // updates in a nicer way regardless of whether a text label was used to drag a
+        // node of node itself
+
+        // NOTE: If node labels change such that they are not outside the node circle --
+        // as it is currently -- then there is no need to handle dragging on the labels
+
         d.x += d3.event.dx
         d.y += d3.event.dy
 
-        d3.select(refs[i])
-          .attr('cx', d.x)
-          .attr('cy', d.y)
-
+        // Update link positions
         this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
           if (l.source === d.id)
             d3.select(refs_[i_])
@@ -463,6 +446,7 @@ export default class GraphComponent {
           logger.warn(
             'enableDrag called before this._nodeTextLabels has been initialized')
         else
+          // Update text label positions
           this._nodeTextLabels.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
             if (n.id === d.id)
               d3.select(refs_[i_])
@@ -470,6 +454,7 @@ export default class GraphComponent {
                 .attr('y', d.y + 15)
           })
 
+        // Update text label positions
         this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
           if (n.id === d.id)
             d3.select(refs_[i_]).select('circle')
@@ -536,7 +521,7 @@ export default class GraphComponent {
             d3.zoomIdentity.translate(offsetRight, offsetDown).scale(transform.scale),
           )
 
-        GraphComponent._updateGraphTransform(this._graphTransformToString())
+        graphTransform.updateGraphTransform(this._graphTransformToString())
         this._actionStream!.next(new ZoomAction())
       })
   }
@@ -572,6 +557,8 @@ export default class GraphComponent {
   private _disableDoubleClickZoom(): void {
     this._svg.on('dblclick.zoom', null)
   }
+
+  // UTILITIES /////////////////////////////////////////////////////////////////
 
   private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
@@ -617,16 +604,26 @@ export default class GraphComponent {
     return corners
   }
 
-  private _graphTransformToString(): string {
+  private _graphTransformToString(): GraphTransformType {
     const transform = this._getGraphTranslationAndScale()
-    return `${transform.translation.x} ${transform.translation.y} ${transform.scale}`
+    return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
 }
 
-/**
- * Cartesian distance between two points
- */
-function distance(a: IPosition, b: IPosition): number {
-  return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))
+function graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
+  return Object.keys(metadata)
+    .map(Number)
+    .map((k: GraphNodeId) => metadata[k])
+}
+
+function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
+  const keys = Object.keys(index).map(Number)
+  return keys.reduce(
+    (accum: ILinkTuple[], source: GraphNodeId) => {
+      accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
+      return accum
+    },
+    [],
+  )
 }

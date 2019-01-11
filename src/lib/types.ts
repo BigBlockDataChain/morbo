@@ -47,4 +47,6 @@ export interface IDimensions {
   width: number,
 }
 
+export interface IPosition { x: number, y: number }
+
 export type VoidFunction = (...args: any[]) => void
