@@ -62,6 +62,9 @@ export default class GraphComponent {
   private static readonly _ZOOM_MIN = 0.5
   private static readonly _ZOOM_MAX = 2
 
+  private static readonly _CONTEXT_MENU_NODE_KEY = 'graph.node'
+  private static readonly _CONTEXT_MENU_BACKGROUND_KEY = 'graph.background'
+
   /*
    * This value is the time it takes in ms (milliseconds) for a single click
    * to be registered, correspondingly it is also the time remaining to click
@@ -232,7 +235,7 @@ export default class GraphComponent {
   }
 
   public _registerContextMenus(): void {
-    registerContextMenu('graph.node', [
+    registerContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY, [
       {
         label: 'New child note',
         click: () => setTimeout(() => {
@@ -274,7 +277,7 @@ export default class GraphComponent {
         }, 50),
       },
     ])
-    registerContextMenu('graph.background', [
+    registerContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY, [
       {
         label: 'New note',
         click: () => setTimeout(() => {
@@ -298,7 +301,7 @@ export default class GraphComponent {
         this._locationFocusedLocation = null
         this._lastRightClickLocation = position
         this._setSelectedNode(null)
-        showContextMenu('graph.background')
+        showContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY)
       })
       .on('click', () => {
         this._setSelectedNode(null)
@@ -483,7 +486,7 @@ export default class GraphComponent {
   private _onNodeContextMenu(d: IGraphNodeData): void {
     this._setSelectedNode(d.id)
     // TODO make menu label a constant
-    showContextMenu('graph.node')
+    showContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY)
     d3.event.stopPropagation()
     this._actionStream!.next(new NodeRightClickAction(d.id))
   }
