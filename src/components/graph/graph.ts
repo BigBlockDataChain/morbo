@@ -254,12 +254,14 @@ export default class GraphComponent {
       {type: 'separator'},
       {
         label: 'Make Parent of...',
+        enabled: false,
         click: () => {
           logger.log('Make parent of...')
         },
       },
       {
         label: 'Make Child of...',
+        enabled: false,
         click: () => {
           logger.log('Make child of...')
         },
