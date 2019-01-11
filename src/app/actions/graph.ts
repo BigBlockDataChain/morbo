@@ -96,9 +96,7 @@ export const actions: any = {
               selectNode(event.id)
               break
             case graphTypes.DELETE_NODE_TYPE:
-              // TODO Have to setup 'exit' on D3 node rendering code to remove delete node
-              // and deleted links to avoid runtime errors
-              // _actions.deleteNode(event.nodeId)
+              _actions.deleteNode(event.nodeId)
               break
             case graphTypes.NODE_CLICK_TYPE:
               break
@@ -108,8 +106,7 @@ export const actions: any = {
               selectNode(event.nodeId)
               break
             case graphTypes.NODE_DRAG_TYPE:
-              // TODO Was causing some runtime errors, investigate cause and fix
-              // _actions.setNodePosition(event.nodeId)
+              _actions.setNodePosition({nodeId: event.nodeId, position: event.position})
               break
             case graphTypes.NODE_HOVER_SHORT_TYPE:
               break
@@ -137,18 +134,19 @@ export const actions: any = {
     }
   },
 
-  setNodePosition: (node: IGraphNodeData) => (state: any, _: any) => {
-    const metadata = {
-      ...state.metadata,
-      [node.id]: {
-        ...state.metadata[node.id],
-        x: node.x,
-        y: node.y,
-      },
-    }
+  setNodePosition: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) =>
+    (state: any, _: any) => {
+      const metadata = {
+        ...state.metadata,
+        [nodeId]: {
+          ...state.metadata[nodeId],
+          x: position.x,
+          y: position.y,
+        },
+      }
 
-    return {metadata}
-  },
+      return {metadata}
+    },
 
   createNewNode: (
     {position, parent}: {position: IPosition, parent: null | GraphNodeId},
@@ -191,8 +189,15 @@ export const actions: any = {
     },
 
   deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+    // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]
+    Object.keys(index)
+      .forEach((k: string) => {
+        index[k] = index[k].filter((l: GraphNodeId) => l !== nodeId)
+      })
+
+    // Delete from metadata
     const metadata = {...state.metadata}
     delete metadata[nodeId]
     return {

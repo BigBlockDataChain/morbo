@@ -32,10 +32,14 @@ export class NodeDblClickAction implements INodeDblClickAction {
 
 export const NODE_DRAG_TYPE = 'nodeDrag'
 export type NodeDragType    = 'nodeDrag'
-export interface INodeDragAction { kind: NodeDragType, nodeId: GraphNodeId }
+export interface INodeDragAction {
+  kind: NodeDragType
+  nodeId: GraphNodeId
+  position: IPosition
+}
 export class NodeDragAction implements INodeDragAction {
   public readonly kind = NODE_DRAG_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public nodeId: GraphNodeId, public position: IPosition) {}
 }
 
 // NOTE Not implemented yet

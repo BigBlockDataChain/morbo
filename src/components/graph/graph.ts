@@ -45,11 +45,12 @@ interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 export default class GraphComponent {
 
   private static readonly _LABEL_FONT_SIZE = 8
-  private static readonly _NODE_CIRCLE_RADIUS = 10
-  private static readonly _NODE_CIRCLE_STROKE = 4
-  private static readonly _NODE_CIRCLE_STROKE_HOVER = 6
+  private static readonly _NODE_CIRCLE_RADIUS = 6
+  private static readonly _NODE_CIRCLE_STROKE = 2
+  private static readonly _NODE_CIRCLE_STROKE_HOVER = 4
   private static readonly _NODE_CIRCLE_COLOR = 'white'
   private static readonly _NODE_CIRCLE_STROKE_COLOR = 'black'
+  private static readonly _NODE_CIRCLE_STROKE_COLOR_SELECTED = 'purple'
   private static readonly _LINK_STROKE_COLOR = 'black'
   private static readonly _LINK_STROKE = 6
   private static readonly _LINK_STROKE_HOVER = 12
@@ -57,8 +58,8 @@ export default class GraphComponent {
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
 
-  private static readonly _ZOOM_MIN = 1
-  private static readonly _ZOOM_MAX = 2.5
+  private static readonly _ZOOM_MIN = 0.5
+  private static readonly _ZOOM_MAX = 2
 
   /*
    * This value is the time it takes in ms (milliseconds) for a single click
@@ -294,6 +295,7 @@ export default class GraphComponent {
           x: d3.event.clientX,
           y: d3.event.clientY,
         })
+        this._locationFocusedLocation = null
         this._lastRightClickLocation = position
         this._setSelectedNode(null)
         showContextMenu('graph.background')
@@ -329,8 +331,9 @@ export default class GraphComponent {
   private _renderNodes(data: IGraphData): void {
     const metadataItems = graphMetadataToList(data.metadata)
 
-    // Node groups
-    const nodes = this._gNodes.selectAll('.node')
+    const existingNodes = this._gNodes.selectAll('.node')
+
+    const newNodes = existingNodes
       // NOTE: Key-function provides D3 with information about which dataum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(metadataItems, (d: IGraphNodeData) => d.id)
@@ -344,7 +347,7 @@ export default class GraphComponent {
       .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
 
     // Node circles
-    nodes
+    newNodes
       .append('circle')
       .attr('cx', (d: IGraphNodeData) => d.x)
       .attr('cy', (d: IGraphNodeData) => d.y)
@@ -355,7 +358,7 @@ export default class GraphComponent {
       .call(this._drag)
 
     // Node labels
-    nodes
+    newNodes
       .append('text')
       .text((d: IGraphNodeData) => d.title)
       .attr('x', (d: IGraphNodeData) => d.x + this._labelfontSize / 2)
@@ -363,18 +366,24 @@ export default class GraphComponent {
       .attr('font-size', this._labelfontSize)
       .call(this._drag)
 
+    existingNodes
+      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // element. This allows arrays in different orders to work as expected
+      .data(metadataItems, (d: IGraphNodeData) => d.id)
+      .exit()
+      .remove()
+
     this._nodes = this._g.selectAll('.node')
     this._nodeTextLabels = this._nodes.selectAll('text')
   }
 
   private _renderLinks(data: IGraphData): void {
-    logger.debug('Rendering links')
-
     const linkData = flattenGraphIndex(data.index)
     const metadataItems = graphMetadataToList(data.metadata)
 
-    this._links = this._gLinks.selectAll('.link')
-    this._links
+    const existingLinks = this._gLinks.selectAll('.link')
+
+    existingLinks
       // NOTE: Key-function provides D3 with information about which dataum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(linkData, (l: ILinkTuple) => l.id)
@@ -396,6 +405,13 @@ export default class GraphComponent {
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
       .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+
+    existingLinks
+      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // element. This allows arrays in different orders to work as expected
+      .data(linkData, (l: ILinkTuple) => l.id)
+      .exit()
+      .remove()
 
     this._links = this._g.selectAll('.link')
   }
@@ -448,6 +464,7 @@ export default class GraphComponent {
   }
 
   private _onNodeClick(d: IGraphNodeData): void {
+    this._setSelectedNode(d.id)
     d3.event.stopPropagation()
     this._lastClickWasSingle = true
     setTimeout(() => {
@@ -489,6 +506,8 @@ export default class GraphComponent {
   private _enableLinkClickJumpingToOppositeNode() {
     this._links
       .on('click', (d: ILinkTuple) => {
+        d3.event.stopPropagation()
+
         const position = this._svgToGraphPosition({
           x: d3.event.clientX,
           y: d3.event.clientY,
@@ -498,6 +517,9 @@ export default class GraphComponent {
 
         const distToSource = cartesianDistance(position, sourceNode)
         const distToTarget = cartesianDistance(position, targetNode)
+
+        this._setSelectedNode(
+          (distToSource < distToTarget) ? targetNode.id : sourceNode.id)
 
         this._locationFocusedLocation = (distToSource < distToTarget)
            ? {x: targetNode.x, y: targetNode.y}
@@ -516,6 +538,8 @@ export default class GraphComponent {
 
         // NOTE: If node labels change such that they are not outside the node circle --
         // as it is currently -- then there is no need to handle dragging on the labels
+
+        this._setSelectedNode(d.id)
 
         d.x += d3.event.dx
         d.y += d3.event.dy
@@ -552,7 +576,7 @@ export default class GraphComponent {
               .attr('cy', d.y)
         })
 
-        this._actionStream!.next(new NodeDragAction(d.id))
+        this._actionStream!.next(new NodeDragAction(d.id, {x: d.x, y: d.y}))
       })
   }
 
@@ -636,11 +660,11 @@ export default class GraphComponent {
     this._links
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', GraphComponent._LINK_STROKE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .style('stroke-width', GraphComponent._LINK_STROKE + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
       })
   }
 
@@ -651,20 +675,23 @@ export default class GraphComponent {
   // UTILITIES /////////////////////////////////////////////////////////////////
 
   private _setSelectedNode(id: GraphNodeId | null): void {
+    if (this._selectedNode == id) return
+
     if (this._selectedNode !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === this._selectedNode)
         .selectAll('circle')
-        .style('stroke-width', GraphComponent._NODE_CIRCLE_STROKE)
-        .style('stroke', 'black')
+        .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE)
+        .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
 
     if (id !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === id)
         .selectAll('circle')
-        .style('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER)
-        .style('stroke', 'purple')
+        .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER)
+        .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR_SELECTED)
 
+    logger.debug('Setting selected node to', id)
     this._selectedNode = id
   }
 
