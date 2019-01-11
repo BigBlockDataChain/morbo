@@ -1,6 +1,6 @@
 import * as html from '@hyperapp/html'
 
-import {loadNote} from '@lib/io'
+import {loadNote, writeNote} from '@lib/io'
 import {
   El,
   GraphNodeId,
@@ -8,6 +8,7 @@ import {
   NoteDataType,
 } from '@lib/types'
 import './mirror-mark'
+import mirrorMark from './mirror-mark'
 
 import './editor-component.css'
 
@@ -69,6 +70,11 @@ export const actions = {
     }
   },
 
+  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
+    const data = _state.textEditor.data
+    await writeNote(nodeId, NoteDataType.TEXT, data)
+  },
+
   setNode: (node: IGraphNodeData) => () => {
     return {node}
   },
@@ -81,6 +87,10 @@ export function view(
   onClose: () => any,
 ) {
   if (node !== _state.node) {
+    if (_state.node !== null) {
+      _actions.saveTextNote(_state.node.id)
+    }
+
     _actions.setNode(node)
     _actions.textEditor.setData(null)
     _actions.loadTextNote(node.id)
@@ -89,7 +99,7 @@ export function view(
   return html.div(
     {id: 'editor-container'},
     [
-      ...headerButtons(node, onClose),
+      ...headerButtons(node, _actions, onClose),
       html.div(
         {id: 'editor'},
         [
@@ -100,7 +110,7 @@ export function view(
                 const mirrorMarkOptions = {
                   showToolbar: true,
                 }
-                const mirrorMarkEditor = (window as any).mirrorMark(el, mirrorMarkOptions)
+                const mirrorMarkEditor = mirrorMark(el, mirrorMarkOptions)
                 mirrorMarkEditor.render()
                 _actions.textEditor.setParentTextArea(el)
                 _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
@@ -129,8 +139,30 @@ export function view(
   )
 }
 
-function headerButtons(node: IGraphNodeData, onClose: () => any) {
+function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) {
   return [
+<<<<<<< HEAD
+=======
+    html.button(
+      {
+        id: 'editor-close',
+        onclick: (ev: Event) => {
+          _actions.saveTextNote(node.id),
+          onClose()
+        },
+      },
+      'x',
+    ),
+    html.button(
+      {
+        id: 'editor-save',
+        onclick: () => {
+          _actions.saveTextNote(node.id)
+        },
+      },
+      'save',
+    ),
+>>>>>>> 7785d94aceb828d094f6fcaaf2162e666ba0f5c0
     html.div(
       {class: 'container'},
       [

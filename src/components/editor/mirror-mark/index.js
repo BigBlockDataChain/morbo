@@ -1,335 +1,316 @@
 /* tslint:disable */
-import * as codemirror from 'codemirror'
-
-import './styles.css'
-
 /**
  * @license MirrorMark v0.1
  * (c) 2015 Musicbed http://www.musicbed.com
  * License: MIT
  */
-(function(CodeMirror) { 'use strict';
-  /**
-   * Bootstrap our module
-   */
-  (function(fn) {
-    if (typeof exports == "object" && typeof module == "object") { // CommonJS
-      module.exports = fn;
-    } else if (typeof define == "function" && define.amd) { // AMD
-      return define([], fn);
+
+import * as CodeMirror from 'codemirror'
+
+import './styles.css'
+
+class MirrorMark {
+
+  constructor(element, options) {
+    this.element = element
+    this.options = options
+
+    this.tools = [
+      {name: 'bold', action: 'bold', className: 'fa fa-bold'},
+      {name: 'italicize', action: 'italicize', className: 'fa fa-italic'},
+      {name: 'blockquote', action: 'blockquote', className: 'fa fa-quote-left'},
+      {name: 'link', action: 'link', className: 'fa fa-link'},
+      {name: 'image', action: 'image', className: 'fa fa-image'},
+      {name: 'unorderedList', action: 'unorderedList', className: 'fa fa-list'},
+      {name: 'orderedList', action: 'orderedList', className: 'fa fa-list-ol'},
+      {name: 'fullScreen', action: 'fullScreen', className: 'fa fa-expand'},
+    ]
+
+    this.keyMaps = {
+      // NOTE: For now remember to register Mac (Cmd-) versions too
+      'Ctrl-B': 'bold',
+      'Ctrl-I': 'italicize',
+      'Ctrl-\'': 'blockquote',
+      'Ctrl-Alt-L': 'orderedList',
+      'Ctrl-L': 'unorderedList',
+      'Ctrl-Alt-I': 'image',
+      'Ctrl-H': 'hr',
+      'Ctrl-K': 'link',
+      // TODO: Reduce this duplication and automate setup of both Ctrl and Cmd prefixes
+      'Cmd-B': 'bold',
+      'Cmd-I': 'italicize',
+      'Cmd-\'': 'blockquote',
+      'Cmd-Alt-L': 'orderedList',
+      'Cmd-L': 'unorderedList',
+      'Cmd-Alt-I': 'image',
+      'Cmd-H': 'hr',
+      'Cmd-K': 'link',
     }
 
-    if (window)
-      window.mirrorMark = fn
-  })(mirrorMark);
-
-  /**
-   * Our delegate prototype used by our factory
-   * @type {Object}
-   */
-  var mirrorMarkProto = {
-
-    /**
-     * Render the component
-     */
-    render: function render() {
-      this.registerKeyMaps(this.keyMaps);
-      this.cm = CodeMirror.fromTextArea(this.element, this.options);
-
-      if (this.options.showToolbar) {
-        this.setToolbar(this.tools);
-      }
-    },
-
-    /**
-     * Setup the toolbar
-     */
-    setToolbar: function setToolbar(tools) {
-
-      var toolbar = document.createElement('ul');
-      toolbar.className = this.options.theme + '-' + 'toolbar';
-
-      var tools = this.generateToolList(tools);
-
-      tools.forEach(function(tool) {
-        toolbar.appendChild(tool)
-      });
-
-      var cmWrapper = this.cm.getWrapperElement();
-      cmWrapper.parentNode.insertBefore(toolbar, cmWrapper);
-
-    },
-
-    /**
-     * Register Keymaps by extending the extraKeys object
-     * @param {Object} keyMaps
-     */
-    registerKeyMaps: function registerKeyMaps(keyMaps) {
-      for (var name in keyMaps) {
-        if (typeof(this.actions[keyMaps[name]]) !== 'function')
-          throw "MirrorMark - '" + keyMaps[name] + "' is not a registered action";
-
-        var obj = {};
-        obj[name] = this.actions[keyMaps[name]].bind(this);
-        Object.assign(this.options.extraKeys, obj);
-      }
-    },
-
-
-    /**
-     * Register actions by extending the default actions
-     * @param  {Object} actions [description]
-     */
-    registerActions: function registerActions(actions) {
-      return Object.assign(this.actions, actions);
-    },
-
-
-    /**
-     * Register tools by extending and overwriting the default tools
-     * @param  {Array} tools
-     * @param  {Bool} replace - replace the default tools with the ones provided. Defaults
-     *   to false.
-     */
-    registerTools: function registerTools(tools, replace) {
-      for (var action in tools) {
-        if (this.actions[tools[action].action]
-            && typeof(this.actions[tools[action].action]) !== 'function')
-          throw "MirrorMark - '" + tools[action].action + "' is not a registered action";
-      }
-
-      if (replace) {
-        this.tools = tools;
-        return;
-      }
-
-      this.tools = this.tools.concat(tools)
-    },
-
-    /**
-     * A recursive function to generate and return an unordered list of tools
-     * @param  {Object}
-     */
-    generateToolList: function generateToolList(tools) {
-      return tools.map(function(tool) {
-        var item = document.createElement("li"),
-          anchor = document.createElement("a");
-
-        item.className = tool.name;
-
-        if (tool.className) {
-          anchor.className = tool.className;
-        }
-
-        if (tool.showName) {
-          var text = document.createTextNode(tool.name);
-          anchor.appendChild(text);
-        }
-
-        if (tool.action) {
-          anchor.onclick = function(e) {
-            this.cm.focus();
-            this.actions[tool.action].call(this);
-          }.bind(this);
-        }
-
-        item.appendChild(anchor);
-
-        if (tool.nested) {
-          item.className += " has-nested";
-          var ul = document.createElement('ul');
-          ul.className = this.options.theme + "-toolbar-list"
-          var nested = generateToolList.call(this, tool.nested);
-          nested.forEach(function(nestedItem) {
-            ul.appendChild(nestedItem);
-          });
-
-          item.appendChild(ul);
-        }
-
-        return item
-
-      }.bind(this));
-    },
-
-    /**
-     * Default Tools in Toolbar
-     * @todo - update so it's not so tightly coupled with Font Awesome.
-     */
-    tools: [
-      { name: "bold", action: "bold", className: "fa fa-bold" },
-      { name: "italicize", action: "italicize", className: "fa fa-italic" },
-      { name: "blockquote", action: "blockquote", className: "fa fa-quote-left" },
-      { name: "link", action: "link", className: "fa fa-link" },
-      { name: "image", action: "image", className: "fa fa-image" },
-      { name: "unorderedList", action: "unorderedList", className: "fa fa-list" },
-      { name: "orderedList", action: "orderedList", className: "fa fa-list-ol" },
-      { name: "fullScreen", action: "fullScreen", className: "fa fa-expand" },
-    ],
-
-    /**
-     * Default Keymaps
-     * @type {Object}
-     */
-    keyMaps: {
-      "Cmd-B": 'bold',
-      "Cmd-I": 'italicize',
-      "Cmd-'": 'blockquote',
-      "Cmd-Alt-L": 'orderedList',
-      "Cmd-L": 'unorderedList',
-      "Cmd-Alt-I": 'image',
-      "Cmd-H": 'hr',
-      "Cmd-K": 'link'
-    },
-
-    /**
-     * Default Actions
-     * @type {Object}
-     */
-    actions: {
+    this.actions = {
       bold: function () {
         this.insertAround('**', '**')
       },
       italicize: function () {
         this.insertAround('*', '*')
       },
-      "code": function () {
+      code: function () {
         this.insertAround('```\r\n', '\r\n```')
       },
-      "blockquote": function () {
-        this.insertBefore('> ', 2);
+      blockquote: function () {
+        this.insertBefore('> ', 2)
       },
-      "orderedList": function () {
-        this.insertBefore('1. ', 3);
+      orderedList: function () {
+        this.insertBefore('1. ', 3)
       },
-      "unorderedList": function () {
-        this.insertBefore('* ', 2);
+      unorderedList: function () {
+        this.insertBefore('* ', 2)
       },
-      "image": function () {
-        this.insertBefore('![](http://)', 2);
+      image: function () {
+        this.insertBefore('![](http://)', 2)
       },
-      "link": function () {
-        this.insertAround('[', '](http://)');
+      link: function () {
+        this.insertAround('[', '](http://)')
       },
-      "hr": function () {
-        this.insert('---');
+      hr: function () {
+        this.insert('---')
       },
-      "fullScreen": function () {
-        var el = this.cm.getWrapperElement();
+      fullScreen: function () {
+        const el = this.cm.getWrapperElement()
 
         // https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
-        var doc = document;
-        var isFull = doc.fullScreen || doc.mozFullScreen || doc.webkitFullScreen;
-        var request = function() {
+        const doc = document
+        const isFull = doc.fullScreen || doc.mozFullScreen || doc.webkitFullScreen
+        const request = function() {
           if (el.requestFullscreen) {
-            el.requestFullscreen();
+            el.requestFullscreen()
           } else if (el.webkitRequestFullscreen) {
-            el.webkitRequestFullscreen();
+            el.webkitRequestFullscreen()
           } else if (el.mozRequestFullScreen) {
-            el.mozRequestFullScreen();
+            el.mozRequestFullScreen()
           } else if (el.msRequestFullscreen) {
-            el.msRequestFullscreen();
+            el.msRequestFullscreen()
           }
         }
-        var cancel = function() {
+        const cancel = function() {
           if (doc.cancelFullScreen) {
-            doc.cancelFullScreen();
+            doc.cancelFullScreen()
           } else if (doc.mozCancelFullScreen) {
-            doc.mozCancelFullScreen();
+            doc.mozCancelFullScreen()
           } else if (doc.webkitCancelFullScreen) {
-            doc.webkitCancelFullScreen();
+            doc.webkitCancelFullScreen()
           }
-        };
-        if (!isFull) {
-          request();
-        } else if (cancel) {
-          cancel();
         }
-      }
-    },
-
-    /**
-     * Insert a string at cursor position
-     * @param  {String} insertion
-     */
-    insert: function insert(insertion) {
-      var doc = this.cm.getDoc();
-      var cursor = doc.getCursor();
-
-      doc.replaceRange(insertion, { line: cursor.line, ch: cursor.ch });
-    },
-
-    /**
-     * Insert a string at the start and end of a selection
-     * @param  {String} start
-     * @param  {String} end
-     */
-    insertAround: function insertAround(start, end) {
-      var doc = this.cm.getDoc();
-      var cursor = doc.getCursor();
-
-      if (doc.somethingSelected()) {
-        var selection = doc.getSelection();
-        doc.replaceSelection(start + selection + end);
-      } else {
-        // If no selection then insert start and end args and set cursor position
-        // between the two.
-        doc.replaceRange(start + end, { line: cursor.line, ch: cursor.ch });
-        doc.setCursor({ line: cursor.line, ch: cursor.ch + start.length })
-      }
-    },
-
-    /**
-     * Insert a string before a selection
-     * @param  {String} insertion
-     */
-    insertBefore: function insertBefore(insertion, cursorOffset) {
-      var doc = this.cm.getDoc();
-      var cursor = doc.getCursor();
-
-      if (doc.somethingSelected()) {
-        var selections = doc.listSelections();
-        selections.forEach(function(selection) {
-          var pos = [selection.head.line, selection.anchor.line].sort();
-
-          for (var i = pos[0]; i <= pos[1]; i++) {
-            doc.replaceRange(insertion, { line: i, ch: 0 });
-          }
-
-          doc.setCursor({ line: pos[0], ch: cursorOffset || 0 });
-        });
-      } else {
-        doc.replaceRange(insertion, { line: cursor.line, ch: 0 });
-        doc.setCursor({ line: cursor.line, ch: cursorOffset || 0 })
+        if (!isFull) {
+          request()
+        } else if (cancel) {
+          cancel()
+        }
       }
     }
   }
 
   /**
-   * Our Factory
-   * @param  {Object} element
-   * @param  {Object} options
-   * @return {Object}
+   * Render the component
    */
-  function mirrorMark(element, options) {
+  render() {
+    this.registerKeyMaps(this.keyMaps)
+    this.cm = CodeMirror.fromTextArea(this.element, this.options)
 
-    // Defaults
-    var defaults = {
-      theme: 'mirrormark',
-      tabSize: '2',
-      indentWithTabs: true,
-      lineWrapping: true,
-      extraKeys: {
-        "Enter": 'newlineAndIndentContinueMarkdownList',
-      },
-      mode: 'markdown'
+    if (this.options.showToolbar) {
+      this.setToolbar(this.tools)
     }
-
-    // Extend our defaults with the options provided
-    Object.assign(defaults, options);
-
-    return Object.assign(
-      Object.create(mirrorMarkProto), { element: element, options: defaults });
   }
 
-})(codemirror);
+  /**
+   * Setup the toolbar
+   */
+  setToolbar(tools) {
+    const toolbar = document.createElement('ul')
+    toolbar.className = this.options.theme + '-toolbar'
+
+    this.generateToolList(tools)
+      .forEach(function(tool) {
+        toolbar.appendChild(tool)
+      })
+
+    const cmWrapper = this.cm.getWrapperElement()
+    cmWrapper.parentNode.insertBefore(toolbar, cmWrapper)
+  }
+
+  /**
+   * Register Keymaps by extending the extraKeys object
+   * @param {Object} keyMaps
+   */
+  registerKeyMaps(keyMaps) {
+    for (const name in keyMaps) {
+      if (typeof(this.actions[keyMaps[name]]) !== 'function')
+        throw 'MirrorMark - \'' + keyMaps[name] + '\' is not a registered action'
+
+      const obj = {}
+      obj[name] = this.actions[keyMaps[name]].bind(this)
+      Object.assign(this.options.extraKeys, obj)
+    }
+  }
+
+  /**
+   * Register actions by extending the default actions
+   * @param  {Object} actions [description]
+   */
+  registerActions(actions) {
+    return Object.assign(this.actions, actions)
+  }
+
+  /**
+   * Register tools by extending and overwriting the default tools
+   * @param  {Array} tools
+   * @param  {Bool} replace - replace the default tools with the ones provided. Defaults
+   *   to false.
+   */
+  registerTools(tools, replace) {
+    for (const action in tools) {
+      if (this.actions[tools[action].action]
+          && typeof(this.actions[tools[action].action]) !== 'function')
+        throw 'MirrorMark - \'' + tools[action].action + '\' is not a registered action'
+    }
+
+    if (replace) {
+      this.tools = tools
+      return
+    }
+
+    this.tools = this.tools.concat(tools)
+  }
+
+  /**
+   * A recursive function to generate and return an unordered list of tools
+   * @param  {Object}
+   */
+  generateToolList(tools) {
+    return tools.map(function(tool) {
+      const item = document.createElement('li'),
+        anchor = document.createElement('a')
+
+      item.className = tool.name
+
+      if (tool.className) {
+        anchor.className = tool.className
+      }
+
+      if (tool.showName) {
+        const text = document.createTextNode(tool.name)
+        anchor.appendChild(text)
+      }
+
+      if (tool.action) {
+        anchor.onclick = function(e) {
+          this.cm.focus()
+          this.actions[tool.action].call(this)
+        }.bind(this)
+      }
+
+      item.appendChild(anchor)
+
+      if (tool.nested) {
+        item.className += ' has-nested'
+        const ul = document.createElement('ul')
+        ul.className = this.options.theme + '-toolbar-list'
+        const nested = generateToolList.call(this, tool.nested)
+        nested.forEach(function(nestedItem) {
+          ul.appendChild(nestedItem)
+        })
+
+        item.appendChild(ul)
+      }
+
+      return item
+
+    }.bind(this))
+  }
+
+  /**
+   * Insert a string at cursor position
+   * @param  {String} insertion
+   */
+  insert(insertion) {
+    const doc = this.cm.getDoc()
+    const cursor = doc.getCursor()
+
+    doc.replaceRange(insertion, { line: cursor.line, ch: cursor.ch })
+  }
+
+  /**
+   * Insert a string at the start and end of a selection
+   * @param  {String} start
+   * @param  {String} end
+   */
+  insertAround(start, end) {
+    const doc = this.cm.getDoc()
+    const cursor = doc.getCursor()
+
+    if (doc.somethingSelected()) {
+      const selection = doc.getSelection()
+      doc.replaceSelection(start + selection + end)
+    } else {
+      // If no selection then insert start and end args and set cursor position
+      // between the two.
+      doc.replaceRange(start + end, {line: cursor.line, ch: cursor.ch})
+      doc.setCursor({line: cursor.line, ch: cursor.ch + start.length})
+    }
+  }
+
+  /**
+   * Insert a string before a selection
+   * @param  {String} insertion
+   */
+  insertBefore(insertion, cursorOffset) {
+    const doc = this.cm.getDoc()
+    const cursor = doc.getCursor()
+
+    if (doc.somethingSelected()) {
+      const selections = doc.listSelections()
+      selections.forEach(function(selection) {
+        const pos = [selection.head.line, selection.anchor.line].sort()
+
+        for (const i = pos[0]; i <= pos[1]; i++) {
+          doc.replaceRange(insertion, { line: i, ch: 0 })
+        }
+
+        doc.setCursor({ line: pos[0], ch: cursorOffset || 0 })
+      })
+    } else {
+      doc.replaceRange(insertion, { line: cursor.line, ch: 0 })
+      doc.setCursor({ line: cursor.line, ch: cursorOffset || 0 })
+    }
+  }
+
+}
+
+/**
+ * Factory
+ * @param  {Object} element
+ * @param  {Object} options
+ * @return {Object}
+ */
+export default function mirrorMark(element, options) {
+  // Defaults
+  const defaults = {
+    theme: 'mirrormark',
+    tabSize: '2',
+    indentWithTabs: true,
+    lineWrapping: true,
+    extraKeys: {
+      'Enter': 'newlineAndIndentContinueMarkdownList',
+    },
+    mode: 'markdown',
+  }
+
+  return new MirrorMark(
+    element,
+    {
+      // Extend our defaults with the options provided
+      ...defaults,
+      ...options,
+    },
+  )
+}

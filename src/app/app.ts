@@ -9,6 +9,7 @@ import {
   GraphCommand,
   ResetGraphCommand,
 } from '@components/graph/types'
+import Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
 import {getLogger} from '@lib/logger'
@@ -54,6 +55,7 @@ interface IGraphState {
 interface IRuntime {
   showEditor: boolean
   selectedNode: null | IGraphNodeData,
+  settingsOpen: boolean
 }
 
 export const initialState: IState = {
@@ -69,6 +71,7 @@ export const initialState: IState = {
   runtime: {
     showEditor: true,
     selectedNode: null,
+    settingsOpen: true,
   },
 }
 
@@ -113,6 +116,15 @@ export const appActions = {
     }
   },
 
+  toggleSettingsPanel: () => (state: IState, actions: any) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        settingsOpen: !state.runtime.settingsOpen,
+      },
+    }
+  },
+
   onSearchResultClick: (node: IGraphNodeData) => {
     graphCommandStream.next(new FocusCommand(node))
   },
@@ -136,11 +148,16 @@ export function view(state: IState, actions: any) {
           onBack: emptyFunction,
           onHome: actions.resetGraph,
           onSave: actions.save,
-          onSettings: emptyFunction,
+          onSettings: actions.toggleSettingsPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },
         (query: string) => search(state.graph.metadata, query),
       ),
+      (state.runtime.settingsOpen === false)
+        ? Settings(
+          actions.toggleSettingsPanel,
+        )
+        : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
