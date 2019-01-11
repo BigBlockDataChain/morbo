@@ -38,7 +38,7 @@ import './graph.css'
 
 const logger = getLogger('d3-graph')
 
-interface ILinkTuple { source: GraphNodeId, target: GraphNodeId }
+interface ILinkTuple { id: string, source: GraphNodeId, target: GraphNodeId }
 interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 
@@ -74,6 +74,8 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _c10: any | null = null
   private _g: any | null = null
+  private _gNodes: any | null = null
+  private _gLinks: any | null = null
   private _zoomHandler: any | null = null
 
   private _links: any | null = null
@@ -140,6 +142,10 @@ export default class GraphComponent {
     this._svg = this._createSvg(host, dimensions)
     this._g = this._svg.append('g')
       .attr('class', 'everything')
+    this._gLinks = this._g.append('g')
+      .attr('class', 'links')
+    this._gNodes = this._g.append('g')
+      .attr('class', 'nodes')
 
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
@@ -324,8 +330,10 @@ export default class GraphComponent {
     const metadataItems = graphMetadataToList(data.metadata)
 
     // Node groups
-    const nodes = this._g.selectAll('.node')
-      .data(metadataItems)
+    const nodes = this._gNodes.selectAll('.node')
+      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // element. This allows arrays in different orders to work as expected
+      .data(metadataItems, (d: IGraphNodeData) => d.id)
       .enter()
       .append('g')
       .attr('class', 'node')
@@ -360,15 +368,19 @@ export default class GraphComponent {
   }
 
   private _renderLinks(data: IGraphData): void {
+    logger.debug('Rendering links')
+
     const linkData = flattenGraphIndex(data.index)
     const metadataItems = graphMetadataToList(data.metadata)
 
-    this._links = this._g.selectAll('.link')
+    this._links = this._gLinks.selectAll('.link')
     this._links
-      .data(linkData)
+      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // element. This allows arrays in different orders to work as expected
+      .data(linkData, (l: ILinkTuple) => l.id)
       .enter()
       .append('line')
-      .attr('class', 'link')
+      .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
       .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
         const sourceNode = metadataItems.filter(
           (d: IGraphNodeData) => d.id === l.source)[0]
@@ -643,14 +655,14 @@ export default class GraphComponent {
       this._nodes
         .filter((d: IGraphNodeData) => d.id === this._selectedNode)
         .selectAll('circle')
-        .style('stroke-width', '1px')
+        .style('stroke-width', GraphComponent._NODE_CIRCLE_STROKE)
         .style('stroke', 'black')
 
     if (id !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === id)
         .selectAll('circle')
-        .style('stroke-width', '2px')
+        .style('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER)
         .style('stroke', 'purple')
 
     this._selectedNode = id
@@ -717,7 +729,11 @@ function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
   const keys = Object.keys(index).map(Number)
   return keys.reduce(
     (accum: ILinkTuple[], source: GraphNodeId) => {
-      accum.push(...index[source].map((target: GraphNodeId) => ({source, target})))
+      accum.push(
+        ...index[source].map(
+          (target: GraphNodeId) => ({id: `${source}-${target}`, source, target}),
+        ),
+      )
       return accum
     },
     [],
