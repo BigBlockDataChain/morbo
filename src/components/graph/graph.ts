@@ -675,7 +675,7 @@ export default class GraphComponent {
   // UTILITIES /////////////////////////////////////////////////////////////////
 
   private _setSelectedNode(id: GraphNodeId | null): void {
-    if (this._selectedNode == id) return
+    if (this._selectedNode === id) return
 
     if (this._selectedNode !== null)
       this._nodes
