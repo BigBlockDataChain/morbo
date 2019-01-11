@@ -2,44 +2,50 @@ import {GraphNodeId, IGraphNodeData, IPosition} from '@lib/types'
 
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
-export interface INodeClickAction { readonly kind: NodeClickType, nodeId: GraphNodeId }
+export interface INodeClickAction {
+  readonly kind: NodeClickType
+  readonly nodeId: GraphNodeId
+}
 export class NodeClickAction implements INodeClickAction {
   public readonly kind = NODE_CLICK_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 export const NODE_RIGHT_CLICK_TYPE = 'nodeRightClick'
 type NodeRightClickType            = 'nodeRightClick'
 export interface INodeRightClickAction {
   readonly kind: NodeRightClickType,
-  nodeId: GraphNodeId
+  readonly nodeId: GraphNodeId
 }
 export class NodeRightClickAction implements INodeRightClickAction {
   public readonly kind = NODE_RIGHT_CLICK_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 export const NODE_DBL_CLICK_TYPE = 'nodeDblClick'
 export type NodeDblClickType     = 'nodeDblClick'
 export interface INodeDblClickAction {
   readonly kind: NodeDblClickType,
-  nodeId: GraphNodeId
+  readonly nodeId: GraphNodeId
 }
 export class NodeDblClickAction implements INodeDblClickAction {
   public readonly kind = NODE_DBL_CLICK_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 export const NODE_DRAG_TYPE = 'nodeDrag'
 export type NodeDragType    = 'nodeDrag'
 export interface INodeDragAction {
-  kind: NodeDragType
-  nodeId: GraphNodeId
-  position: IPosition
+  readonly kind: NodeDragType
+  readonly nodeId: GraphNodeId
+  readonly position: IPosition
 }
 export class NodeDragAction implements INodeDragAction {
   public readonly kind = NODE_DRAG_TYPE
-  public constructor(public nodeId: GraphNodeId, public position: IPosition) {}
+  public constructor(
+    public readonly nodeId: GraphNodeId,
+    public readonly position: IPosition,
+  ) {}
 }
 
 // NOTE Not implemented yet
@@ -53,10 +59,13 @@ export class NodeDragAction implements INodeDragAction {
 
 export const NODE_HOVER_SHORT_TYPE = 'nodeHoverShort'
 export type NodeHoverShortType     = 'nodeHoverShort'
-export interface INodeHoverShortAction { kind: NodeHoverShortType, nodeId: GraphNodeId }
+export interface INodeHoverShortAction {
+  readonly kind: NodeHoverShortType
+  readonly nodeId: GraphNodeId
+}
 export class NodeHoverShortAction implements INodeHoverShortAction {
   public readonly kind = NODE_HOVER_SHORT_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 // NOTE Not implemented yet
@@ -70,29 +79,35 @@ export class NodeHoverShortAction implements INodeHoverShortAction {
 
 export const NODE_HOVER_END_TYPE = 'nodeHoverEnd'
 export type NodeHoverEndType     = 'nodeHoverEnd'
-export interface INodeHoverEndAction { kind: NodeHoverEndType, nodeId: GraphNodeId }
+export interface INodeHoverEndAction {
+  readonly kind: NodeHoverEndType
+  readonly nodeId: GraphNodeId
+}
 export class NodeHoverEndAction implements INodeHoverEndAction {
   public readonly kind = NODE_HOVER_END_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 export const BACKGROUND_CLICK_TYPE = 'backgroundClick'
 export type BackgroundClickType    = 'backgroundClick'
-export interface IBackgroundClickAction { kind: BackgroundClickType, position: IPosition }
+export interface IBackgroundClickAction {
+  readonly kind: BackgroundClickType
+  readonly position: IPosition
+}
 export class BackgroundClickAction implements IBackgroundClickAction {
   public readonly kind = BACKGROUND_CLICK_TYPE
-  public constructor(public position: IPosition) {}
+  public constructor(public readonly position: IPosition) {}
 }
 
 export const BACKGROUND_DBL_CLICK_TYPE = 'backgroundDblClick'
 export type BackgroundDblClickType     = 'backgroundDblClick'
 export interface IBackgroundDblClickAction {
-  kind: BackgroundDblClickType,
-  position: IPosition,
+  readonly kind: BackgroundDblClickType,
+  readonly position: IPosition,
 }
 export class BackgroundDblClickAction implements IBackgroundDblClickAction {
   public readonly kind = BACKGROUND_DBL_CLICK_TYPE
-  public constructor(public position: IPosition) {}
+  public constructor(public readonly position: IPosition) {}
 }
 
 export const ZOOM_TYPE = 'zoom'
@@ -105,35 +120,38 @@ export class ZoomAction implements IZoomAction {
 export const CREATE_NEW_NODE_TYPE = 'createNewNode'
 export type CreateNewNodeType     = 'createNewNode'
 export interface ICreateNewNodeAction {
-  kind: CreateNewNodeType,
-  position: IPosition,
-  parent: null | GraphNodeId,
+  readonly kind: CreateNewNodeType,
+  readonly position: IPosition,
+  readonly parent: null | GraphNodeId,
 }
 export class CreateNewNodeAction implements ICreateNewNodeAction {
   public readonly kind = CREATE_NEW_NODE_TYPE
-  public constructor(public position: IPosition, public parent: null | GraphNodeId) {}
+  public constructor(
+    public readonly position: IPosition,
+    public readonly parent: null | GraphNodeId,
+  ) {}
 }
 
 export const EDIT_NODE_TYPE = 'editNode'
 export type EditNodeType    = 'editNode'
 export interface IEditNodeAction {
-  kind: EditNodeType,
-  id: GraphNodeId,
+  readonly kind: EditNodeType,
+  readonly id: GraphNodeId,
 }
 export class EditNodeAction implements IEditNodeAction {
   public readonly kind = EDIT_NODE_TYPE
-  public constructor(public id: GraphNodeId) {}
+  public constructor(public readonly id: GraphNodeId) {}
 }
 
 export const DELETE_NODE_TYPE = 'deleteNode'
 export type DeleteNodeType    = 'deleteNode'
 export interface IDeleteNodeAction {
-  kind: DeleteNodeType,
-  nodeId: GraphNodeId,
+  readonly kind: DeleteNodeType,
+  readonly nodeId: GraphNodeId,
 }
 export class DeleteNodeAction implements IDeleteNodeAction {
   public readonly kind = DELETE_NODE_TYPE
-  public constructor(public nodeId: GraphNodeId) {}
+  public constructor(public readonly nodeId: GraphNodeId) {}
 }
 
 export type GraphAction
@@ -154,15 +172,15 @@ export type GraphAction
 
 export const FOCUS_TYPE = 'focus'
 export type FocusType   = 'focus'
-export interface IFocusCommand { kind: FocusType, position: IPosition }
+export interface IFocusCommand { readonly kind: FocusType, readonly position: IPosition }
 export class FocusCommand implements IFocusCommand {
   public readonly kind = FOCUS_TYPE
-  public constructor(public position: IPosition) {}
+  public constructor(public readonly position: IPosition) {}
 }
 
 export const RESET_GRAPH_TYPE = 'resetGraph'
 export type ResetGraphType   = 'resetGraph'
-export interface IResetGraphCommand { kind: ResetGraphType }
+export interface IResetGraphCommand { readonly kind: ResetGraphType }
 export class ResetGraphCommand implements IResetGraphCommand {
   public readonly kind = RESET_GRAPH_TYPE
 }
