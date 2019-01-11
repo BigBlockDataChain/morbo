@@ -21,6 +21,7 @@ import {
   BackgroundDblClickAction,
   CreateNewNodeAction,
   DeleteNodeAction,
+  EditNodeAction,
   FOCUS_TYPE,
   GraphAction,
   GraphCommand,
@@ -235,7 +236,6 @@ export default class GraphComponent {
       {
         label: 'New child note',
         click: () => setTimeout(() => {
-          logger.log('new clicked')
           const position = {
             x: this._graphData!.metadata[this._selectedNode!].x + 10,
             y: this._graphData!.metadata[this._selectedNode!].y + 10,
@@ -247,20 +247,20 @@ export default class GraphComponent {
       {type: 'separator'},
       {
         label: 'Edit',
-        click() {
-          logger.log('edit clicked')
+        click: () => {
+          this._actionStream!.next(new EditNodeAction(this._selectedNode!))
         },
       },
       {type: 'separator'},
       {
         label: 'Make Parent of...',
-        click() {
+        click: () => {
           logger.log('Make parent of...')
         },
       },
       {
         label: 'Make Child of...',
-        click() {
+        click: () => {
           logger.log('Make child of...')
         },
       },
@@ -268,7 +268,6 @@ export default class GraphComponent {
       {
         label: 'Delete',
         click: () => setTimeout(() => {
-          logger.log('delete clicked')
           this._actionStream!.next(new DeleteNodeAction(this._selectedNode!))
         }, 50),
       },
@@ -277,7 +276,6 @@ export default class GraphComponent {
       {
         label: 'New note',
         click: () => setTimeout(() => {
-          logger.log('new clicked')
           this._actionStream!.next(
             new CreateNewNodeAction(this._lastRightClickLocation!, null))
         }, 50),
