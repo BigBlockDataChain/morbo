@@ -1,13 +1,13 @@
 import {homedir} from 'os'
 import {join} from 'path'
 
+import {getLogger} from '@lib/logger'
 import {
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
   NoteDataType,
 } from '@lib/types'
-import {getLogger} from '@lib/logger'
 import {
   initDataDirectory as _initDataDirectory,
   readFile,
