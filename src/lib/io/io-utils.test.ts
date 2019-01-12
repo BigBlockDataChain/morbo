@@ -1,13 +1,16 @@
 const readFileMock = jest.fn()
 const writeFileMock = jest.fn()
+const mkdirMock = jest.fn()
+const statMock = jest.fn()
 
 import * as electron from 'electron'
 // @ts-ignore // no unused variable
 const remoteSpy = setupElectronRemoteSpy()
 
-import {readFile, writeFile} from './io-utils'
+import {initDataDirectory, readFile, writeFile} from './io-utils'
 
 describe('readFile', () => {
+
   beforeEach(() => {
     jest.resetAllMocks()
   })
@@ -34,9 +37,11 @@ describe('readFile', () => {
     await expect(readFile('./file2.txt')).rejects.toBe('Can not read file')
     expect(readFileMock.mock.calls[0][0]).toBe('./file2.txt')
   })
+
 })
 
 describe('writeFile', () => {
+
   beforeEach(() => {
     jest.resetAllMocks()
   })
@@ -62,6 +67,56 @@ describe('writeFile', () => {
     expect(writeFileMock.mock.calls[0][0]).toBe('./file2.txt')
     expect(writeFileMock.mock.calls[0][1]).toBe('hello world')
   })
+
+})
+
+describe('initDataDirectory', () => {
+
+  beforeEach(() => {
+    jest.resetAllMocks()
+  })
+
+  test('resolves when directory does not exist and directory created', async () => {
+    statMock.mockImplementation(
+      (path: string, callback: (err?: any, stat?: any) => void) =>
+        callback({code: 'ENOENT'}),
+    )
+    mkdirMock.mockImplementation(
+      (path: string, callback: (err?: any) => void) =>
+        callback(),
+    )
+
+    await expect(initDataDirectory('./')).resolves.toBe(undefined)
+  })
+
+  test('resolves when directory already exists', async () => {
+    statMock.mockImplementation(
+      (path: string, callback: (err?: any, stat?: any) => void) =>
+        callback(undefined, {isDirectory: () => true}),
+    )
+    mkdirMock.mockImplementation(
+      (path: string, callback: (err?: any) => void) =>
+        callback(),
+    )
+
+    await expect(initDataDirectory('./')).resolves.toBe(undefined)
+    expect(mkdirMock.mock.calls.length).toBe(0)
+  })
+
+  test('rejects if can\'t check directory already exists due to other err', async () => {
+    statMock.mockImplementation(
+      (path: string, callback: (err?: any, stat?: any) => void) =>
+        callback({code: 'OTHER_ERR'}),
+    )
+    mkdirMock.mockImplementation((path: string, callback: (err?: any) => void) =>
+      callback('Can not make directory'),
+    )
+
+    await expect(initDataDirectory('./')).rejects
+      .toEqual({code: 'OTHER_ERR'})
+    expect(mkdirMock.mock.calls.length).toBe(0)
+  })
+
 })
 
 function setupElectronRemoteSpy() {
@@ -71,6 +126,8 @@ function setupElectronRemoteSpy() {
       return {
         readFile: readFileMock,
         writeFile: writeFileMock,
+        mkdir: mkdirMock,
+        stat: statMock,
       }
 
     return {}

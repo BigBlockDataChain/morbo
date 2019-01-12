@@ -55,6 +55,13 @@ describe('loadIndex', () => {
     )
     expect(await loadIndex()).toEqual(mockIndex)
   })
+
+  test('returns empty index when reading fails', async () => {
+    (readFile as any).mockImplementation(
+      (path: string) => Promise.reject('Failed to read file'),
+    )
+    expect(await loadIndex()).toEqual({})
+  })
 })
 
 describe('writeIndex', () => {
@@ -75,6 +82,13 @@ describe('loadMetadata', () => {
       (path: string) => Promise.resolve(JSON.stringify(mockMetadata)),
     )
     expect(await loadMetadata()).toEqual(mockMetadata)
+  })
+
+  test('returns empty metadata when reading fails', async () => {
+    (readFile as any).mockImplementation(
+      (path: string) => Promise.resolve('Failed to read file'),
+    )
+    expect(await loadMetadata()).toEqual({})
   })
 })
 

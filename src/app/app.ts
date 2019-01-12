@@ -12,6 +12,7 @@ import {
 import Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
+import {initDataDirectory} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import search from '@lib/search'
 import {
@@ -81,8 +82,14 @@ export const appActions = {
   editor: Editor.actions,
   toolbar: Toolbar.actions,
 
-  onCreate: (el: El) => (state: IState, actions: any) => {
+  onCreate: (el: El) => async (state: IState, actions: any) => {
     logger.debug('element created (app)', el)
+
+    try {
+      await initDataDirectory()
+    } catch (err) {
+      logger.error('Failed to create data directory')
+    }
 
     actions.graph.init()
     actions.graph.handleGraphActions({
