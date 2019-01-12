@@ -215,6 +215,10 @@ export default class GraphComponent {
     this._dimensions = dimensions
     this._graphData = data
 
+    if (this._dimensions.width === 0 || this._dimensions.height === 0) {
+      logger.log('Editor dimensions are too small. Skipping render')
+    }
+
     // Must be called before `renderNodes`
     this._enableDrag()
 
@@ -720,9 +724,10 @@ export default class GraphComponent {
       .replace('translate(', '')
       .replace(')', '')
       .split(',')
-      .map(Number)
+      .map((v: string) => v === 'NaN' ? 0 : Number(v))
     transform.translation = {x: translationValues[0], y: translationValues[1]}
-    transform.scale = Number(scaleRaw.match(/\d(\.\d+)*/)[0])
+    const scaleValueRaw = scaleRaw.match(/\d(\.\d+)*/)
+    transform.scale = scaleValueRaw !== null ? Number(scaleValueRaw[0]) : 1
     return transform
   }
 
