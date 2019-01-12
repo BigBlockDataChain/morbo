@@ -53,7 +53,6 @@ export function updateGraphTransform(transform: GraphTransformType): void {
   if (lastTransform !== null && lastTransform.join(' ') === transformString)
     return
 
-  logger.debug('Updating graph transform to', transform)
   lastTransform = transform
   window.localStorage
     .setItem(_GRAPH_TRANSFORMATION_LOCAL_STORAGE_KEY, transform.join(' '))

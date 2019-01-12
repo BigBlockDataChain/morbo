@@ -123,7 +123,6 @@ export default class GraphComponent {
     if (this._d3Initialized
         && dimensions.height === this._height
         && dimensions.width === this._width) {
-      logger.debug('Nothing changed, skipping init')
       return
     }
 
@@ -212,10 +211,9 @@ export default class GraphComponent {
       logger.log('No data has changed, skipping render')
       return
     }
+
     this._dimensions = dimensions
     this._graphData = data
-
-    logger.debug('Drawing graph nodes and links')
 
     // Must be called before `renderNodes`
     this._enableDrag()
@@ -356,7 +354,7 @@ export default class GraphComponent {
       .attr('cy', (d: IGraphNodeData) => d.y)
       .attr('r', this._nodeCircleRadius)
       .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
-      .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
+      .attr('stroke', (d: IGraphNodeData) => this._getNodeColor(d.id))
       .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
       .call(this._drag)
 
@@ -378,6 +376,12 @@ export default class GraphComponent {
 
     this._nodes = this._g.selectAll('.node')
     this._nodeTextLabels = this._nodes.selectAll('text')
+  }
+
+  private _getNodeColor(nodeId: GraphNodeId): string {
+    return this._selectedNode === nodeId
+      ? GraphComponent._NODE_CIRCLE_STROKE_COLOR_SELECTED
+      : GraphComponent._NODE_CIRCLE_STROKE_COLOR
   }
 
   private _renderLinks(data: IGraphData): void {
@@ -422,8 +426,17 @@ export default class GraphComponent {
   private _handleCommandStream(command: GraphCommand): void {
     switch (command.kind) {
       case FOCUS_TYPE:
-        this._locationFocusedLocation = command.position
-        this._focusGraph()
+        if (command.position !== undefined) {
+          this._locationFocusedLocation = command.position
+          this._focusGraph()
+        } else if (command.nodeId !== undefined) {
+          const node = this._graphData!.metadata[command.nodeId]
+          this._locationFocusedLocation = {x: node.x, y: node.y}
+          this._setSelectedNode(command.nodeId)
+          this._focusGraph()
+        } else {
+          logger.warn('Focus comamnd does not contain a position or a nodeId')
+        }
         break
       case RESET_GRAPH_TYPE:
         this._resetPosition()

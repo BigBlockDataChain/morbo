@@ -172,10 +172,19 @@ export type GraphAction
 
 export const FOCUS_TYPE = 'focus'
 export type FocusType   = 'focus'
-export interface IFocusCommand { readonly kind: FocusType, readonly position: IPosition }
+export interface IFocusCommand {
+  readonly kind: FocusType
+  readonly position?: IPosition
+  readonly nodeId?: GraphNodeId
+}
 export class FocusCommand implements IFocusCommand {
   public readonly kind = FOCUS_TYPE
-  public constructor(public readonly position: IPosition) {}
+  public readonly position?: IPosition
+  public readonly nodeId?: GraphNodeId
+  public constructor({position, nodeId}: {position?: IPosition, nodeId?: GraphNodeId}) {
+    this.position = position
+    this.nodeId = nodeId
+  }
 }
 
 export const RESET_GRAPH_TYPE = 'resetGraph'

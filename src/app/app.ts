@@ -24,14 +24,15 @@ import {
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
 import {actions as graphActions} from './actions/graph'
+import {
+  graphActionStream,
+  graphCommandObservable,
+} from './actions/graph-streams'
 
 import './app.css'
 
 const logger = getLogger('main')
 
-const graphActionStream = new Subject<GraphAction>()
-const graphCommandStream = new Subject<GraphCommand>()
-const graphCommandObservable = graphCommandStream.asObservable()
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
 
@@ -85,7 +86,6 @@ export const appActions = {
 
     actions.graph.init()
     actions.graph.handleGraphActions({
-      actionStream: graphActionStream,
       selectNode: actions.selectNode,
     })
   },
@@ -126,11 +126,11 @@ export const appActions = {
   },
 
   onSearchResultClick: (node: IGraphNodeData) => {
-    graphCommandStream.next(new FocusCommand({x: node.x, y: node.y}))
+    graphActions.focusNode(node.id)
   },
 
   resetGraph: () => {
-    graphCommandStream.next(new ResetGraphCommand())
+    graphActions.resetGraph()
   },
 }
 

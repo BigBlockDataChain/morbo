@@ -1,7 +1,11 @@
-import {Subject, timer} from 'rxjs'
+import {Observable, timer} from 'rxjs'
 import {debounce} from 'rxjs/operators'
 
-import {GraphAction} from '@components/graph/types'
+import {
+  FocusCommand,
+  GraphAction,
+  ResetGraphCommand,
+} from '@components/graph/types'
 import * as graphTypes from '@components/graph/types'
 import {
   loadIndex,
@@ -17,10 +21,15 @@ import {
   IPosition,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
+import {
+  graphActionObservable,
+  graphCommandStream,
+} from './graph-streams'
 
 const logger = getLogger('actions/graph')
 
 const GRAPH_ACTION_DEBOUNCE_TIME = 50
+const GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY = 250
 
 export const actions: any = {
   init: () => async (_: any, _actions: any) => {
@@ -35,7 +44,7 @@ export const actions: any = {
     const index = await loadIndexPromise
     const metadata = await loadMetadataPromise
 
-    _actions.setGraphData({
+    _actions._setGraphData({
       index,
       metadata,
     })
@@ -65,19 +74,28 @@ export const actions: any = {
     })
   },
 
-  setGraphData: (graph: any) => () => {
-    return graph
+  resizeGraph: (graphViewEl: El) => () => {
+    return {
+      height: graphViewEl.offsetHeight,
+      width: graphViewEl.offsetWidth,
+    }
+  },
+
+  resetGraph: () => {
+    graphCommandStream.next(new ResetGraphCommand())
+  },
+
+  focusNode: (nodeId: GraphNodeId) => () => {
+    graphCommandStream.next(new FocusCommand({nodeId}))
   },
 
   handleGraphActions: ({
-    actionStream,
     selectNode,
   }: {
-    actionStream: Subject<GraphAction>,
     selectNode: (nodeId: GraphNodeId) => any,
   }) =>
     (_: any, _actions: any) => {
-      actionStream
+      graphActionObservable
         .pipe(
           debounce((event: GraphAction) => {
             const time = (event.kind === graphTypes.ZOOM_TYPE
@@ -90,13 +108,14 @@ export const actions: any = {
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
             case graphTypes.CREATE_NEW_NODE_TYPE:
-              _actions.createNewNode({position: event.position, parent: event.parent})
+              _actions._createNewNode(
+                {position: event.position, parent: event.parent, selectNode})
               break
             case graphTypes.EDIT_NODE_TYPE:
               selectNode(event.id)
               break
             case graphTypes.DELETE_NODE_TYPE:
-              _actions.deleteNode(event.nodeId)
+              _actions._deleteNode(event.nodeId)
               break
             case graphTypes.NODE_CLICK_TYPE:
               break
@@ -106,7 +125,7 @@ export const actions: any = {
               selectNode(event.nodeId)
               break
             case graphTypes.NODE_DRAG_TYPE:
-              _actions.setNodePosition({nodeId: event.nodeId, position: event.position})
+              _actions._setNodePosition({nodeId: event.nodeId, position: event.position})
               break
             case graphTypes.NODE_HOVER_SHORT_TYPE:
               break
@@ -127,14 +146,11 @@ export const actions: any = {
         })
     },
 
-  resizeGraph: (graphViewEl: El) => () => {
-    return {
-      height: graphViewEl.offsetHeight,
-      width: graphViewEl.offsetWidth,
-    }
+  _setGraphData: (graph: any) => () => {
+    return graph
   },
 
-  setNodePosition: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) =>
+  _setNodePosition: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) =>
     (state: any, _: any) => {
       const metadata = {
         ...state.metadata,
@@ -148,10 +164,18 @@ export const actions: any = {
       return {metadata}
     },
 
-  createNewNode: (
-    {position, parent}: {position: IPosition, parent: null | GraphNodeId},
+  _createNewNode: (
+    {
+      position,
+      parent,
+      selectNode,
+    }: {
+      position: IPosition,
+      parent: null | GraphNodeId,
+      selectNode: (nodeId: GraphNodeId) => any,
+    },
   ) =>
-    (state: any) => {
+    (state: any, _actions: any) => {
       const ids = Object.keys(state.index)
         .map(Number)
         .sort((a: number, b: number) => a - b)
@@ -182,13 +206,20 @@ export const actions: any = {
         }
       }
 
+      setTimeout(
+        () => _actions.focusNode(nextId), GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
+      setTimeout(
+        () => {
+          selectNode(nextId)
+        }, GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
+
       return {
         index,
         metadata: {...state.metadata, [nextId]: nodeData},
       }
     },
 
-  deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+  _deleteNode: (nodeId: GraphNodeId) => (state: any) => {
     // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]

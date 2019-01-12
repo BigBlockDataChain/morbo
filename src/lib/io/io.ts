@@ -26,7 +26,7 @@ export async function loadIndex(): Promise<IGraphIndex> {
 }
 
 export function writeIndex(index: IGraphIndex): Promise<void> {
-  return writeFile(INDEX_PATH, JSON.stringify(index))
+  return writeFile(INDEX_PATH, JSON.stringify(index, null, 4))
 }
 
 export async function loadMetadata(): Promise<IGraphMetadata> {
@@ -35,7 +35,7 @@ export async function loadMetadata(): Promise<IGraphMetadata> {
 }
 
 export function writeMetadata(metadata: IGraphMetadata): Promise<void> {
-  return writeFile(METADATA_PATH, JSON.stringify(metadata))
+  return writeFile(METADATA_PATH, JSON.stringify(metadata, null, 4))
 }
 
 export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<string> {
