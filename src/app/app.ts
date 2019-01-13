@@ -132,12 +132,12 @@ export const appActions = {
     }
   },
 
-  onSearchResultClick: (node: IGraphNodeData) => {
-    graphActions.focusNode(node.id)
+  onSearchResultClick: (node: IGraphNodeData) => (_: IState, actions: any) => {
+    actions.graph.focusNode(node.id)
   },
 
-  resetGraph: () => {
-    graphActions.resetGraph()
+  resetGraph: () => (_: IState, actions: any) => {
+    actions.graph.resetGraph()
   },
 }
 
