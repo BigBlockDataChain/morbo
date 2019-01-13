@@ -19,6 +19,7 @@
   border-radius: 100%;
   padding: 8px;
   cursor: pointer;
+  user-select: none;
   background: #f9f9ec;
   opacity: 0.25;
   pointer-events: auto;

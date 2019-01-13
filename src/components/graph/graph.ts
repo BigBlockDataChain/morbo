@@ -45,22 +45,23 @@ interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 
 export default class GraphComponent {
 
-  private static readonly _LABEL_FONT_SIZE = 8
-  private static readonly _NODE_CIRCLE_RADIUS = 6
-  private static readonly _NODE_CIRCLE_STROKE = 2
-  private static readonly _NODE_CIRCLE_STROKE_HOVER = 4
-  private static readonly _NODE_CIRCLE_COLOR = 'white'
-  private static readonly _NODE_CIRCLE_STROKE_COLOR = 'black'
-  private static readonly _NODE_CIRCLE_STROKE_COLOR_SELECTED = 'purple'
+  private static readonly _LABEL_FONT_SIZE = 20
+  private static readonly _NODE_STROKE = 5
+  private static readonly _NODE_STROKE_HOVER = 9
+  private static readonly _NODE_STROKE_COLOR = 'black'
+  private static readonly _NODE_STROKE_COLOR_SELECTED = 'purple'
+  private static readonly _NODE_HEIGHT = 48
+  private static readonly _NODE_WIDTH = 192
+
   private static readonly _LINK_STROKE_COLOR = 'black'
-  private static readonly _LINK_STROKE = 6
-  private static readonly _LINK_STROKE_HOVER = 12
+  private static readonly _LINK_STROKE = 9
+  private static readonly _LINK_STROKE_HOVER = 16
 
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
 
-  private static readonly _ZOOM_MIN = 0.5
-  private static readonly _ZOOM_MAX = 2
+  private static readonly _ZOOM_MIN = 0.25
+  private static readonly _ZOOM_MAX = 1
 
   private static readonly _CONTEXT_MENU_NODE_KEY = 'graph.node'
   private static readonly _CONTEXT_MENU_BACKGROUND_KEY = 'graph.background'
@@ -99,9 +100,6 @@ export default class GraphComponent {
 
   private _graphData: null | IGraphData = null
   private _dimensions: null | IDimensions = null
-
-  private _nodeCircleRadius = GraphComponent._NODE_CIRCLE_RADIUS
-  private _labelfontSize = GraphComponent._LABEL_FONT_SIZE
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -154,21 +152,6 @@ export default class GraphComponent {
     const zoomActions = () => {
       this._g.attr('transform', d3.event.transform)
       graphTransform.updateGraphTransform(this._graphTransformToString())
-
-      const graphTransformation = this._getGraphTranslationAndScale()
-
-      // Scale elements on zoom
-      if (this._nodes) {
-        this._nodeCircleRadius
-          = GraphComponent._NODE_CIRCLE_RADIUS / 2
-          + GraphComponent._NODE_CIRCLE_RADIUS / graphTransformation.scale
-        this._labelfontSize
-          = 1.5 * GraphComponent._LABEL_FONT_SIZE / graphTransformation.scale
-        this._nodes.selectAll('circle')
-          .attr('r', this._nodeCircleRadius)
-        this._nodes.selectAll('text')
-          .attr('font-size', this._labelfontSize)
-      }
     }
     this._zoomHandler = d3.zoom()
       .scaleExtent([GraphComponent._ZOOM_MIN, GraphComponent._ZOOM_MAX])
@@ -293,6 +276,7 @@ export default class GraphComponent {
   private _createSvg(host: El, dimensions: IDimensions) {
     const svg = d3.select(host)
       .append('svg')
+      .attr('id', 'graph')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
       .on('contextmenu', () => {
@@ -339,40 +323,48 @@ export default class GraphComponent {
     const existingNodes = this._gNodes.selectAll('.node')
 
     const newNodes = existingNodes
-      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(metadataItems, (d: IGraphNodeData) => d.id)
       .enter()
       .append('g')
       .attr('class', 'node')
+      .attr('transform', (d: IGraphNodeData) => {
+        const x = d.x - GraphComponent._NODE_WIDTH / 2
+        const y = d.y - GraphComponent._NODE_HEIGHT / 2
+        return `translate(${x}, ${y}) scale(1)`
+      })
       .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
       .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
       .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
       .on('mouseover.action', (d: IGraphNodeData) => this._onNodeMouseOver(d))
       .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
+      .call(this._drag)
 
     // Node circles
     newNodes
-      .append('circle')
-      .attr('cx', (d: IGraphNodeData) => d.x)
-      .attr('cy', (d: IGraphNodeData) => d.y)
-      .attr('r', this._nodeCircleRadius)
-      .attr('fill', () => GraphComponent._NODE_CIRCLE_COLOR)
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', GraphComponent._NODE_WIDTH)
+      .attr('height', GraphComponent._NODE_HEIGHT)
+      .attr('fill', 'white')
       .attr('stroke', (d: IGraphNodeData) => this._getNodeColor(d.id))
-      .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
-      .call(this._drag)
+      .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
 
-    // Node labels
     newNodes
       .append('text')
-      .text((d: IGraphNodeData) => d.title)
-      .attr('x', (d: IGraphNodeData) => d.x + this._labelfontSize / 2)
-      .attr('y', (d: IGraphNodeData) => d.y + 15)
-      .attr('font-size', this._labelfontSize)
-      .call(this._drag)
+      .attr('x', 16)
+      .attr(
+        'y', GraphComponent._NODE_HEIGHT / 2 + GraphComponent._LABEL_FONT_SIZE / 2 - 2)
+      .attr('font-size', GraphComponent._LABEL_FONT_SIZE)
+      .attr('width', GraphComponent._NODE_WIDTH)
+      .attr('height', GraphComponent._NODE_HEIGHT)
+      .text((d: IGraphNodeData) =>
+        d.title.length > 17 ? d.title.substr(0, 17 - 3) + '...' : d.title)
 
     existingNodes
-      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(metadataItems, (d: IGraphNodeData) => d.id)
       .exit()
@@ -384,8 +376,8 @@ export default class GraphComponent {
 
   private _getNodeColor(nodeId: GraphNodeId): string {
     return this._selectedNode === nodeId
-      ? GraphComponent._NODE_CIRCLE_STROKE_COLOR_SELECTED
-      : GraphComponent._NODE_CIRCLE_STROKE_COLOR
+      ? GraphComponent._NODE_STROKE_COLOR_SELECTED
+      : GraphComponent._NODE_STROKE_COLOR
   }
 
   private _renderLinks(data: IGraphData): void {
@@ -395,7 +387,7 @@ export default class GraphComponent {
     const existingLinks = this._gLinks.selectAll('.link')
 
     existingLinks
-      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(linkData, (l: ILinkTuple) => l.id)
       .enter()
@@ -418,7 +410,7 @@ export default class GraphComponent {
       .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
 
     existingLinks
-      // NOTE: Key-function provides D3 with information about which dataum maps to which
+      // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(linkData, (l: ILinkTuple) => l.id)
       .exit()
@@ -576,24 +568,15 @@ export default class GraphComponent {
               .attr('y2', d.y)
         })
 
-        if (this._nodeTextLabels === null)
-          logger.warn(
-            'enableDrag called before this._nodeTextLabels has been initialized')
-        else
-          // Update text label positions
-          this._nodeTextLabels.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
-            if (n.id === d.id)
-              d3.select(refs_[i_])
-                .attr('x', d.x + this._labelfontSize / 2)
-                .attr('y', d.y + 15)
-          })
-
-        // Update text label positions
+        // Update node position
         this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
           if (n.id === d.id)
-            d3.select(refs_[i_]).select('circle')
-              .attr('cx', d.x)
-              .attr('cy', d.y)
+            d3.select(refs_[i_])
+              .attr('transform', () => {
+                const x = d.x - GraphComponent._NODE_WIDTH / 2
+                const y = d.y - GraphComponent._NODE_HEIGHT / 2
+                return `translate(${x}, ${y}) scale(1)`
+              })
         })
 
         this._actionStream!.next(new NodeDragAction(d.id, {x: d.x, y: d.y}))
@@ -664,15 +647,13 @@ export default class GraphComponent {
     this._nodes
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .select('circle')
-          .attr('r', this._nodeCircleRadius * 1.5)
-          .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER + 'px')
+          .select('rect')
+          .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER + 'px')
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         d3.select(refs[i])
-          .select('circle')
-          .attr('r', this._nodeCircleRadius)
-          .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE + 'px')
+          .select('rect')
+          .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
       })
   }
 
@@ -700,16 +681,16 @@ export default class GraphComponent {
     if (this._selectedNode !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === this._selectedNode)
-        .selectAll('circle')
-        .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE)
-        .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR)
+        .selectAll('rect')
+        .attr('stroke-width', GraphComponent._NODE_STROKE)
+        .attr('stroke', GraphComponent._NODE_STROKE_COLOR)
 
     if (id !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === id)
-        .selectAll('circle')
-        .attr('stroke-width', GraphComponent._NODE_CIRCLE_STROKE_HOVER)
-        .attr('stroke', GraphComponent._NODE_CIRCLE_STROKE_COLOR_SELECTED)
+        .selectAll('rect')
+        .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER)
+        .attr('stroke', GraphComponent._NODE_STROKE_COLOR_SELECTED)
 
     logger.debug('Setting selected node to', id)
     this._selectedNode = id

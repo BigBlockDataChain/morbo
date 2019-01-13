@@ -1,3 +1,4 @@
-.node > text {
+#graph .node text {
   cursor: default;
+  user-select: none;
 }
