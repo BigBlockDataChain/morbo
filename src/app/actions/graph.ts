@@ -1,4 +1,4 @@
-import {Observable, timer} from 'rxjs'
+import {timer} from 'rxjs'
 import {debounce} from 'rxjs/operators'
 
 import {

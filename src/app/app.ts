@@ -3,12 +3,6 @@ import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
-import {
-  FocusCommand,
-  GraphAction,
-  GraphCommand,
-  ResetGraphCommand,
-} from '@components/graph/types'
 import Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
@@ -21,7 +15,6 @@ import {
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
-  NoteDataType,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
 import {actions as graphActions} from './actions/graph'

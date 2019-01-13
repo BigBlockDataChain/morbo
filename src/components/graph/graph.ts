@@ -9,8 +9,6 @@ import {
   IDimensions,
   IGraphChildParentIndex,
   IGraphData,
-  IGraphIndex,
-  IGraphMetadata,
   IGraphNodeData,
   ILinkTuple,
   IPosition,
@@ -98,7 +96,6 @@ export default class GraphComponent {
   private _links: any | null = null
   private _nodes: any | null = null
   private _drag: any | null = null
-  private _nodeTextLabels: any | null = null
 
   private _selectedNode: GraphNodeId | null = null
 
@@ -386,7 +383,6 @@ export default class GraphComponent {
       .remove()
 
     this._nodes = this._g.selectAll('.node')
-    this._nodeTextLabels = this._nodes.selectAll('text')
   }
 
   private _getNodeColor(nodeId: GraphNodeId): string {

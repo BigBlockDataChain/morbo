@@ -1,4 +1,4 @@
-import {GraphNodeId, IGraphNodeData, IPosition} from '@lib/types'
+import {GraphNodeId, IPosition} from '@lib/types'
 
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
