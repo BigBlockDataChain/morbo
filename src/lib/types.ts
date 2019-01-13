@@ -20,9 +20,20 @@ export enum NoteDataType {
   HANDWRITING = 'handwriting',
 }
 
+/**
+ * Parent child index
+ */
 export interface IGraphIndex {
   // id type GraphNodeId
   [id: number]: GraphNodeChildren
+}
+
+/**
+ * Child parent index
+ */
+export interface IGraphChildParentIndex {
+  // id type GraphNodeId
+  [id: number]: null | GraphNodeId
 }
 
 export type GraphNodeChildren = GraphNodeId[]
@@ -48,5 +59,11 @@ export interface IDimensions {
 }
 
 export interface IPosition { x: number, y: number }
+
+export interface ILinkTuple {
+  id: string
+  source: GraphNodeId
+  target: GraphNodeId
+}
 
 export type VoidFunction = (...args: any[]) => void

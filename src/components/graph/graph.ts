@@ -7,15 +7,22 @@ import {
   El,
   GraphNodeId,
   IDimensions,
+  IGraphChildParentIndex,
   IGraphData,
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  ILinkTuple,
   IPosition,
 } from '@lib/types'
 import {assertNever, cartesianDistance} from '@lib/utils'
 import * as graphTransform from './graph-transform'
 import {GraphTransformType} from './graph-transform'
+import {
+  flattenGraphIndex,
+  graphMetadataToList,
+  makeChildParentIndex,
+} from './graph-utils'
 import {
   BackgroundClickAction,
   BackgroundDblClickAction,
@@ -39,9 +46,13 @@ import './graph.css'
 
 const logger = getLogger('d3-graph')
 
-interface ILinkTuple { id: string, source: GraphNodeId, target: GraphNodeId }
 interface ITransform { translation: IPosition, scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
+interface IExtendedGraphData extends IGraphData {
+  metadataItems: IGraphNodeData[]
+  childParentIndex: IGraphChildParentIndex
+  linkData: ILinkTuple[]
+}
 
 export default class GraphComponent {
 
@@ -98,7 +109,7 @@ export default class GraphComponent {
   private _locationFocusedLocation: null | IPosition = null
   private _lastRightClickLocation: null | IPosition = null
 
-  private _graphData: null | IGraphData = null
+  private _graphData: null | IExtendedGraphData = null
   private _dimensions: null | IDimensions = null
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
@@ -196,7 +207,12 @@ export default class GraphComponent {
     }
 
     this._dimensions = dimensions
-    this._graphData = data
+    this._graphData = {
+      ...data,
+      metadataItems: graphMetadataToList(data.metadata),
+      childParentIndex: makeChildParentIndex(data.index),
+      linkData: flattenGraphIndex(data.index),
+    }
 
     if (this._dimensions.width === 0 || this._dimensions.height === 0) {
       logger.log('Editor dimensions are too small. Skipping render')
@@ -205,8 +221,8 @@ export default class GraphComponent {
     // Must be called before `renderNodes`
     this._enableDrag()
 
-    this._renderLinks(data)
-    this._renderNodes(data)
+    this._renderLinks()
+    this._renderNodes()
 
     this._enableClickToCenter()
     this._enableKeyboardPanning()
@@ -318,15 +334,13 @@ export default class GraphComponent {
     return svg
   }
 
-  private _renderNodes(data: IGraphData): void {
-    const metadataItems = graphMetadataToList(data.metadata)
-
+  private _renderNodes(): void {
     const existingNodes = this._gNodes.selectAll('.node')
 
     const newNodes = existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(metadataItems, (d: IGraphNodeData) => d.id)
+      .data(this._graphData!.metadataItems, (d: IGraphNodeData) => d.id)
       .enter()
       .append('g')
       .attr('class', 'node')
@@ -367,7 +381,7 @@ export default class GraphComponent {
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(metadataItems, (d: IGraphNodeData) => d.id)
+      .data(this._graphData!.metadataItems, (d: IGraphNodeData) => d.id)
       .exit()
       .remove()
 
@@ -381,27 +395,25 @@ export default class GraphComponent {
       : GraphComponent._NODE_STROKE_COLOR
   }
 
-  private _renderLinks(data: IGraphData): void {
-    const linkData = flattenGraphIndex(data.index)
-    const metadataItems = graphMetadataToList(data.metadata)
+  private _renderLinks(): void {
 
     const existingLinks = this._gLinks.selectAll('.link')
 
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(linkData, (l: ILinkTuple) => l.id)
+      .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .enter()
       .append('line')
       .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
       .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
-        const sourceNode = metadataItems.filter(
+        const sourceNode = this._graphData!.metadataItems.filter(
           (d: IGraphNodeData) => d.id === l.source)[0]
         d3.select(refs[i]).attr('y1', sourceNode.y)
         return sourceNode.x
       })
       .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
-        const targetNode = metadataItems.filter(
+        const targetNode = this._graphData!.metadataItems.filter(
           (d: IGraphNodeData) => d.id === l.target)[0]
         d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
@@ -413,7 +425,7 @@ export default class GraphComponent {
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(linkData, (l: ILinkTuple) => l.id)
+      .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .exit()
       .remove()
 
@@ -747,25 +759,4 @@ export default class GraphComponent {
     return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
-}
-
-function graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
-  return Object.keys(metadata)
-    .map(Number)
-    .map((k: GraphNodeId) => metadata[k])
-}
-
-function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
-  const keys = Object.keys(index).map(Number)
-  return keys.reduce(
-    (accum: ILinkTuple[], source: GraphNodeId) => {
-      accum.push(
-        ...index[source].map(
-          (target: GraphNodeId) => ({id: `${source}-${target}`, source, target}),
-        ),
-      )
-      return accum
-    },
-    [],
-  )
 }
