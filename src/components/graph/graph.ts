@@ -224,9 +224,10 @@ export default class GraphComponent {
       {
         label: 'New child note',
         click: () => setTimeout(() => {
+          const {x: nodeX, y: nodeY} = this._graphData!.metadata[this._selectedNode!]
           const position = {
-            x: this._graphData!.metadata[this._selectedNode!].x + 10,
-            y: this._graphData!.metadata[this._selectedNode!].y + 10,
+            x: nodeX + GraphComponent._NODE_WIDTH / 4,
+            y: nodeY + GraphComponent._NODE_HEIGHT * 2,
           }
           this._actionStream!.next(
             new CreateNewNodeAction(position, this._selectedNode!))
