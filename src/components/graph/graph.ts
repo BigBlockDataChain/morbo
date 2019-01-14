@@ -778,8 +778,10 @@ export default class GraphComponent {
   private _graphToSVGPosition(d: IPosition): IPosition {
     const corners = this._getGraphCornerPoints()
     const position = {
-      x: this._width * (d.x - corners.minX) / (corners.maxX - corners.minX),
-      y: this._height * (d.y - corners.minY) / (corners.maxY - corners.minY),
+      x: this._width === 0 ? 
+        0 : this._width * (d.x - corners.minX) / (corners.maxX - corners.minX),
+      y: this._height === 0 ? 
+        0 : this._height * (d.y - corners.minY) / (corners.maxY - corners.minY),
     }
     return position
   }
@@ -787,8 +789,10 @@ export default class GraphComponent {
   private _svgToGraphPosition(d: IPosition): IPosition {
     const corners = this._getGraphCornerPoints()
     const position = {
-      x: (d.x / this._width) * (corners.maxX - corners.minX) + corners.minX,
-      y: (d.y / this._height) * (corners.maxY - corners.minY) + corners.minY,
+      x: this._width === 0 ? 
+        0 : (d.x / this._width) * (corners.maxX - corners.minX) + corners.minX,
+      y: this._height === 0 ? 
+        0 : (d.y / this._height) * (corners.maxY - corners.minY) + corners.minY,
     }
     return position
   }
