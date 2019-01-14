@@ -403,7 +403,7 @@ export default class GraphComponent {
    * Update an rendered node with new metadata
    */
   private _updateRenderedNode(node: IGraphNodeData): void {
-    const x = this._nodes
+    this._nodes
       .filter((d: IGraphNodeData) => d.id === node.id)
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
@@ -635,22 +635,22 @@ export default class GraphComponent {
       })
   }
 
-  private _enableClickToCenter(): void {
-    this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
-      this._locationFocusedLocation = {x: d.x, y: d.y}
-      const transform = this._getGraphTranslationAndScale()
-      const position = this._graphToSVGPosition(d)
-      const x = transform.translation.x + this._width / 2 - position.x
-      const y = transform.translation.y + this._height / 2 - position.y
-      this._svg
-        .transition()
-        .duration(GraphComponent._TRANSITION_DURATION)
-        .call(
-          this._zoomHandler.transform,
-          d3.zoomIdentity.translate(x, y).scale(transform.scale),
-        )
-    })
-  }
+  // private _enableClickToCenter(): void {
+  //   this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
+  //     this._locationFocusedLocation = {x: d.x, y: d.y}
+  //     const transform = this._getGraphTranslationAndScale()
+  //     const position = this._graphToSVGPosition(d)
+  //     const x = transform.translation.x + this._width / 2 - position.x
+  //     const y = transform.translation.y + this._height / 2 - position.y
+  //     this._svg
+  //       .transition()
+  //       .duration(GraphComponent._TRANSITION_DURATION)
+  //       .call(
+  //         this._zoomHandler.transform,
+  //         d3.zoomIdentity.translate(x, y).scale(transform.scale),
+  //       )
+  //   })
+  // }
 
   private _enableKeyboardPanning(): void {
     const keymap = {
@@ -763,7 +763,7 @@ export default class GraphComponent {
   private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
     const transform: ITransform = {translation: {x: 0, y: 0}, scale: 1}
-    if (transformRaw === null) return transform
+    if (transformRaw === null || transformRaw.match(/Nan/)) return transform
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
     const translationValues = translationRaw
       .replace('translate(', '')
@@ -779,16 +779,24 @@ export default class GraphComponent {
   private _graphToSVGPosition(d: IPosition): IPosition {
     const box = this._getGraphBoundingBox()
     return {
-      x: this._width * (d.x - box.xMin) / (box.xMax - box.xMin),
-      y: this._height * (d.y - box.yMin) / (box.yMax - box.yMin),
+      x: this._width === 0
+        ? 0
+        : this._width * (d.x - box.xMin) / (box.xMax - box.xMin),
+      y: this._height === 0
+        ? 0
+        : this._height * (d.y - box.yMin) / (box.yMax - box.yMin),
     }
   }
 
   private _svgToGraphPosition(d: IPosition): IPosition {
     const box = this._getGraphBoundingBox()
     return {
-      x: (d.x / this._width) * (box.xMax - box.xMin) + box.xMin,
-      y: (d.y / this._height) * (box.yMax - box.yMin) + box.yMin,
+      x: this._width === 0
+        ? 0
+        : (d.x / this._width) * (box.xMax - box.xMin) + box.xMin,
+      y: this._height === 0
+        ? 0
+        : (d.y / this._height) * (box.yMax - box.yMin) + box.yMin,
     }
   }
 
