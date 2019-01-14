@@ -14,6 +14,10 @@ app.on('window-all-closed', () => {
 
 function createWindow() {
   const win = new BrowserWindow({width: 1024, height: 600})
+
+  win.setMenuBarVisibility(false)
+  win.setAutoHideMenuBar(true)
+
   const indexPath = url.format({
     protocol: 'http:',
     host: 'localhost:8080',
