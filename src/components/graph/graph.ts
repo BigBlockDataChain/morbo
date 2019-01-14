@@ -762,7 +762,7 @@ export default class GraphComponent {
   private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
     const transform: ITransform = {translation: {x: 0, y: 0}, scale: 1}
-    if (transformRaw === null) return transform
+    if (transformRaw === null || transformRaw.match(/Nan/)) return transform
     const [translationRaw, scaleRaw] = transformRaw.split(' ')
     const translationValues = translationRaw
       .replace('translate(', '')
