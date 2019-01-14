@@ -58,6 +58,13 @@ export interface IDimensions {
   width: number,
 }
 
+export interface IBoundingBox {
+  xMin: number
+  xMax: number
+  yMin: number
+  yMax: number
+}
+
 export interface IPosition { x: number, y: number }
 
 export interface ILinkTuple {

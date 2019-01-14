@@ -6,6 +6,7 @@ import {getLogger} from '@lib/logger'
 import {
   El,
   GraphNodeId,
+  IBoundingBox,
   IDimensions,
   IGraphChildParentIndex,
   IGraphData,
@@ -19,6 +20,7 @@ import {GraphTransformType} from './graph-transform'
 import {
   flattenGraphIndex,
   graphMetadataToList,
+  intersectLineWithRectange,
   makeChildParentIndex,
 } from './graph-utils'
 import {
@@ -46,7 +48,6 @@ import './graph.css'
 const logger = getLogger('d3-graph')
 
 interface ITransform { translation: IPosition, scale: number }
-interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 interface IExtendedGraphData extends IGraphData {
   metadataItems: IGraphNodeData[]
   childParentIndex: IGraphChildParentIndex
@@ -776,32 +777,29 @@ export default class GraphComponent {
   }
 
   private _graphToSVGPosition(d: IPosition): IPosition {
-    const corners = this._getGraphCornerPoints()
-    const position = {
-      x: this._width * (d.x - corners.minX) / (corners.maxX - corners.minX),
-      y: this._height * (d.y - corners.minY) / (corners.maxY - corners.minY),
+    const box = this._getGraphBoundingBox()
+    return {
+      x: this._width * (d.x - box.xMin) / (box.xMax - box.xMin),
+      y: this._height * (d.y - box.yMin) / (box.yMax - box.yMin),
     }
-    return position
   }
 
   private _svgToGraphPosition(d: IPosition): IPosition {
-    const corners = this._getGraphCornerPoints()
-    const position = {
-      x: (d.x / this._width) * (corners.maxX - corners.minX) + corners.minX,
-      y: (d.y / this._height) * (corners.maxY - corners.minY) + corners.minY,
+    const box = this._getGraphBoundingBox()
+    return {
+      x: (d.x / this._width) * (box.xMax - box.xMin) + box.xMin,
+      y: (d.y / this._height) * (box.yMax - box.yMin) + box.yMin,
     }
-    return position
   }
 
-  private _getGraphCornerPoints(): ICorner {
+  private _getGraphBoundingBox(): IBoundingBox {
     const transform = this._getGraphTranslationAndScale()
-    const corners: ICorner = {
-      minX: -transform.translation.x / transform.scale,
-      maxX: this._width / transform.scale - transform.translation.x / transform.scale,
-      minY: -transform.translation.y / transform.scale,
-      maxY: this._height / transform.scale - transform.translation.y / transform.scale,
+    return {
+      xMin: -transform.translation.x / transform.scale,
+      xMax: this._width / transform.scale - transform.translation.x / transform.scale,
+      yMin: -transform.translation.y / transform.scale,
+      yMax: this._height / transform.scale - transform.translation.y / transform.scale,
     }
-    return corners
   }
 
   private _graphTransformToString(): GraphTransformType {
