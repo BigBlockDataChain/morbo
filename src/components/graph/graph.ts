@@ -53,6 +53,12 @@ interface IExtendedGraphData extends IGraphData {
   linkData: ILinkTuple[]
 }
 
+const linkType = {
+  straight: 'straight',
+  vertical: 'vertical',
+  horizontal: 'horizontal',
+}
+
 export default class GraphComponent {
 
   private static readonly _LABEL_FONT_SIZE = 20
@@ -66,6 +72,7 @@ export default class GraphComponent {
   private static readonly _LINK_STROKE_COLOR = 'black'
   private static readonly _LINK_STROKE = 9
   private static readonly _LINK_STROKE_HOVER = 16
+  private static readonly _LINK_TYPE = linkType.vertical
 
   private static readonly _TRANSITION_DURATION = 250
   private static readonly _PAN_MOVEMENT_OFFSET = 50
@@ -423,28 +430,66 @@ export default class GraphComponent {
 
     const existingLinks = this._gLinks.selectAll('.link')
 
-    existingLinks
-      // NOTE: Key-function provides D3 with information about which datum maps to which
-      // element. This allows arrays in different orders to work as expected
-      .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
-      .enter()
-      .append('line')
-      .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
-      .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
-        const sourceNode = this._graphData!.metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.source)[0]
-        d3.select(refs[i]).attr('y1', sourceNode.y)
-        return sourceNode.x
-      })
-      .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
-        const targetNode = this._graphData!.metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.target)[0]
-        d3.select(refs[i]).attr('y2', targetNode.y)
-        return targetNode.x
-      })
-      .attr('fill', 'none')
-      .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
-      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+    const linkTypeGenerator = {
+      vertical: d3.linkVertical()
+        .x((l: any) => {return this._graphData!.metadataItems.filter((d: IGraphNodeData) => d.id === l)[0].x})
+        .y((l: any) => {return this._graphData!.metadataItems.filter((d: IGraphNodeData) => d.id === l)[0].y}),
+
+      horizontal: d3.linkHorizontal()
+        .x((l: any) => {return this._graphData!.metadataItems.filter((d: IGraphNodeData) => d.id === l)[0].x})
+        .y((l: any) => {return this._graphData!.metadataItems.filter((d: IGraphNodeData) => d.id === l)[0].y}),
+
+    }
+
+    switch (GraphComponent._LINK_TYPE) {
+      case linkType.straight:
+        existingLinks
+          // NOTE: Key-function provides D3 with information about which datum maps to which
+          // element. This allows arrays in different orders to work as expected
+          .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
+          .enter()
+          .append('line')
+          .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
+          .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
+            const sourceNode = this._graphData!.metadataItems.filter(
+              (d: IGraphNodeData) => d.id === l.source)[0]
+            d3.select(refs[i]).attr('y1', sourceNode.y)
+            return sourceNode.x
+          })
+          .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
+            const targetNode = this._graphData!.metadataItems.filter(
+              (d: IGraphNodeData) => d.id === l.target)[0]
+            d3.select(refs[i]).attr('y2', targetNode.y)
+            return targetNode.x
+          })
+          .attr('fill', 'none')
+          .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+        break
+      case linkType.vertical: 
+        existingLinks
+          .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
+          .enter()
+          .append('path')
+          .attr('class', 'link')
+          .attr('fill', 'none')
+          .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+          .attr('d', linkTypeGenerator.vertical)
+        break
+      case linkType.horizontal: 
+        existingLinks
+          .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
+          .enter()
+          .append('path')
+          .attr('class', 'link')
+          .attr('fill', 'none')
+          .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
+          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+          .attr('d', linkTypeGenerator.horizontal)
+        break
+      default: break
+    }
 
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
@@ -452,7 +497,7 @@ export default class GraphComponent {
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .exit()
       .remove()
-
+    
     this._links = this._g.selectAll('.link')
   }
 
@@ -609,14 +654,58 @@ export default class GraphComponent {
 
         // Update link positions
         this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
-          if (l.source === d.id)
-            d3.select(refs_[i_])
-              .attr('x1', d.x)
-              .attr('y1', d.y)
-          else if (l.target === d.id)
-            d3.select(refs_[i_])
-              .attr('x2', d.x)
-              .attr('y2', d.y)
+          if (l.source === d.id) {
+            const target = d3.select(refs[l.target - 1])
+            let path
+            switch (GraphComponent._LINK_TYPE) {
+              case linkType.straight:
+                d3.select(refs_[i_])
+                  .attr('x1', d.x)
+                  .attr('y1', d.y)
+                break
+              case linkType.vertical:
+                path = verticalLinkPathGenerator(
+                  {x: d.x, y: d.y},
+                  {x: parseInt(target.attr('cx')), y: parseInt(target.attr('cy'))}
+                )
+                d3.select(refs_[i_]).attr('d', path)
+                break
+              case linkType.horizontal:
+                path = horizontalLinkPathGenerator(
+                  {x: d.x, y: d.y},
+                  {x: parseInt(target.attr('cx')), y: parseInt(target.attr('cy'))}
+                )
+                d3.select(refs_[i_]).attr('d', path)
+                break
+              default: break
+            }
+          }
+          else if (l.target === d.id) {
+            const source = d3.select(refs[l.source - 1])
+            let path
+            switch (GraphComponent._LINK_TYPE) {
+              case linkType.straight:
+                d3.select(refs_[i_])
+                  .attr('x2', d.x)
+                  .attr('y2', d.y)
+                break
+              case linkType.vertical:
+                path = verticalLinkPathGenerator(
+                  {x: d.x, y: d.y},
+                  {x: parseInt(source.attr('cx')), y: parseInt(source.attr('cy'))}
+                )
+                d3.select(refs_[i_]).attr('d', path)
+                break
+              case linkType.horizontal:
+                path = horizontalLinkPathGenerator(
+                  {x: d.x, y: d.y},
+                  {x: parseInt(source.attr('cx')), y: parseInt(source.attr('cy'))}
+                )
+                d3.select(refs_[i_]).attr('d', path)
+                break
+              default: break
+            }
+          }
         })
 
         // Update node position
@@ -809,4 +898,18 @@ export default class GraphComponent {
     return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
+}
+
+function verticalLinkPathGenerator(source: IPosition, target: IPosition): string {
+  return "M" + source.x + "," + source.y
+    + "C" + source.x + "," + (source.y + target.y) / 2
+    + " " + target.x + "," + (source.y + target.y) / 2
+    + " " + target.x + "," + target.y
+}
+
+function horizontalLinkPathGenerator(source: IPosition, target: IPosition): string {
+  return "M" + source.x + "," + source.y
+    + "C" + (source.x + target.x) / 2 + "," + source.y
+    + " " + (source.x + target.x) / 2 + "," + target.y
+    + " " + target.x + "," + target.y
 }
