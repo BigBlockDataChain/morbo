@@ -221,7 +221,9 @@ export default class GraphComponent {
     this._renderLinks()
     this._renderNodes()
 
-    this._enableClickToCenter()
+    // NOTE: Disable due to poor user experience when double clicking a node and expecting
+    // to be able to edit a node
+    // this._enableClickToCenter()
     this._enableKeyboardPanning()
     this._enableNodeHighlightOnHover()
     this._enableLinkHighlightOnHover()
@@ -251,6 +253,17 @@ export default class GraphComponent {
         label: 'Edit',
         click: () => {
           this._actionStream!.next(new EditNodeAction(this._selectedNode!))
+        },
+      },
+      {type: 'separator'},
+      {
+        label: 'Center screen',
+        click: () => {
+          this._locationFocusedLocation = {
+            x: this._graphData!.metadata[this._selectedNode!].x,
+            y: this._graphData!.metadata[this._selectedNode!].y,
+          }
+          this._focusGraph()
         },
       },
       {type: 'separator'},
