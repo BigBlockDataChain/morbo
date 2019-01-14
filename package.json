@@ -8,7 +8,7 @@
     "lint-fix": "tslint -p tsconfig.json --fix",
     "start": "webpack-dev-server --hot --host 0.0.0.0 --config=./webpack.dev.config.js",
     "test": "jest --watch src/",
-    "test-no-watch": "jest src/"
+    "test-ci": "jest src/ --collectCoverageFrom=src/**/*.ts --coverage"
   },
   "keywords": [],
   "author": "",
