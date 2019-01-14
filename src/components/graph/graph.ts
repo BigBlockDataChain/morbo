@@ -402,7 +402,7 @@ export default class GraphComponent {
    * Update an rendered node with new metadata
    */
   private _updateRenderedNode(node: IGraphNodeData): void {
-    const x = this._nodes
+    this._nodes
       .filter((d: IGraphNodeData) => d.id === node.id)
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
@@ -634,22 +634,22 @@ export default class GraphComponent {
       })
   }
 
-  private _enableClickToCenter(): void {
-    this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
-      this._locationFocusedLocation = {x: d.x, y: d.y}
-      const transform = this._getGraphTranslationAndScale()
-      const position = this._graphToSVGPosition(d)
-      const x = transform.translation.x + this._width / 2 - position.x
-      const y = transform.translation.y + this._height / 2 - position.y
-      this._svg
-        .transition()
-        .duration(GraphComponent._TRANSITION_DURATION)
-        .call(
-          this._zoomHandler.transform,
-          d3.zoomIdentity.translate(x, y).scale(transform.scale),
-        )
-    })
-  }
+  // private _enableClickToCenter(): void {
+  //   this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
+  //     this._locationFocusedLocation = {x: d.x, y: d.y}
+  //     const transform = this._getGraphTranslationAndScale()
+  //     const position = this._graphToSVGPosition(d)
+  //     const x = transform.translation.x + this._width / 2 - position.x
+  //     const y = transform.translation.y + this._height / 2 - position.y
+  //     this._svg
+  //       .transition()
+  //       .duration(GraphComponent._TRANSITION_DURATION)
+  //       .call(
+  //         this._zoomHandler.transform,
+  //         d3.zoomIdentity.translate(x, y).scale(transform.scale),
+  //       )
+  //   })
+  // }
 
   private _enableKeyboardPanning(): void {
     const keymap = {
