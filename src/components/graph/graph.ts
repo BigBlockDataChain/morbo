@@ -646,7 +646,7 @@ export default class GraphComponent {
       DOWN: 40,
     }
 
-    d3.select('body')
+    d3.select('.graph')
       .on('keydown', () => {
         const transform = this._getGraphTranslationAndScale()
         let offsetRight = transform.translation.x
