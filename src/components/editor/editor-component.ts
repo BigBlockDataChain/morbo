@@ -1,5 +1,6 @@
 import * as html from '@hyperapp/html'
 
+import Empty from '@components/widgets/empty'
 import {loadNote, writeNote} from '@lib/io'
 import {
   El,
@@ -41,6 +42,15 @@ export const state: IEditorState = {
 }
 
 export const actions = {
+  setNodeTitle: (title: string) => (_state: any) => {
+    return {
+      node: {
+        ..._state.node,
+        title,
+      },
+    }
+  },
+
   handWritingEditor: {
   },
 
@@ -85,13 +95,15 @@ export function view(
   _actions: any,
   node: IGraphNodeData,
   onClose: () => any,
+  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
 ) {
-  if (node !== _state.node) {
+  if (_state.node === null || node.id !== _state.node.id) {
+    // Save previous open note
     if (_state.node !== null) {
       _actions.saveTextNote(_state.node.id)
     }
 
-    _actions.setNode(node)
+    _actions.setNode({...node})
     _actions.textEditor.setData(null)
     _actions.loadTextNote(node.id)
   }
@@ -99,7 +111,7 @@ export function view(
   return html.div(
     {id: 'editor-container'},
     [
-      ...headerButtons(node, _actions, onClose),
+      ...headerButtons(_state, _actions, onClose, onEditorUpdateMetadata),
       html.div(
         {id: 'editor'},
         [
@@ -139,7 +151,12 @@ export function view(
   )
 }
 
-function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) {
+function headerButtons(
+  _state: any,
+  _actions: any,
+  onClose: () => any,
+  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+) {
   return [
     html.div(
       {class: 'container'},
@@ -148,7 +165,7 @@ function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) 
           {
             id: 'editor-close',
             onclick: (ev: Event) => {
-              _actions.saveTextNote(node.id),
+              _actions.saveTextNote(_state.node.id),
               onClose()
             },
           },
@@ -158,7 +175,8 @@ function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) 
           {
             id: 'editor-save',
             onclick: () => {
-              _actions.saveTextNote(node.id)
+              _actions.saveTextNote(_state.node.id)
+              onEditorUpdateMetadata(_state.node)
             },
           },
           'save',
@@ -174,16 +192,22 @@ function headerButtons(node: IGraphNodeData, _actions: any, onClose: () => any) 
         ),
       ],
     ),
-    html.div(
-      {id: 'editor-title'},
-      node.title,
+    html.input(
+      {
+        id: 'editor-title',
+        oninput: (ev: Event) =>
+          _actions.setNodeTitle((ev.target as HTMLInputElement).value),
+        value: _state.node !== null ? _state.node.title : '',
+      },
     ),
     html.div(
       {id: 'editor-tags'},
       [
         html.div(
           [
-            node.tags.map(html.span),
+            _state.node !== null
+              ? _state.node.tags.map(html.span)
+              : Empty(),
             html.button(
               {
                 disabled: true,

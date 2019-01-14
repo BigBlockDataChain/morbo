@@ -2,6 +2,7 @@ import {timer} from 'rxjs'
 import {debounce} from 'rxjs/operators'
 
 import {
+  EditNodeMetadataCommand,
   FocusCommand,
   GraphAction,
   ResetGraphCommand,
@@ -87,6 +88,19 @@ export const actions: any = {
 
   focusNode: (nodeId: GraphNodeId) => () => {
     graphCommandStream.next(new FocusCommand({nodeId}))
+  },
+
+  updateNodeMetadata: (node: IGraphNodeData) => (state: any) => {
+    const metadata = {...state.metadata}
+    metadata[node.id] = {
+      ...metadata[node.id],
+      title: node.title,
+      tags: node.tags,
+    }
+
+    graphCommandStream.next(new EditNodeMetadataCommand(node))
+
+    return {metadata}
   },
 
   handleGraphActions: ({

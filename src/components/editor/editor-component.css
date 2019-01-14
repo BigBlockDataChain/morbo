@@ -77,6 +77,13 @@
 #editor-container #editor-title {
   margin-top: 0.3em;
   margin-bottom: 0.3em;
+  background: none;
+  border: none;
+  font-size: 125%;
+}
+#editor-container #editor-title:focus {
+  background: white;
+  border: default;
 }
 
 #editor-container #editor-tags * {

@@ -1,4 +1,4 @@
-import {GraphNodeId, IPosition} from '@lib/types'
+import {GraphNodeId, IGraphNodeData, IPosition} from '@lib/types'
 
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
@@ -187,6 +187,17 @@ export class FocusCommand implements IFocusCommand {
   }
 }
 
+export const EDIT_NODE_METADATA_TYPE = 'editNodeMetadata'
+export type EditNodeMetadataType   = 'editNodeMetadata'
+export interface IEditNodeMetadataCommand {
+  readonly kind: EditNodeMetadataType
+  readonly node: IGraphNodeData
+}
+export class EditNodeMetadataCommand implements IEditNodeMetadataCommand {
+  public readonly kind = EDIT_NODE_METADATA_TYPE
+  public constructor(public readonly node: IGraphNodeData) {}
+}
+
 export const RESET_GRAPH_TYPE = 'resetGraph'
 export type ResetGraphType   = 'resetGraph'
 export interface IResetGraphCommand { readonly kind: ResetGraphType }
@@ -195,5 +206,6 @@ export class ResetGraphCommand implements IResetGraphCommand {
 }
 
 export type GraphCommand
-  = IFocusCommand
+  = IEditNodeMetadataCommand
+  | IFocusCommand
   | IResetGraphCommand

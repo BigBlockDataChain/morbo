@@ -116,6 +116,10 @@ export const appActions = {
     }
   },
 
+  onEditorUpdateMetadata: (node: IGraphNodeData) => (state: IState, actions: any) => {
+    actions.graph.updateNodeMetadata(node)
+  },
+
   toggleSettingsPanel: () => (state: IState, actions: any) => {
     return {
       runtime: {
@@ -173,6 +177,7 @@ export function view(state: IState, actions: any) {
           actions.editor,
           state.graph.metadata[state.runtime.selectedNode],
           actions.onEditorClose,
+          actions.onEditorUpdateMetadata,
         )
         : Empty(),
     ],

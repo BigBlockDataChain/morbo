@@ -1,5 +1,5 @@
 import * as d3 from 'd3'
-import {Observable, Subject} from 'rxjs'
+import {Observable, Subject, Subscription} from 'rxjs'
 
 import {registerContextMenu, showContextMenu} from '@lib/context-menu'
 import {getLogger} from '@lib/logger'
@@ -26,6 +26,7 @@ import {
   BackgroundDblClickAction,
   CreateNewNodeAction,
   DeleteNodeAction,
+  EDIT_NODE_METADATA_TYPE,
   EditNodeAction,
   FOCUS_TYPE,
   GraphAction,
@@ -81,6 +82,8 @@ export default class GraphComponent {
    * a second time in order for a double click to be registered.
    */
   private static readonly _SINGLE_CLICK_DELAY: number = 300
+
+  private _commandStreamSub: null | Subscription = null
 
   private _width: number = -1
   private _height: number = -1
@@ -178,7 +181,9 @@ export default class GraphComponent {
             .scale(transform[2]),
         )
 
-    commandStream.subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
+    if (this._commandStreamSub == null)
+      this._commandStreamSub = commandStream
+        .subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
 
     this._registerContextMenus()
   }
@@ -204,12 +209,7 @@ export default class GraphComponent {
     }
 
     this._dimensions = dimensions
-    this._graphData = {
-      ...data,
-      metadataItems: graphMetadataToList(data.metadata),
-      childParentIndex: makeChildParentIndex(data.index),
-      linkData: flattenGraphIndex(data.index),
-    }
+    this._updateGraphData(data)
 
     if (this._dimensions.width === 0 || this._dimensions.height === 0) {
       logger.log('Editor dimensions are too small. Skipping render')
@@ -232,7 +232,7 @@ export default class GraphComponent {
     this._focusGraph()
   }
 
-  public _registerContextMenus(): void {
+  private _registerContextMenus(): void {
     registerContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY, [
       {
         label: 'New child note',
@@ -385,6 +385,21 @@ export default class GraphComponent {
     this._nodes = this._g.selectAll('.node')
   }
 
+  /**
+   * Update an rendered node with new metadata
+   */
+  private _updateRenderedNode(node: IGraphNodeData): void {
+    const x = this._nodes
+      .filter((d: IGraphNodeData) => d.id === node.id)
+      // NOTE: Key-function provides D3 with information about which datum maps to which
+      // element. This allows arrays in different orders to work as expected
+      .data([node], (d: IGraphNodeData) => d.id)
+      .selectAll('text')
+      .text((d: IGraphNodeData) => {
+        return node.title.length > 17 ? node.title.substr(0, 17 - 3) + '...' : node.title
+      })
+  }
+
   private _getNodeColor(nodeId: GraphNodeId): string {
     return this._selectedNode === nodeId
       ? GraphComponent._NODE_STROKE_COLOR_SELECTED
@@ -445,6 +460,20 @@ export default class GraphComponent {
         break
       case RESET_GRAPH_TYPE:
         this._resetPosition()
+        break
+      case EDIT_NODE_METADATA_TYPE:
+        if (!this._graphData) {
+          logger.log(
+            'Graph data not set. Skipping update to graph data with new metadata')
+          break
+        }
+
+        this._graphData.metadata[command.node.id] = command.node
+        this._updateGraphData({
+          index: this._graphData.index,
+          metadata: this._graphData.metadata,
+        })
+        this._updateRenderedNode(command.node)
         break
       default:
         assertNever(command)
@@ -683,6 +712,18 @@ export default class GraphComponent {
   }
 
   // UTILITIES /////////////////////////////////////////////////////////////////
+
+  /**
+   * Updates _graphData field with updated data
+   */
+  private _updateGraphData(data: IGraphData): void {
+    this._graphData = {
+      ...data,
+      metadataItems: graphMetadataToList(data.metadata),
+      childParentIndex: makeChildParentIndex(data.index),
+      linkData: flattenGraphIndex(data.index),
+    }
+  }
 
   private _setSelectedNode(id: GraphNodeId | null): void {
     if (this._selectedNode === id) return
