@@ -672,10 +672,10 @@ export default class GraphComponent {
               }
 
               const rect = {
-                xMin: n.x - GraphComponent._NODE_WIDTH / 2,
-                yMin: n.y - GraphComponent._NODE_HEIGHT / 2,
-                xMax: n.x + GraphComponent._NODE_WIDTH / 2,
-                yMax: n.y + GraphComponent._NODE_HEIGHT / 2,
+                xMin: d.x - GraphComponent._NODE_WIDTH / 2,
+                yMin: d.y - GraphComponent._NODE_HEIGHT / 2,
+                xMax: d.x + GraphComponent._NODE_WIDTH / 2,
+                yMax: d.y + GraphComponent._NODE_HEIGHT / 2,
               }
 
               const intersection = intersectLineWithRectange(line, rect)
