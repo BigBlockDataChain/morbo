@@ -348,6 +348,28 @@ export default class GraphComponent {
   private _renderNodes(): void {
     const existingNodes = this._gNodes.selectAll('.node')
 
+    const nodeCircles: {[id: string]: IPosition} = {}
+    this._graphData!.metadataItems.forEach((node: IGraphNodeData) => {
+      const nodeId = node.id
+      const parentId = this._graphData!.childParentIndex[nodeId]
+      if (parentId === null) return
+      const parent = this._graphData!.metadata[parentId]
+
+      const line = {
+        start: {x: node.x, y: node.y},
+        end: {x: parent.x, y: parent.y},
+      }
+
+      const rect = {
+        xMin: node.x - GraphComponent._NODE_WIDTH / 2,
+        yMin: node.y - GraphComponent._NODE_HEIGHT / 2,
+        xMax: node.x + GraphComponent._NODE_WIDTH / 2,
+        yMax: node.y + GraphComponent._NODE_HEIGHT / 2,
+      }
+
+      nodeCircles[nodeId] = intersectLineWithRectange(line, rect)
+    })
+
     const newNodes = existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
@@ -366,6 +388,17 @@ export default class GraphComponent {
       .on('mouseover.action', (d: IGraphNodeData) => this._onNodeMouseOver(d))
       .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
       .call(this._drag)
+
+    newNodes
+      // Add to only nodes with parents
+      .filter((d: IGraphNodeData) => nodeCircles[d.id])
+      .append('circle')
+      .attr('cx', (d: IGraphNodeData) =>
+        nodeCircles[d.id].x - d.x + GraphComponent._NODE_WIDTH / 2)
+      .attr('cy', (d: IGraphNodeData) =>
+        nodeCircles[d.id].y - d.y + GraphComponent._NODE_HEIGHT / 2)
+      .attr('r', 16)
+      .attr('fill', 'black')
 
     // Node circles
     newNodes
@@ -622,13 +655,39 @@ export default class GraphComponent {
 
         // Update node position
         this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
-          if (n.id === d.id)
+          if (n.id === d.id) {
             d3.select(refs_[i_])
               .attr('transform', () => {
                 const x = d.x - GraphComponent._NODE_WIDTH / 2
                 const y = d.y - GraphComponent._NODE_HEIGHT / 2
                 return `translate(${x}, ${y}) scale(1)`
               })
+
+            const parentId = this._graphData!.childParentIndex[d.id]
+            if (parentId !== null) {
+              const parent = this._graphData!.metadata[parentId]
+              const line = {
+                start: {x: d.x, y: d.y},
+                end: {x: parent.x, y: parent.y},
+              }
+
+              const rect = {
+                xMin: n.x - GraphComponent._NODE_WIDTH / 2,
+                yMin: n.y - GraphComponent._NODE_HEIGHT / 2,
+                xMax: n.x + GraphComponent._NODE_WIDTH / 2,
+                yMax: n.y + GraphComponent._NODE_HEIGHT / 2,
+              }
+
+              const intersection = intersectLineWithRectange(line, rect)
+
+              d3.select(refs_[i_])
+                .select('circle')
+                .attr('cx', () =>
+                  intersection.x - d.x + GraphComponent._NODE_WIDTH / 2)
+                  .attr('cy', () =>
+                    intersection.y - d.y + GraphComponent._NODE_HEIGHT / 2)
+            }
+          }
         })
 
         this._actionStream!.next(new NodeDragAction(d.id, {x: d.x, y: d.y}))
