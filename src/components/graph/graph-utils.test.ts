@@ -121,7 +121,7 @@ describe('graphMetadataToList', () => {
 
 describe('intersectLineWithRectange', () => {
 
-  const rect = {xMin: 0, yMin: 0, xMax: 10, yMax: 10}
+  const rect: IBoundingBox = {xMin: 0, yMin: 0, xMax: 10, yMax: 10}
 
   // it('can handle a line that does not leave the rectange (no intersection)', () => {
   //   const rect = {xMin: 50, yMin: 50, xMax: 100, yMax: 100}
