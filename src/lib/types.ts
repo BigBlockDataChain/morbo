@@ -13,7 +13,7 @@ export interface IGraphData {
   metadata: IGraphMetadata
 }
 
-export type GraphNodeId = number
+export type GraphNodeId = string
 
 export enum NoteDataType {
   TEXT = 'text',
@@ -25,7 +25,7 @@ export enum NoteDataType {
  */
 export interface IGraphIndex {
   // id type GraphNodeId
-  [id: number]: GraphNodeChildren
+  [id: string]: GraphNodeChildren
 }
 
 /**
@@ -33,18 +33,18 @@ export interface IGraphIndex {
  */
 export interface IGraphChildParentIndex {
   // id type GraphNodeId
-  [id: number]: null | GraphNodeId
+  [id: string]: null | GraphNodeId
 }
 
 export type GraphNodeChildren = GraphNodeId[]
 
 export interface IGraphMetadata {
   // id type GraphNodeId
-  [id: number]: IGraphNodeData
+  [id: string]: IGraphNodeData
 }
 
 export interface IGraphNodeData {
-  id: number
+  id: string
   title: string
   lastModified: string
   created: string

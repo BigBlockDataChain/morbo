@@ -16,16 +16,16 @@ jest.mock('./io-utils')
 const textContent = 'hello\nworld'
 
 const mockIndex: IGraphIndex = {
-  1: [2, 3],
+  1: ['2', '3'],
   2: [],
-  3: [4, 5],
+  3: ['4', '5'],
   4: [],
   5: [],
 }
 
 const mockMetadata: IGraphMetadata = {
   1: {
-    id: 1,
+    id: '1',
     title: 'One',
     lastModified: '',
     created: '',
@@ -34,7 +34,7 @@ const mockMetadata: IGraphMetadata = {
     tags: ['tagA'],
   },
   2: {
-    id: 2,
+    id: '2',
     title: 'Two',
     lastModified: '',
     created: '',
@@ -110,7 +110,7 @@ describe('loadNote', () => {
     (readFile as any).mockImplementation(
       (path: string) => Promise.resolve(textContent),
     )
-    expect(await loadNote(1, NoteDataType.TEXT)).toBe(textContent)
+    expect(await loadNote('1', NoteDataType.TEXT)).toBe(textContent)
     const filename = basename((readFile as any).mock.calls[0][0])
     expect(filename).toBe('file1.txt')
   })
@@ -121,7 +121,7 @@ describe('writeNote', () => {
     (writeFile as any).mockImplementation(
       (path: string, data: string) => Promise.resolve(),
     )
-    expect(await writeNote(1, NoteDataType.TEXT, textContent)).toBe(undefined)
+    expect(await writeNote('1', NoteDataType.TEXT, textContent)).toBe(undefined)
     const filename = basename((writeFile as any).mock.calls[0][0])
     expect(filename).toBe('file1.txt')
     expect((writeFile as any).mock.calls[0][1]).toBe(textContent)

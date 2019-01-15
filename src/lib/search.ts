@@ -11,7 +11,6 @@ function _search(metadata: IGraphMetadata, query: string): IGraphNodeData[] {
     return []
   }
   return Object.keys(metadata)
-    .map(Number)
     .filter((k: GraphNodeId) =>
       metadata[k].title.toLowerCase().includes(query.toLowerCase()))
     .map((k: GraphNodeId) => metadata[k])

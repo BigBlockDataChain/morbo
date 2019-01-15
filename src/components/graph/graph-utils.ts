@@ -9,12 +9,11 @@ import {
 
 export function graphMetadataToList(metadata: IGraphMetadata): IGraphNodeData[] {
   return Object.keys(metadata)
-    .map(Number)
     .map((k: GraphNodeId) => metadata[k])
 }
 
 export function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
-  const keys = Object.keys(index).map(Number)
+  const keys = Object.keys(index)
   return keys.reduce(
     (accum: ILinkTuple[], source: GraphNodeId) => {
       accum.push(
@@ -32,7 +31,7 @@ export function flattenGraphIndex(index: IGraphIndex): ILinkTuple[] {
  * Make a mapping of each child's parent assuming each child has a single parent
  */
 export function makeChildParentIndex(index: IGraphIndex): IGraphChildParentIndex {
-  const nodeIds = Object.keys(index).map(Number)
+  const nodeIds = Object.keys(index)
 
   // Initialize all as having no parent
   const childParentIndex: IGraphChildParentIndex = nodeIds.reduce(

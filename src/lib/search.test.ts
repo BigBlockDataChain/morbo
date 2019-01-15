@@ -3,7 +3,7 @@ import {IGraphMetadata} from './types'
 
 const mockMetadata: IGraphMetadata = {
   1: {
-    id: 1,
+    id: '1',
     title: 'One',
     lastModified: '',
     created: '',
@@ -12,7 +12,7 @@ const mockMetadata: IGraphMetadata = {
     tags: ['tagA'],
   },
   2: {
-    id: 2,
+    id: '2',
     title: 'Two',
     lastModified: '',
     created: '',
@@ -21,7 +21,7 @@ const mockMetadata: IGraphMetadata = {
     tags: ['tagB'],
   },
   3: {
-    id: 3,
+    id: '3',
     title: 'Three',
     lastModified: '',
     created: '',

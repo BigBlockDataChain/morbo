@@ -193,7 +193,7 @@ export const actions: any = {
       const ids = Object.keys(state.index)
         .map(Number)
         .sort((a: number, b: number) => a - b)
-      const nextId = ids[ids.length - 1] + 1 || 0
+      const nextId = (ids[ids.length - 1] + 1 || 0).toString()
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'File ' + nextId,

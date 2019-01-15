@@ -1,20 +1,20 @@
 import {
-  IGraphMetadata,
   IGraphChildParentIndex,
   IGraphIndex,
+  IGraphMetadata,
   IGraphNodeData,
   ILinkTuple,
 } from '@lib/types'
 import {
-  makeChildParentIndex,
-  graphMetadataToList,
   flattenGraphIndex,
+  graphMetadataToList,
+  makeChildParentIndex,
 } from './graph-utils'
 
 const index: IGraphIndex = {
-  0: [1, 4],
+  0: ['1', '4'],
   1: [],
-  2: [3],
+  2: ['3'],
   4: [],
 }
 
@@ -22,10 +22,10 @@ describe('makeChildParentIndex', () => {
 
   const cpIndex: IGraphChildParentIndex = {
     0: null,
-    1: 0,
+    1: '0',
     2: null,
-    3: 2,
-    4: 0,
+    3: '2',
+    4: '0',
   }
 
   it('can make child parent index', () => {
@@ -37,9 +37,9 @@ describe('makeChildParentIndex', () => {
 describe('flattenGraphIndex', () => {
 
   const flatGraphIndex: ILinkTuple[] = [
-    {id: '0-1', source: 0, target: 1},
-    {id: '0-4', source: 0, target: 4},
-    {id: '2-3', source: 2, target: 3},
+    {id: '0-1', source: '0', target: '1'},
+    {id: '0-4', source: '0', target: '4'},
+    {id: '2-3', source: '2', target: '3'},
   ]
 
   it('can flatten graph index to a list', () => {
@@ -52,7 +52,7 @@ describe('graphMetadataToList', () => {
 
   const metadata: IGraphMetadata = {
     0: {
-      id: 0,
+      id: '0',
       title: '0',
       lastModified: '',
       created: '',
@@ -61,7 +61,7 @@ describe('graphMetadataToList', () => {
       tags: [],
     },
     1: {
-      id: 0,
+      id: '0',
       title: '1',
       lastModified: '',
       created: '',
@@ -70,7 +70,7 @@ describe('graphMetadataToList', () => {
       tags: [],
     },
     2: {
-      id: 2,
+      id: '2',
       title: '2',
       lastModified: '',
       created: '',
@@ -82,7 +82,7 @@ describe('graphMetadataToList', () => {
 
   const metadataList: IGraphNodeData[] = [
     {
-      id: 0,
+      id: '0',
       title: '0',
       lastModified: '',
       created: '',
@@ -91,7 +91,7 @@ describe('graphMetadataToList', () => {
       tags: [],
     },
     {
-      id: 0,
+      id: '0',
       title: '1',
       lastModified: '',
       created: '',
@@ -100,7 +100,7 @@ describe('graphMetadataToList', () => {
       tags: [],
     },
     {
-      id: 2,
+      id: '2',
       title: '2',
       lastModified: '',
       created: '',
