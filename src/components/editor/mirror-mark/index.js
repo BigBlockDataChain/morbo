@@ -123,6 +123,20 @@ class MirrorMark {
   }
 
   /**
+   * Set the editor's content
+   */
+  setValue(data) {
+    return this.cm.getDoc().setValue(data)
+  }
+
+  /**
+   * Get the editor's content
+   */
+  getValue(data) {
+    return this.cm.getDoc().getValue()
+  }
+
+  /**
    * Setup the toolbar
    */
   setToolbar(tools) {

@@ -1,6 +1,7 @@
 import * as html from '@hyperapp/html'
 
 import Empty from '@components/widgets/empty'
+import {getLogger} from '@lib/logger'
 import {loadNote, writeNote} from '@lib/io'
 import {
   El,
@@ -9,9 +10,11 @@ import {
   NoteDataType,
 } from '@lib/types'
 import './mirror-mark'
-import mirrorMark from './mirror-mark'
+import MirrorMark from './mirror-mark'
 
 import './editor-component.css'
+
+const logger = getLogger('editor')
 
 const saveSvg = require('../../res/save-disk.svg')
 const deleteSvg = require('../../res/cancel.svg')
@@ -35,13 +38,26 @@ export const state: IEditorState = {
   node: null,
   handWritingEditor: {},
   textEditor: {
-    data: null,
     mirrorMarkEditor: null,
-    parentTextArea : null,
   },
 }
 
 export const actions = {
+  onEditorHostElementCreate: (el: El) => (_state: any) => {
+    const mirrorMarkOptions = {
+      showToolbar: true,
+    }
+    const mirrorMarkEditor = MirrorMark(el, mirrorMarkOptions)
+    mirrorMarkEditor.render()
+
+    return {
+      textEditor: {
+        ...state.textEditor,
+        mirrorMarkEditor,
+      },
+    }
+  },
+
   setNodeTitle: (title: string) => (_state: any) => {
     return {
       node: {
@@ -55,37 +71,27 @@ export const actions = {
   },
 
   textEditor: {
-    setData: (data: string) => () => {
-      return {data}
-    },
-    setMirrorMarkEditor: (mirrorMarkEditor: any) => () => {
-      return {mirrorMarkEditor}
-    },
-    setParentTextArea: (parentTextArea: any) => () => {
-      return {parentTextArea}
-    },
   },
 
-  loadTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
-    const data = await loadNote(nodeId, NoteDataType.TEXT)
-    _actions.textEditor.setData(data)
-
-    // Dispatch a custom event to update the default CodeMirror text.
-    const updateEvent = new CustomEvent('textupdate', {
-      detail: {data},
-    })
-    const parentTextArea = _state.textEditor.parentTextArea
-    if (parentTextArea !== null) {
-      parentTextArea.dispatchEvent(updateEvent)
+  loadTextNote: (nodeId: GraphNodeId) => async (_state: any) => {
+    let data = ''
+    try {
+      data = await loadNote(nodeId, NoteDataType.TEXT)
+    } catch (err) {
+      logger.warn('Failed to load file for node ${nodeId}', err)
     }
+    // TODO: This making an assumption that mirrorMarkEditor has been initialized. This
+    // may not hold.
+    _state.textEditor.mirrorMarkEditor.setValue(data)
   },
 
   saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
-    const data = _state.textEditor.data
+    const data = _state.textEditor.mirrorMarkEditor.getValue()
     await writeNote(nodeId, NoteDataType.TEXT, data)
   },
 
-  setNode: (node: IGraphNodeData) => () => {
+  setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
+    _actions.loadTextNote(node.id)
     return {node}
   },
 }
@@ -99,13 +105,12 @@ export function view(
 ) {
   if (_state.node === null || node.id !== _state.node.id) {
     // Save previous open note
-    if (_state.node !== null) {
-      _actions.saveTextNote(_state.node.id)
-    }
+    if (_state.node !== null) _actions.saveTextNote(_state.node.id)
 
-    _actions.setNode({...node})
-    _actions.textEditor.setData(null)
-    _actions.loadTextNote(node.id)
+    // TODO: Find better approach. This _may_ fail if the editor still hasn't been created
+    // yet
+    // NOTE: Defer to ensure a mirror mark editor has been created
+    setTimeout(() => _actions.setNode({...node}))
   }
 
   return html.div(
@@ -118,31 +123,7 @@ export function view(
           html.textarea(
             {
               id: 'text-editor',
-              oncreate: (el: El) => {
-                const mirrorMarkOptions = {
-                  showToolbar: true,
-                }
-                const mirrorMarkEditor = mirrorMark(el, mirrorMarkOptions)
-                mirrorMarkEditor.render()
-                _actions.textEditor.setParentTextArea(el)
-                _actions.textEditor.setMirrorMarkEditor(mirrorMarkEditor)
-
-                // Get the CodeMirror (editor) object.
-                const codeMirrorEditor = mirrorMarkEditor.cm
-
-                // Set the onChange event to capture input data.
-                codeMirrorEditor.on('change', () => {
-                  el.dispatchEvent(new Event('input'))
-                })
-              },
-              oninput: () => {
-                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
-                _actions.textEditor.setData(codeMirrorEditor.getValue())
-              },
-              ontextupdate: (ev: CustomEvent) => {
-                const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
-                codeMirrorEditor.setValue(ev.detail.data)
-              },
+              oncreate: (el: El) => _actions.onEditorHostElementCreate(el),
             },
           ),
         ],
@@ -208,12 +189,7 @@ function headerButtons(
             _state.node !== null
               ? _state.node.tags.map(html.span)
               : Empty(),
-            html.button(
-              {
-                disabled: true,
-              },
-              '+',
-            ),
+            html.button({disabled: true}, '+'),
           ],
         ),
       ],
@@ -223,15 +199,9 @@ function headerButtons(
 
 function icon(imgSrc: string) {
   return html.div(
-    {
-      class: 'icon',
-    },
+    {class: 'icon'},
     [
-      html.img(
-        {
-          src: imgSrc,
-        },
-      ),
+      html.img({src: imgSrc}),
     ],
   )
 }
