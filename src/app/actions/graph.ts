@@ -154,6 +154,9 @@ export const actions: any = {
               break
             case graphTypes.ZOOM_TYPE:
               break
+            case graphTypes.DELETE_LINK_TYPE:
+              _actions._deleteLink({source: event.source, target: event.target})
+              break
             default:
               assertNever(event)
           }
@@ -250,4 +253,11 @@ export const actions: any = {
       metadata,
     }
   },
+
+  _deleteLink: ({source, target}: {source: GraphNodeId, target: GraphNodeId}) =>
+    (state: any) => {
+      const index = {...state.index}
+      index[source] = index[source].filter((c: GraphNodeId) => c !== target)
+      return {index}
+    },
 }

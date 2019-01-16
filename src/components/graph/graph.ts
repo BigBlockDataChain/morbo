@@ -25,6 +25,7 @@ import {
   BackgroundClickAction,
   BackgroundDblClickAction,
   CreateNewNodeAction,
+  DeleteLinkAction,
   DeleteNodeAction,
   EDIT_NODE_METADATA_TYPE,
   EditNodeAction,
@@ -74,6 +75,7 @@ export default class GraphComponent {
   private static readonly _ZOOM_MAX = 1
 
   private static readonly _CONTEXT_MENU_NODE_KEY = 'graph.node'
+  private static readonly _CONTEXT_MENU_LINK_KEY = 'graph.link'
   private static readonly _CONTEXT_MENU_BACKGROUND_KEY = 'graph.background'
 
   /*
@@ -101,6 +103,7 @@ export default class GraphComponent {
   private _drag: any | null = null
 
   private _selectedNode: GraphNodeId | null = null
+  private _lastSelectedLink: ILinkTuple | null = null
 
   private _actionStream: Subject<GraphAction> | null = null
 
@@ -289,6 +292,15 @@ export default class GraphComponent {
         }, 50),
       },
     ])
+    registerContextMenu(GraphComponent._CONTEXT_MENU_LINK_KEY, [
+      {
+        label: 'Delete',
+        click: () => {
+          const {source, target} = this._lastSelectedLink!
+          this._actionStream!.next(new DeleteLinkAction(source, target))
+        },
+      },
+    ])
     registerContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY, [
       {
         label: 'New note',
@@ -445,6 +457,7 @@ export default class GraphComponent {
       .attr('fill', 'none')
       .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
       .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+      .on('contextmenu', (l: ILinkTuple) => this._onLinkContextMenu(l))
 
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
@@ -524,6 +537,12 @@ export default class GraphComponent {
         this._zoomHandler.transform,
         d3.zoomIdentity.translate(x, y).scale(transform.scale),
       )
+  }
+
+  private _onLinkContextMenu(l: ILinkTuple): void {
+    d3.event.stopPropagation()
+    this._lastSelectedLink = l
+    showContextMenu(GraphComponent._CONTEXT_MENU_LINK_KEY)
   }
 
   private _onNodeClick(d: IGraphNodeData): void {
