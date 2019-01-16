@@ -1,8 +1,8 @@
 import * as html from '@hyperapp/html'
 
 import Empty from '@components/widgets/empty'
-import {getLogger} from '@lib/logger'
 import {loadNote, writeNote} from '@lib/io'
+import {getLogger} from '@lib/logger'
 import {
   El,
   GraphNodeId,
