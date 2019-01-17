@@ -663,29 +663,41 @@ export default class GraphComponent {
                 return `translate(${x}, ${y}) scale(1)`
               })
 
+            const nodes: IGraphNodeData[] = []
+            const hasParent: boolean[] = []
             const parentId = this._graphData!.childParentIndex[d.id]
+            const childIds = this._graphData!.index[d.id]
             if (parentId !== null) {
-              const parent = this._graphData!.metadata[parentId]
-              const line = {
-                start: {x: d.x, y: d.y},
-                end: {x: parent.x, y: parent.y},
+              nodes.push(this._graphData!.metadata[parentId])
+              hasParent.push(true)
+            }
+            if (childIds !== null) {
+              for (const k of childIds) {
+                nodes.push(this._graphData!.metadata[childIds[k]])
+                hasParent.push(false)
               }
+            }
+
+            for (let j = 0; j < nodes.length; j++) {
+              let line: any
+              if (hasParent[j]) line = {start: d, end: nodes[j]}
+              else line = {start: nodes[j], end: d}
 
               const rect = {
-                xMin: d.x - GraphComponent._NODE_WIDTH / 2,
-                yMin: d.y - GraphComponent._NODE_HEIGHT / 2,
-                xMax: d.x + GraphComponent._NODE_WIDTH / 2,
-                yMax: d.y + GraphComponent._NODE_HEIGHT / 2,
+                xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
+                yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
+                xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
+                yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
               }
 
               const intersection = intersectLineWithRectange(line, rect)
 
-              d3.select(refs_[i_])
+              d3.select(refs_[line.start.id])
                 .select('circle')
                 .attr('cx', () =>
-                  intersection.x - d.x + GraphComponent._NODE_WIDTH / 2)
+                  intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
                   .attr('cy', () =>
-                    intersection.y - d.y + GraphComponent._NODE_HEIGHT / 2)
+                    intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
             }
           }
         })
