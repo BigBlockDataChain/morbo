@@ -673,7 +673,7 @@ export default class GraphComponent {
             }
             if (childIds !== null) {
               for (const k of childIds) {
-                nodes.push(this._graphData!.metadata[childIds[k]])
+                nodes.push(this._graphData!.metadata[k])
                 hasParent.push(false)
               }
             }
