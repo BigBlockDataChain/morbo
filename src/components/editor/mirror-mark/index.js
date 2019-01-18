@@ -77,7 +77,7 @@ class MirrorMark {
       },
       fullScreen: function () {
         const el = this.cm.getWrapperElement()
-        
+
         // https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
         const doc = document
         const isFull = doc.fullScreen || doc.mozFullScreen || doc.webkitFullScreen
@@ -149,7 +149,7 @@ class MirrorMark {
       })
 
     const cmWrapper = this.cm.getWrapperElement()
-    cmWrapper.insertBefore(toolbar, cmWrapper.firstChild);
+    cmWrapper.insertBefore(toolbar, cmWrapper.firstChild)
   }
 
   /**
