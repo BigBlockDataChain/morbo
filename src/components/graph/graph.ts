@@ -334,7 +334,7 @@ export default class GraphComponent {
 
           this._setHomeLocation({
             ...this._svgToGraphPosition(this._lastRightClickLocation!),
-            scale
+            scale,
           })
         },
       },
