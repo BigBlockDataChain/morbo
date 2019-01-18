@@ -214,6 +214,11 @@ export default class GraphComponent {
       return
     }
 
+    const dimensionsChanged
+      =  this._dimensions
+      && (this._dimensions!.height !== dimensions.height
+          || this._dimensions!.width !== dimensions.width)
+
     this._dimensions = dimensions
     this._updateGraphData(data)
 
@@ -237,11 +242,12 @@ export default class GraphComponent {
     this._disableDoubleClickZoom()
 
     // Focus graph
-    if (this._selectedNode !== null)
+    if (this._selectedNode !== null && dimensionsChanged)
       this._lastFocusedLocation = {
         x: this._graphData!.metadata![this._selectedNode].x,
         y: this._graphData!.metadata![this._selectedNode].y,
       }
+
     this._focusGraph()
   }
 
