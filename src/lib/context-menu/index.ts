@@ -11,6 +11,7 @@ export function registerContextMenu(label: string, menuItems: any[]): void {
 }
 
 export function showContextMenu(label: string): void {
+  logger.log('showing context menu', label)
   if (!menus.has(label)) {
     logger.warn(`${label} is not a registered menu`)
     return

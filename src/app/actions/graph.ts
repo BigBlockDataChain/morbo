@@ -131,6 +131,11 @@ export const actions: any = {
             case graphTypes.DELETE_NODE_TYPE:
               _actions._deleteNode(event.nodeId)
               break
+            case graphTypes.SET_NODE_PARENT_TYPE:
+              _actions._setNodeParent({parent: event.parent, child: event.child})
+              break
+            case graphTypes.SET_NODE_CHILD_TYPE:
+              break
             case graphTypes.NODE_CLICK_TYPE:
               break
             case graphTypes.NODE_RIGHT_CLICK_TYPE:
@@ -258,6 +263,13 @@ export const actions: any = {
     (state: any) => {
       const index = {...state.index}
       index[source] = index[source].filter((c: GraphNodeId) => c !== target)
+      return {index}
+    },
+
+  _setNodeParent: ({parent, child}: {parent: GraphNodeId, child: GraphNodeId}) =>
+    (state: any) => {
+      const index = {...state.index}
+      index[parent] = [...index[parent], child]
       return {index}
     },
 }
