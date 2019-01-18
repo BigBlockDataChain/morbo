@@ -173,12 +173,13 @@ export function view(state: IState, actions: any) {
       ),
       (state.runtime.showEditor && state.runtime.selectedNode !== null)
         ? Editor.view(
-          state.editor,
-          actions.editor,
-          state.graph.metadata[state.runtime.selectedNode],
-          actions.onEditorClose,
-          actions.onEditorUpdateMetadata,
-        )
+            state.editor,
+            actions.editor,
+            state.graph.metadata[state.runtime.selectedNode],
+            actions.onEditorClose,
+            actions.onEditorUpdateMetadata,
+            actions.graph.deleteNode,
+          )
         : Empty(),
     ],
   )

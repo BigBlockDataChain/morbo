@@ -20,26 +20,19 @@
 #editor-container > .container {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 0.3em;
 }
 
 #editor-container #editor-right-buttons {
   display: flex;
 }
 
-#editor-container #editor-right-buttons *{
-  margin-left: 0.1em;
-  margin-right: 0.1em;
-}
-
 #editor-container #editor-right-buttons .icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 100%;
-  padding: 8px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
-  background: #f9f9ec;
-  opacity: 0.25;
-  pointer-events: auto;
+  padding: 4px;
+  opacity: 0.4;
 }
 
 #editor-container #editor-right-buttons img {
@@ -52,48 +45,19 @@
 }
 
 #editor-container #editor-right-buttons .icon:hover {
-  background: purple;
-  border-color: white;
-  box-shadow: 0 0 0 2px purple;
   opacity: 1;
-}
-#editor-container #editor-right-buttons .icon:hover img {
-  filter: invert(1);
-}
-#editor-container #editor-right-buttons .icon:active {
-  box-shadow: none;
-}
-
-#editor-container #text-edit-tools {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
-}
-
-#editor-container #text-edit-tools * {
-  margin-left: 0.1em;
-  margin-right: 0.1em;
 }
 
 #editor-container #editor-title {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
   background: none;
   border: none;
   font-size: 125%;
+  flex: auto;
+  margin-right: 64px;
 }
 #editor-container #editor-title:focus {
   background: white;
   border: default;
-}
-
-#editor-container #editor-tags * {
-  margin-left: 0.1em;
-  margin-right: 0.1em;
-}
-
-#editor-container #editor-tools {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
 }
 
 #editor-container #editor {

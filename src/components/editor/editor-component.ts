@@ -17,15 +17,13 @@ import './editor-component.css'
 const logger = getLogger('editor')
 
 const saveSvg = require('../../res/save-disk.svg')
-const deleteSvg = require('../../res/cancel.svg')
-const editSvg = require('../../res/edit.svg')
-const maximizeSvg = require('../../res/maximize.svg')
+const closeSvg = require('../../res/cancel.svg')
+const deleteSvg = require('../../res/garbage.svg')
 
 const SVG_ICONS = {
   SAVE: saveSvg,
+  CLOSE: closeSvg,
   DELETE: deleteSvg,
-  EDIT: editSvg,
-  MAXIMIZE: maximizeSvg,
 }
 
 interface IEditorState {
@@ -102,6 +100,7 @@ export function view(
   node: IGraphNodeData,
   onClose: () => any,
   onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   if (_state.node === null || node.id !== _state.node.id) {
     // Save previous open note
@@ -116,7 +115,7 @@ export function view(
   return html.div(
     {id: 'editor-container'},
     [
-      ...headerButtons(_state, _actions, onClose, onEditorUpdateMetadata),
+      ...headerButtons(_state, _actions, onClose, onEditorUpdateMetadata, deleteNode),
       html.div(
         {id: 'editor'},
         [
@@ -137,49 +136,35 @@ function headerButtons(
   _actions: any,
   onClose: () => any,
   onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   return [
     html.div(
       {class: 'container'},
       [
-        html.button(
+        html.input(
           {
-            id: 'editor-close',
-            onclick: (ev: Event) => {
-              _actions.saveTextNote(_state.node.id),
-              onClose()
-            },
+            id: 'editor-title',
+            oninput: (ev: Event) =>
+              _actions.setNodeTitle((ev.target as HTMLInputElement).value),
+            value: _state.node !== null ? _state.node.title : '',
           },
-          'x',
-        ),
-        html.button(
-          {
-            id: 'editor-save',
-            onclick: () => {
-              _actions.saveTextNote(_state.node.id)
-              onEditorUpdateMetadata(_state.node)
-            },
-          },
-          'save',
         ),
         html.div(
           { id: 'editor-right-buttons' },
           [
-            icon(SVG_ICONS.SAVE),
-            icon(SVG_ICONS.DELETE),
-            icon(SVG_ICONS.EDIT),
-            icon(SVG_ICONS.MAXIMIZE),
+            icon(SVG_ICONS.DELETE, () => {
+              deleteNode(_state.node.id)
+              onClose()
+            }),
+            icon(SVG_ICONS.SAVE, () => {
+              _actions.saveTextNote()
+              onEditorUpdateMetadata(_state.node)
+            }),
+            icon(SVG_ICONS.CLOSE, onClose),
           ],
         ),
       ],
-    ),
-    html.input(
-      {
-        id: 'editor-title',
-        oninput: (ev: Event) =>
-          _actions.setNodeTitle((ev.target as HTMLInputElement).value),
-        value: _state.node !== null ? _state.node.title : '',
-      },
     ),
     html.div(
       {id: 'editor-tags'},
@@ -197,9 +182,12 @@ function headerButtons(
   ]
 }
 
-function icon(imgSrc: string) {
+function icon(imgSrc: string, onClick: () => void) {
   return html.div(
-    {class: 'icon'},
+    {
+      class: 'icon',
+      onclick: () => onClick(),
+    },
     [
       html.img({src: imgSrc}),
     ],
