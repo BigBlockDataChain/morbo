@@ -58,7 +58,7 @@ export function view(
       html.div(
         {class: 'container'},
         [
-          icon(callbacks.onBack, SVG_ICONS.BACK),
+          // icon(callbacks.onBack, SVG_ICONS.BACK),
           icon(callbacks.onHome, SVG_ICONS.HOME),
           icon(callbacks.onSave, SVG_ICONS.SAVE),
           icon(callbacks.onSettings, SVG_ICONS.SETTINGS),

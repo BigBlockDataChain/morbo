@@ -61,7 +61,7 @@ export function view(
               value: _state.query,
             },
           ),
-          html.img(
+          html.div(
             {
               class: 'clear-icon',
               src: clearSvg,
@@ -70,6 +70,9 @@ export function view(
                 (() => onClose())()
               },
             },
+            [
+              html.img({src: clearSvg}),
+            ],
           ),
         ],
       ),
