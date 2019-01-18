@@ -41,6 +41,16 @@ export const state: IEditorState = {
 }
 
 export const actions = {
+  onCreate: (
+    {el, updateMetadata}: {el: El, updateMetadata: (node: IGraphNodeData) => void},
+  ) =>
+    (_state: any, _actions: any) => {
+      el.addEventListener(
+        'keydown',
+        (ev: KeyboardEvent) => _actions.handleKeyboardShortcut({ev, updateMetadata}),
+      )
+    },
+
   onEditorHostElementCreate: (el: El) => (_state: any) => {
     const mirrorMarkOptions = {
       showToolbar: true,
@@ -83,15 +93,27 @@ export const actions = {
     _state.textEditor.mirrorMarkEditor.setValue(data)
   },
 
-  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
+  saveTextNote: () => async (_state: any, _actions: any) => {
     const data = _state.textEditor.mirrorMarkEditor.getValue()
-    await writeNote(nodeId, NoteDataType.TEXT, data)
+    await writeNote(_state.node.id, NoteDataType.TEXT, data)
   },
 
   setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
     _actions.loadTextNote(node.id)
     return {node}
   },
+
+  handleKeyboardShortcut: (
+    {ev, updateMetadata}:
+      {ev: KeyboardEvent, updateMetadata: (node: IGraphNodeData) => void},
+  ) => (_state: any, _actions: any) => {
+      if (!(ev.ctrlKey && ev.key === 's'))
+        return
+
+      logger.debug('Saving editor data')
+      updateMetadata(_state.node)
+      _actions.saveTextNote()
+    },
 }
 
 export function view(
@@ -99,12 +121,12 @@ export function view(
   _actions: any,
   node: IGraphNodeData,
   onClose: () => any,
-  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  updateMetadata: (node: IGraphNodeData) => void,
   deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   if (_state.node === null || node.id !== _state.node.id) {
     // Save previous open note
-    if (_state.node !== null) _actions.saveTextNote(_state.node.id)
+    if (_state.node !== null) _actions.saveTextNote()
 
     // TODO: Find better approach. This _may_ fail if the editor still hasn't been created
     // yet
@@ -112,10 +134,15 @@ export function view(
     setTimeout(() => _actions.setNode({...node}))
   }
 
-  return html.div(
-    {id: 'editor-container'},
+  // NOTE: For some unknown reason, using a div makes the oncreate not work for this top
+  // level element. So instead the span is being used instead.
+  return html.span(
+    {
+      id: 'editor-container',
+      oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
+    },
     [
-      ...headerButtons(_state, _actions, onClose, onEditorUpdateMetadata, deleteNode),
+      ...headerButtons(_state, _actions, onClose, updateMetadata, deleteNode),
       html.div(
         {id: 'editor'},
         [
@@ -135,7 +162,7 @@ function headerButtons(
   _state: any,
   _actions: any,
   onClose: () => any,
-  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  updateMetadata: (node: IGraphNodeData) => void,
   deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   return [
@@ -159,7 +186,7 @@ function headerButtons(
             }),
             icon(SVG_ICONS.SAVE, () => {
               _actions.saveTextNote()
-              onEditorUpdateMetadata(_state.node)
+              updateMetadata(_state.node)
             }),
             icon(SVG_ICONS.CLOSE, onClose),
           ],
