@@ -12,7 +12,10 @@ function _search(metadata: IGraphMetadata, query: string): IGraphNodeData[] {
   }
   return Object.keys(metadata)
     .map(Number)
-    .filter((k: GraphNodeId) =>
-      metadata[k].title.toLowerCase().includes(query.toLowerCase()))
+    .filter((k: GraphNodeId) => {
+      const queryLower = query.toLowerCase()
+      return metadata[k].title.toLowerCase().includes(queryLower)
+        || metadata[k].tags.toString().toLowerCase().includes(queryLower)
+    })
     .map((k: GraphNodeId) => metadata[k])
 }
