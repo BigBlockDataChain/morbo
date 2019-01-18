@@ -1,6 +1,5 @@
 import * as html from '@hyperapp/html'
 
-import Empty from '@components/widgets/empty'
 import {loadNote, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {
@@ -28,12 +27,14 @@ const SVG_ICONS = {
 
 interface IEditorState {
   node: null | IGraphNodeData,
+  tagsInputValue: string,
   handWritingEditor: any,
   textEditor: any,
 }
 
 export const state: IEditorState = {
   node: null,
+  tagsInputValue: '',
   handWritingEditor: {},
   textEditor: {
     mirrorMarkEditor: null,
@@ -75,6 +76,16 @@ export const actions = {
     }
   },
 
+  setNodeTags: (tags: string) => (_state: any) => {
+    return {
+      tagsInputValue: tags,
+      node: {
+        ..._state.node,
+        tags: tags.split(',').map((p: string) => p.trim()),
+      },
+    }
+  },
+
   handWritingEditor: {
   },
 
@@ -100,7 +111,10 @@ export const actions = {
 
   setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
     _actions.loadTextNote(node.id)
-    return {node}
+    return {
+      tagsInputValue: node.tags.toString(),
+      node,
+    }
   },
 
   handleKeyboardShortcut: (
@@ -193,18 +207,13 @@ function headerButtons(
         ),
       ],
     ),
-    html.div(
-      {id: 'editor-tags'},
-      [
-        html.div(
-          [
-            _state.node !== null
-              ? _state.node.tags.map(html.span)
-              : Empty(),
-            html.button({disabled: true}, '+'),
-          ],
-        ),
-      ],
+    html.input(
+      {
+        id: 'editor-tags',
+        value: _state.tagsInputValue,
+        oninput: (ev: Event) =>
+          _actions.setNodeTags((ev.target as HTMLInputElement).value),
+      },
     ),
   ]
 }
