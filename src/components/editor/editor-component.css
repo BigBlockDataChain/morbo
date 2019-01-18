@@ -60,6 +60,17 @@
   border: default;
 }
 
+#editor-container #editor-tags {
+  background: none;
+  border: none;
+  width: 100%;
+  font-size: 90%;
+}
+#editor-container #editor-tags:focus {
+  background: white;
+  border: default;
+}
+
 #editor-container #editor {
   height: 85%;
   width: 100%;
@@ -76,16 +87,4 @@
   height: 100% !important;
   cursor: text;
   padding: 0.5em;
-}
-
-#editor-container #editor-close {
-  border: none;
-  border-radius: 50%;
-  margin-bottom: 8px;
-  padding: 4px 8px;
-  background: none;
-}
-
-#editor-container #editor-close:hover {
-  background: lightgray;
 }
