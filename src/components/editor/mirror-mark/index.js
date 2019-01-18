@@ -80,7 +80,7 @@ class MirrorMark {
 
         // https://developer.mozilla.org/en-US/docs/DOM/Using_fullscreen_mode
         const doc = document
-        const isFull = doc.fullScreen || doc.mozFullScreen || doc.webkitFullScreen
+        const isFull = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement
         const request = function() {
           if (el.requestFullscreen) {
             el.requestFullscreen()
@@ -90,6 +90,17 @@ class MirrorMark {
             el.mozRequestFullScreen()
           } else if (el.msRequestFullscreen) {
             el.msRequestFullscreen()
+          }
+        }
+        const exit = function() {
+          if (doc.exitFullscreen) {
+            doc.exitFullscreen()
+          } else if (doc.webkitExitFullscreen) {
+            doc.webkitExitFullscreen()
+          } else if (doc.mozExitFullScreen) {
+            doc.mozExitFullScreen()
+          } else if (doc.msExitFullscreen) {
+            doc.msExitFullscreen()
           }
         }
         const cancel = function() {
@@ -103,6 +114,8 @@ class MirrorMark {
         }
         if (!isFull) {
           request()
+        } else if (isFull) {
+          exit()
         } else if (cancel) {
           cancel()
         }
