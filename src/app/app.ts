@@ -151,7 +151,6 @@ export function view(state: IState, actions: any) {
         {
           onBack: emptyFunction,
           onHome: actions.resetGraph,
-          onSave: actions.save,
           onSettings: actions.toggleSettingsPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },

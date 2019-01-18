@@ -39,7 +39,6 @@ export const actions = {
 interface IButtonCallbacks {
   onBack: () => void,
     onHome: () => void,
-    onSave: () => void,
     onSettings: () => void,
     onSearchResultClick: (node: IGraphNodeData) => void,
 }
