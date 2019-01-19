@@ -89,6 +89,7 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _c10: any | null = null
   private _g: any | null = null
+  private _gNewLink: any | null = null
   private _gNodes: any | null = null
   private _gLinks: any | null = null
   private _zoomHandler: any | null = null
@@ -96,9 +97,6 @@ export default class GraphComponent {
   private _links: any | null = null
   private _nodes: any | null = null
   private _drag: any | null = null
-
-  // @ts-ignore // no unused variable
-  private _mode: IGraphMode = GraphMode.NORMAL
 
   private _selectedNode: GraphNodeId | null = null
   private _lastSelectedLink: ILinkTuple | null = null
@@ -113,8 +111,7 @@ export default class GraphComponent {
   private _graphData: null | IExtendedGraphData = null
   private _dimensions: null | IDimensions = null
 
-  // @ts-ignore // no unused variable
-  private _arrowHeadId: null | string
+  private _mode: IGraphMode = GraphMode.NORMAL
   private _startNode: null | GraphNodeId = null
   private _targetNode: null | GraphNodeId = null
 
@@ -159,9 +156,10 @@ export default class GraphComponent {
     this._c10 = d3.scaleOrdinal(d3.schemeCategory10)
     this._actionStream = actionStream
     this._svg = this._createSvg(host, dimensions)
-    this._arrowHeadId = defineArrowHead(this._svg)
     this._g = this._svg.append('g')
       .attr('class', 'everything')
+    this._gNewLink = this._g.append('g')
+      .attr('class', 'new-link')
     this._gLinks = this._g.append('g')
       .attr('class', 'links')
     this._gNodes = this._g.append('g')
@@ -175,6 +173,7 @@ export default class GraphComponent {
       .scaleExtent([GraphComponent._ZOOM_MIN, GraphComponent._ZOOM_MAX])
       .on('zoom.a', zoomActions)
       .on('zoom.b', () => actionStream.next(new graphTypes.ZoomAction()))
+      .on('zoom.mode', () => this._handleZoomInMode())
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
@@ -276,25 +275,7 @@ export default class GraphComponent {
       {type: 'separator'},
       {
         label: 'Make Parent of...',
-        click: () => {
-          this._mode = GraphMode.SET_AS_PARENT
-          this._startNode = this._selectedNode!
-          const node = this._graphData!.metadata[this._startNode]
-          const position = this._graphToSVGPosition({x: node.x, y: node.y})
-          this._svg
-            .selectAll('#foobar')
-            .data([null])
-            .enter()
-            .append('line')
-            .style('pointer-events', 'none')
-            .attr('id', 'foobar')
-            .attr('x1', position.x)
-            .attr('y1', position.y)
-            .attr('x2', position.x)
-            .attr('y2', position.y)
-            .attr('stroke', 'purple')
-            .attr('stroke-width', 4)
-        },
+        click: () => this._changeMode(GraphMode.SET_AS_PARENT),
       },
       {type: 'separator'},
       {
@@ -330,19 +311,7 @@ export default class GraphComponent {
       .attr('id', 'graph')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
-      .on('mousemove', () => {
-        if (this._targetNode !== null) {
-          const node = this._graphData!.metadata[this._targetNode]
-          const position = this._graphToSVGPosition({x: node.x, y: node.y})
-          this._svg.select('#foobar')
-            .attr('x2', position.x)
-            .attr('y2', position.y)
-        } else {
-          this._svg.select('#foobar')
-            .attr('x2', d3.event.clientX)
-            .attr('y2', d3.event.clientY)
-        }
-      })
+      .on('mousemove', () => this._onBackgroundMoveMove())
       .on('contextmenu', () => this._onBackgroundContextMenu())
       .on('click', () => this._onBackgroundClick())
       .on('dblclick', () => this._onBackgroundDblClick())
@@ -501,6 +470,20 @@ export default class GraphComponent {
     }
   }
 
+  private _handleZoomInMode(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        this._updateFoobar()
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
   private _resetPosition(): void {
     this._svg
       .transition()
@@ -534,6 +517,20 @@ export default class GraphComponent {
       )
   }
 
+  private _onBackgroundMoveMove(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        this._updateFoobar()
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
   private _onBackgroundContextMenu(): void {
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
@@ -553,7 +550,6 @@ export default class GraphComponent {
       default:
         assertNever(this._mode.kind)
     }
-
   }
 
   private _onBackgroundClick(): void {
@@ -640,10 +636,8 @@ export default class GraphComponent {
 
         this._actionStream!
           .next(new graphTypes.SetNodeParentAction(this._startNode!, d.id))
-        this._mode = GraphMode.NORMAL
-        this._startNode = null
-        this._targetNode = null
-        this._svg.select('#foobar').remove()
+        this._changeMode(GraphMode.NORMAL)
+        this._handleSetAsParentExit()
         break
 
       default:
@@ -671,7 +665,6 @@ export default class GraphComponent {
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         this._setSelectedNode(d.id)
-        // TODO make menu label a constant
         showContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY)
         d3.event.stopPropagation()
         this._actionStream!.next(new graphTypes.NodeRightClickAction(d.id))
@@ -728,6 +721,48 @@ export default class GraphComponent {
       default:
         assertNever(this._mode.kind)
     }
+  }
+
+  private _changeMode(mode: IGraphMode): void {
+    switch (mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._mode = GraphMode.NORMAL
+        break
+      case GraphModeKind.SET_AS_PARENT:
+        this._mode = GraphMode.SET_AS_PARENT
+        this._handleModeChangeToSetAsParent()
+        break
+      default:
+        assertNever(mode.kind)
+    }
+  }
+
+  /**
+   * Assumes _selectedNode is the parent node.
+   */
+  private _handleModeChangeToSetAsParent(): void {
+    this._startNode = this._selectedNode!
+    const node = this._graphData!.metadata[this._startNode]
+    const position = {x: node.x, y: node.y}
+    this._gNewLink
+      .selectAll('#foobar')
+      .data([null])
+      .enter()
+      .append('line')
+      .style('pointer-events', 'none')
+      .attr('id', 'foobar')
+      .attr('x1', position.x)
+      .attr('y1', position.y)
+      .attr('x2', position.x)
+      .attr('y2', position.y)
+      .attr('stroke', 'purple')
+      .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER)
+  }
+
+  private _handleSetAsParentExit(): void {
+    this._startNode = null
+    this._targetNode = null
+    this._gNewLink.select('#foobar').remove()
   }
 
   // EXTENDED GRAPH FUNCTIONALITY //////////////////////////////////////////////
@@ -892,10 +927,8 @@ export default class GraphComponent {
         case GraphModeKind.SET_AS_PARENT:
           if (event.keyCode !== keymap.ESC) return
 
-          this._mode = GraphMode.NORMAL
-          this._startNode = null
-          this._targetNode = null
-          this._svg.select('#foobar').remove()
+          this._changeMode(GraphMode.NORMAL)
+          this._handleSetAsParentExit()
           break
 
         default:
@@ -953,6 +986,33 @@ export default class GraphComponent {
       metadataItems: graphMetadataToList(data.metadata),
       childParentIndex: makeChildParentIndex(data.index),
       linkData: flattenGraphIndex(data.index),
+    }
+  }
+
+  private _updateFoobar(): void {
+    const nodeStart = this._graphData!.metadata[this._startNode!]
+    const positionStart = {x: nodeStart.x, y: nodeStart.y}
+
+    const foobarEl = this._gNewLink.select('#foobar')
+      .attr('x1', positionStart.x)
+      .attr('y1', positionStart.y)
+
+    if (this._targetNode !== null) {
+      const nodeEnd = this._graphData!.metadata[this._targetNode]
+      const positionEnd = {x: nodeEnd.x, y: nodeEnd.y}
+      foobarEl
+        .attr('x2', positionEnd.x)
+        .attr('y2', positionEnd.y)
+    } else {
+      // Prevents link from jumping when zooming (b/c clientX and clientY are undefined
+      // then)
+      if (d3.event.clientX && d3.event.clientY) {
+        const positionEnd = this._svgToGraphPosition(
+          {x: d3.event.clientX, y: d3.event.clientY})
+        foobarEl
+          .attr('x2', positionEnd.x)
+          .attr('y2', positionEnd.y)
+      }
     }
   }
 
@@ -1031,27 +1091,4 @@ export default class GraphComponent {
     return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
-}
-
-/**
- * Defines an arrowhead on a SVG element and returns id of element
- */
-function defineArrowHead(svg: any, color: string = 'black'): string {
-  const id = 'arrow-head'
-  svg
-    .append('defs')
-    .append('marker')
-    .attr('id', id)
-    .attr('markerWidth', 10)
-    .attr('markerHeight', 10)
-    .attr('refX', 0)
-    .attr('refY', 3)
-    .attr('orient', 'auto')
-    .attr('markerUnits', 'strokeWidth')
-    .attr('viewBox', '0 0 20 20')
-    .append('path')
-    .attr('d', 'M0,0 L0,6 L9,3 z')
-    .attr('fill', color)
-
-  return id
 }

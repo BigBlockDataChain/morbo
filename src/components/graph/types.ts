@@ -16,7 +16,7 @@ export class DeleteLinkAction implements IDeleteLinkAction {
 }
 
 export const SET_NODE_PARENT_TYPE = 'setParent'
-type SetNodeParentType           = 'setParent'
+type SetNodeParentType            = 'setParent'
 export interface ISetNodeParentType {
   readonly kind: SetNodeParentType
   readonly parent: GraphNodeId
@@ -24,21 +24,6 @@ export interface ISetNodeParentType {
 }
 export class SetNodeParentAction implements ISetNodeParentType {
   public readonly kind = SET_NODE_PARENT_TYPE
-  public constructor(
-    public readonly parent: GraphNodeId,
-    public readonly child: GraphNodeId,
-  ) {}
-}
-
-export const SET_NODE_CHILD_TYPE = 'setChild'
-type SetNodeChildType           = 'setChild'
-export interface ISetNodeChildType {
-  readonly kind: SetNodeChildType
-  readonly parent: GraphNodeId
-  readonly child: GraphNodeId
-}
-export class SetNodeChildAction implements ISetNodeChildType {
-  public readonly kind = SET_NODE_CHILD_TYPE
   public constructor(
     public readonly parent: GraphNodeId,
     public readonly child: GraphNodeId,
@@ -216,7 +201,6 @@ export type GraphAction
   | IDeleteNodeAction
   | IDeleteLinkAction
   | ISetNodeParentType
-  | ISetNodeChildType
 
 export const FOCUS_TYPE = 'focus'
 export type FocusType   = 'focus'

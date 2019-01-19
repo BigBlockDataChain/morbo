@@ -134,8 +134,6 @@ export const actions: any = {
             case graphTypes.SET_NODE_PARENT_TYPE:
               _actions._setNodeParent({parent: event.parent, child: event.child})
               break
-            case graphTypes.SET_NODE_CHILD_TYPE:
-              break
             case graphTypes.NODE_CLICK_TYPE:
               break
             case graphTypes.NODE_RIGHT_CLICK_TYPE:
