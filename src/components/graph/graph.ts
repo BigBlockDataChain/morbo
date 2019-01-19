@@ -54,12 +54,9 @@ export default class GraphComponent {
   private static readonly _LABEL_FONT_SIZE = 20
   private static readonly _NODE_STROKE = 5
   private static readonly _NODE_STROKE_HOVER = 9
-  private static readonly _NODE_STROKE_COLOR = 'black'
-  private static readonly _NODE_STROKE_COLOR_SELECTED = 'purple'
   private static readonly _NODE_HEIGHT = 48
   private static readonly _NODE_WIDTH = 192
 
-  private static readonly _LINK_STROKE_COLOR = 'black'
   private static readonly _LINK_STROKE = 9
   private static readonly _LINK_STROKE_HOVER = 16
 
@@ -349,9 +346,7 @@ export default class GraphComponent {
       .attr('y', 0)
       .attr('width', GraphComponent._NODE_WIDTH)
       .attr('height', GraphComponent._NODE_HEIGHT)
-      .attr('fill', 'white')
-      .attr('stroke', (d: IGraphNodeData) => this._getNodeColor(d.id))
-      .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
+      .attr('stroke-width', GraphComponent._NODE_STROKE)
 
     newNodes
       .append('text')
@@ -389,12 +384,6 @@ export default class GraphComponent {
       })
   }
 
-  private _getNodeColor(nodeId: GraphNodeId): string {
-    return this._selectedNode === nodeId
-      ? GraphComponent._NODE_STROKE_COLOR_SELECTED
-      : GraphComponent._NODE_STROKE_COLOR
-  }
-
   private _renderLinks(): void {
 
     const existingLinks = this._gLinks.selectAll('.link')
@@ -405,7 +394,7 @@ export default class GraphComponent {
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .enter()
       .append('line')
-      .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
+      .attr('class', 'link')
       .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
         const sourceNode = this._graphData!.metadataItems.filter(
           (d: IGraphNodeData) => d.id === l.source)[0]
@@ -418,9 +407,7 @@ export default class GraphComponent {
         d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
       })
-      .attr('fill', 'none')
-      .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
-      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+      .attr('stroke-width', GraphComponent._LINK_STROKE)
       .on('contextmenu', (l: ILinkTuple) => this._onLinkContextMenu(l))
 
     existingLinks
@@ -693,8 +680,7 @@ export default class GraphComponent {
 
         this._targetNode = d.id
         d3.select(refs[i])
-          .select('rect')
-          .attr('stroke', 'green')
+          .classed('valid-target', true)
         break
 
       default:
@@ -714,8 +700,7 @@ export default class GraphComponent {
 
         this._targetNode = null
         d3.select(refs[i])
-          .select('rect')
-          .attr('stroke', 'black')
+          .classed('valid-target', false)
         break
 
       default:
@@ -749,17 +734,20 @@ export default class GraphComponent {
       .data([null])
       .enter()
       .append('line')
-      .style('pointer-events', 'none')
       .attr('id', 'foobar')
+      .attr('class', 'link new-link')
       .attr('x1', position.x)
       .attr('y1', position.y)
       .attr('x2', position.x)
       .attr('y2', position.y)
-      .attr('stroke', 'purple')
       .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER)
   }
 
   private _handleSetAsParentExit(): void {
+    this._gNodes
+      .select('.valid-target')
+      .classed('valid-target', false)
+
     this._startNode = null
     this._targetNode = null
     this._gNewLink.select('#foobar').remove()
@@ -944,14 +932,14 @@ export default class GraphComponent {
 
         d3.select(refs[i])
           .select('rect')
-          .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER)
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         if (this._mode !== GraphMode.NORMAL) return
 
         d3.select(refs[i])
           .select('rect')
-          .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
+          .attr('stroke-width', GraphComponent._NODE_STROKE)
       })
   }
 
@@ -961,13 +949,13 @@ export default class GraphComponent {
         if (this._mode !== GraphMode.NORMAL) return
 
         d3.select(refs[i])
-          .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER)
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
         if (this._mode !== GraphMode.NORMAL) return
 
         d3.select(refs[i])
-          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE)
       })
   }
 
@@ -1022,16 +1010,16 @@ export default class GraphComponent {
     if (this._selectedNode !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === this._selectedNode)
-        .selectAll('rect')
+        .classed('selected', false)
+        .select('rect')
         .attr('stroke-width', GraphComponent._NODE_STROKE)
-        .attr('stroke', GraphComponent._NODE_STROKE_COLOR)
 
     if (id !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === id)
-        .selectAll('rect')
+        .classed('selected', true)
+        .select('rect')
         .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER)
-        .attr('stroke', GraphComponent._NODE_STROKE_COLOR_SELECTED)
 
     logger.debug('Setting selected node to', id)
     this._selectedNode = id
