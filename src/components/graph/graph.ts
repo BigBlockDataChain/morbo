@@ -463,7 +463,7 @@ export default class GraphComponent {
         break
 
       case GraphModeKind.SET_AS_PARENT:
-        this._updateFoobar()
+        this._updateNewLink()
         break
 
       default:
@@ -510,7 +510,7 @@ export default class GraphComponent {
         break
 
       case GraphModeKind.SET_AS_PARENT:
-        this._updateFoobar()
+        this._updateNewLink()
         break
 
       default:
@@ -730,11 +730,10 @@ export default class GraphComponent {
     const node = this._graphData!.metadata[this._startNode]
     const position = {x: node.x, y: node.y}
     this._gNewLink
-      .selectAll('#foobar')
+    .selectAll('.new-link')
       .data([null])
       .enter()
       .append('line')
-      .attr('id', 'foobar')
       .attr('class', 'link new-link')
       .attr('x1', position.x)
       .attr('y1', position.y)
@@ -750,7 +749,7 @@ export default class GraphComponent {
 
     this._startNode = null
     this._targetNode = null
-    this._gNewLink.select('#foobar').remove()
+    this._gNewLink.select('.new-link').remove()
   }
 
   // EXTENDED GRAPH FUNCTIONALITY //////////////////////////////////////////////
@@ -977,18 +976,18 @@ export default class GraphComponent {
     }
   }
 
-  private _updateFoobar(): void {
+  private _updateNewLink(): void {
     const nodeStart = this._graphData!.metadata[this._startNode!]
     const positionStart = {x: nodeStart.x, y: nodeStart.y}
 
-    const foobarEl = this._gNewLink.select('#foobar')
+    const newLinkEl = this._gNewLink.select('.new-link')
       .attr('x1', positionStart.x)
       .attr('y1', positionStart.y)
 
     if (this._targetNode !== null) {
       const nodeEnd = this._graphData!.metadata[this._targetNode]
       const positionEnd = {x: nodeEnd.x, y: nodeEnd.y}
-      foobarEl
+      newLinkEl
         .attr('x2', positionEnd.x)
         .attr('y2', positionEnd.y)
     } else {
@@ -997,7 +996,7 @@ export default class GraphComponent {
       if (d3.event.clientX && d3.event.clientY) {
         const positionEnd = this._svgToGraphPosition(
           {x: d3.event.clientX, y: d3.event.clientY})
-        foobarEl
+        newLinkEl
           .attr('x2', positionEnd.x)
           .attr('y2', positionEnd.y)
       }
