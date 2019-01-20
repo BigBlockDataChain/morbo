@@ -13,3 +13,7 @@ export function assertNever(x: never): never {
 export function cartesianDistance(a: IPosition, b: IPosition): number {
   return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))
 }
+
+export function clone(obj: any): any {
+  return JSON.parse(JSON.stringify(obj))
+}

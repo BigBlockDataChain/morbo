@@ -32,15 +32,27 @@
 }
 
 #search .search-result {
-  height: 32px;
   display: flex;
-  align-items: center;
-  padding: 0 8px;
+  flex-direction: column;
+  padding: 8px 8px;
   cursor: pointer;
 }
 #search .search-result:hover {
   color: purple;
   background: rgba(0, 0, 0, 0.0625);
+}
+
+#search .search-result-title {
+  font-weight: bold;
+  color: purple;
+}
+
+#search .search-result-match {
+  padding: 4px 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  color: gray;
 }
 
 #search .search-icon {
