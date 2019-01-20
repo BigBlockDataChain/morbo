@@ -40,7 +40,7 @@ export function writeFile(path: string, data: string): Promise<void> {
 
 export function deleteFile(path: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    fs.unlinkSync(path, (err: any) => {
+    fs.unlink(path, (err: any) => {
       if (err) {
         reject (err)
         return

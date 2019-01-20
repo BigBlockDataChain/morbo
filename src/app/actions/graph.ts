@@ -238,8 +238,8 @@ export const actions: any = {
     },
 
   _deleteNode: (nodeId: GraphNodeId) => (state: any) => {
-    // Remove from index and from parent's adjacency list
     deleteNote(nodeId)
+    // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]
     Object.keys(index)
