@@ -330,10 +330,10 @@ span.CodeMirror-selectedtext { background: none; }
 }
 
 .cm-s-mirrormark .CodeMirror-scroll {
-    height: auto !important;
-    overflow: visible !important;
-	padding: 4%;
-	box-sizing: border-box;
+  height: auto !important;
+  overflow: visible !important;
+  padding: 30px 4%;
+  box-sizing: border-box;
 }
 
 .cm-s-mirrormark .cm-header-1 {
