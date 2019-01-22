@@ -9,8 +9,8 @@ import {
   NoteDataType,
 } from '@lib/types'
 import {
-  initDataDirectory as _initDataDirectory,
   deleteFile,
+  initDataDirectory as _initDataDirectory,
   readFile,
   writeFile,
 } from './io-utils'
