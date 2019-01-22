@@ -2,6 +2,7 @@
 /**
  * @license MirrorMark v0.1
  * (c) 2015 Musicbed http://www.musicbed.com
+ * (c) SquidDev https://github.com/SquidDev/MirrorMark
  * License: MIT
  */
 
