@@ -6,6 +6,7 @@
  */
 
 import * as CodeMirror from 'codemirror'
+import * as Markdown from 'pagedown'
 
 import './styles.css'
 
@@ -14,6 +15,7 @@ class MirrorMark {
   constructor(element, options) {
     this.element = element
     this.options = options
+    this.isEdit = true
 
     this.tools = [
       {name: 'bold', action: 'bold', className: 'fa fa-bold'},
@@ -23,7 +25,8 @@ class MirrorMark {
       {name: 'image', action: 'image', className: 'fa fa-image'},
       {name: 'unorderedList', action: 'unorderedList', className: 'fa fa-list'},
       {name: 'orderedList', action: 'orderedList', className: 'fa fa-list-ol'},
-      {name: 'fullScreen', action: 'fullScreen', className: 'fa fa-expand'},
+      {name: 'fullScreen', action: 'fullScreen', className: 'fa fa-expand', toggleClass: "fa fa-compress"},
+      {name: 'preview', action: 'preview', className: 'fa fa-file', toggleClass: 'fa fa-file-o'}
     ]
 
     this.keyMaps = {
@@ -120,6 +123,32 @@ class MirrorMark {
         } else if (cancel) {
           cancel()
         }
+      },
+      preview: function() {
+        const setPreviewMode = function(cm) {
+          var converter = new Markdown.Converter()
+          var wrap = cm.getWrapperElement();
+          wrap.className += ' CodeMirror-has-preview'
+          var previewNodes = wrap.getElementsByClassName("CodeMirror-preview")
+          var previewNode
+
+          if(previewNodes.length == 0) {
+            var previewNode = document.createElement('div');
+            previewNode.className = "CodeMirror-preview";
+            wrap.appendChild(previewNode);
+          } else {
+            previewNode = previewNodes[0];
+          }
+
+          previewNode.innerHTML = converter.makeHtml(cm.getValue());
+        }
+        const setEditMode = function(cm) {
+          var wrap = cm.getWrapperElement();
+          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, "");
+          cm.refresh();
+        }
+        this.isEdit ? setPreviewMode(this.cm) : setEditMode(this.cm)
+        this.isEdit = !this.isEdit
       }
     }
   }
@@ -234,6 +263,20 @@ class MirrorMark {
         anchor.onclick = function(e) {
           this.cm.focus()
           this.actions[tool.action].call(this)
+          if(tool.toggleClass) {
+            var classes = anchor.className.split(" "),
+            remove = tool.className.split(" "),
+            add = tool.toggleClass.split(" ");
+            add.push("active");
+            if(classes.indexOf("active") >= 0) {
+              var temp = add;
+              add = remove;
+              remove = temp;
+            }
+            classes = classes.filter(function(item) { return remove.indexOf(item) === -1; });
+            [].push.apply(classes, add);
+            anchor.className = classes.join(" ");
+          }
         }.bind(this)
       }
 
