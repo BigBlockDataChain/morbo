@@ -1,3 +1,13 @@
+import OcrEditor, {
+  ocrActions,
+  IOcrEditorState,
+  ocrState
+} from '@components/editor/ocr/ocr-editor-component'
+import HandwritingEditor, {
+  handwritingActions,
+  IHandwritingEditorState,
+  handwritingState
+} from '@components/editor/handwriting/handwriting-editor-component'
 import * as html from '@hyperapp/html'
 
 import {loadNote, writeNote} from '@lib/io'
@@ -10,6 +20,7 @@ import {
 } from '@lib/types'
 import './mirror-mark'
 import MirrorMark from './mirror-mark'
+import Empty from '../widgets/empty'
 
 import './editor-component.css'
 
@@ -28,14 +39,16 @@ const SVG_ICONS = {
 interface IEditorState {
   node: null | IGraphNodeData,
   tagsInputValue: string,
-  handWritingEditor: any,
+  ocrEditor: IOcrEditorState,
+  handwritingEditor: IHandwritingEditorState,
   textEditor: any,
 }
 
 export const state: IEditorState = {
   node: null,
   tagsInputValue: '',
-  handWritingEditor: {},
+  ocrEditor: ocrState as IOcrEditorState,
+  handwritingEditor: handwritingState as IHandwritingEditorState,
   textEditor: {
     mirrorMarkEditor: null,
   },
@@ -86,8 +99,8 @@ export const actions = {
     }
   },
 
-  handWritingEditor: {
-  },
+  ocrEditor: ocrActions,
+  handwritingEditor: handwritingActions,
 
   textEditor: {
   },
@@ -107,6 +120,11 @@ export const actions = {
   saveTextNote: () => async (_state: any, _actions: any) => {
     const data = _state.textEditor.mirrorMarkEditor.getValue()
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
+  },
+
+  loadHandwritingNote: (noteId: GraphNodeId) => async (_state: any, _actions: any) => {
+    const image = await loadNote(noteId, NoteDataType.HANDWRITING)
+    _actions.handwritingEditor.setImage(image)
   },
 
   setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
@@ -156,16 +174,36 @@ export function view(
       oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
     },
     [
-      ...headerButtons(_state, _actions, onClose, updateMetadata, deleteNode),
+      ...headerButtons(_state, _actions, node.type, onClose, updateMetadata, deleteNode),
       html.div(
         {id: 'editor'},
         [
-          html.textarea(
+          /* Note: The following conditional editor rendering could be simplified, but is
+          intentionally left as-is to avoid bugs that appear when it is simplified */
+
+          /* Text Editor */
+          (node.type !== NoteDataType.HANDWRITING) ? (
+            html.textarea(
             {
               id: 'text-editor',
               oncreate: (el: El) => _actions.onEditorHostElementCreate(el),
             },
+            )
+          ) : html.span(),
+
+          /* Handwriting Editor */
+          (node.type !== NoteDataType.HANDWRITING) ? html.span() : (
+            handwritingEditor(_state, _actions, node, onClose)
           ),
+
+          /* Pop-up OCR Editor -- only rendered when the popup is open */
+          (_state.ocrEditor.isOpen)
+            ? OcrEditor(
+              _state.ocrEditor,
+              _actions.ocrEditor,
+              _state.textEditor.mirrorMarkEditor
+            )
+            : html.span(), /* Empty() prevents the execution of the oncreate lifecycle method for some reason */
         ],
       ),
     ],
@@ -175,6 +213,7 @@ export function view(
 function headerButtons(
   _state: any,
   _actions: any,
+  noteType: NoteDataType,
   onClose: () => any,
   updateMetadata: (node: IGraphNodeData) => void,
   deleteNode: (nodeId: GraphNodeId) => void,
@@ -203,6 +242,14 @@ function headerButtons(
               updateMetadata(_state.node)
             }),
             icon(SVG_ICONS.CLOSE, onClose),
+            /* TODO: find a good svg icon to represent the OCR button. */
+            noteType !== NoteDataType.HANDWRITING ? html.button(
+              {
+                onclick: _actions.ocrEditor.open,
+                disabled: false,
+              },
+              'ocr',
+            ) : Empty(),
           ],
         ),
       ],
@@ -216,6 +263,25 @@ function headerButtons(
       },
     ),
   ]
+}
+
+function handwritingEditor(
+  _state: any,
+  _actions: any,
+  node: IGraphNodeData,
+  onClose: () => any,
+) {
+  return (
+    html.div(
+      {
+        id: 'handwriting-editor',
+        oncreate: () => {_actions.loadHandwritingNote(node.id)},
+      },
+      [
+        HandwritingEditor(_state.handwritingEditor, _actions.handwritingEditor, node.id),
+      ],
+    )
+  )
 }
 
 function icon(imgSrc: string, onClick: () => void) {

@@ -20,6 +20,7 @@ import {
   GraphNodeId,
   IGraphNodeData,
   IPosition,
+  NoteDataType,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 import {
@@ -230,6 +231,7 @@ export const actions: any = {
         x: position.x,
         y: position.y,
         tags: [],
+        type: NoteDataType.TEXT
       }
 
       // Set parent if specified

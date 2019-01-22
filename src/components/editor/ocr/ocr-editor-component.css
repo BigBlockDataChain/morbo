@@ -1,0 +1,19 @@
+.ocr-editor-component-wrapper {
+  position: absolute;
+  z-index: 2;
+  background-color: white;
+  top: calc(50vh - 250px);
+  left: calc(50vw - 250px);
+  border: 1px solid black;
+}
+
+.ocr-editor-component-wrapper-header {
+  width: 100%;
+  height: 25px;
+  background-color: black;
+  cursor: move;
+}
+
+.ocr-editor-component-wrapper > canvas {
+  border: 1px dashed #00000044;
+}

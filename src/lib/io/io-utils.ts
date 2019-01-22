@@ -17,7 +17,12 @@ export function readFile(path: string): Promise<string> {
         reject(err)
         return
       }
-      resolve(data.toString())
+      // for images, we need to return the raw data
+      if (path.endsWith('.png')) {
+        resolve(data)
+      } else {
+        resolve(data.toString())
+      }
     })
   })
 }
