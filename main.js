@@ -26,11 +26,13 @@ function createWindow() {
   })
   win.loadURL(indexPath)
 
-  if (process.env.NODE_ENV === 'PRODUCTION') {
-    ipcMain.on('app_quit', (event, info) => {
+  ipcMain.on('app_quit', (event, info) => {
+    // NOTE: To allow reloading in development, the only way to shutdown in development is
+    // by killing the process from the shell
+    if ((process.env.NODE_ENV || 'development').toLowerCase() === 'production') {
       win.destroy()
-    })
-  }
+    }
+  })
 
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension: ${name}`))
