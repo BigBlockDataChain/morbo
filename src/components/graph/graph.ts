@@ -443,6 +443,7 @@ export default class GraphComponent {
       .remove()
 
     this._nodes = this._g.selectAll('.node')
+    this._displayNodeGroup(this._selectedNode)
   }
 
   /**
@@ -819,7 +820,75 @@ export default class GraphComponent {
 
     logger.debug('Setting selected node to', id)
     this._selectedNode = id
+    if (this._selectedNode !== null) {
+      this._displayNodeGroup(this._selectedNode)
+    }
   }
+
+  private _isChildNode(id: number | null) {
+    if (id && this._graphData!.childParentIndex[id]) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  private _isParent(parent: number | null, child: number | null): boolean {
+    if (!this._isChildNode(child)) {
+      return false
+    }
+    if (child && this._graphData!.childParentIndex[child] !== parent) {
+      return this._isParent(parent, this._graphData!.childParentIndex[child])
+    }
+    return true
+  }
+
+  private _displayNodeGroup(selectedNode: number | null) {
+    if (selectedNode !== null) {
+      this._links
+        .filter((d: ILinkTuple) => d.source === selectedNode)
+        .attr('display', 'inline')
+      this._links
+        .filter((d: ILinkTuple) =>
+          d.source !== selectedNode &&
+          !this._isParent(d.source, selectedNode),
+          )
+        .attr('display', 'none')
+
+      this._nodes
+      .filter((d: IGraphNodeData) =>
+        d.id !== selectedNode &&
+        !this._graphData!.index[selectedNode].includes(d.id) &&
+        this._isChildNode(d.id) &&
+        !this._isParent(d.id, selectedNode),
+      )
+      .attr('display', 'none')
+      // display children of a node
+      this._nodes
+        .filter((d: IGraphNodeData) =>
+          this._graphData!.index[selectedNode].includes(d.id) ||
+          this._isParent(this._graphData!.childParentIndex[d.id], selectedNode),
+        )
+        .attr('display', 'inline')
+    } else {
+      this._links
+        .filter((d: ILinkTuple) =>
+        d.id,
+      )
+      .attr('display', 'none')
+
+      this._nodes
+        .filter((d: IGraphNodeData) =>
+        this._isChildNode(d.id),
+      )
+      .attr('display', 'none')
+    }
+
+    this._nodes
+      .filter((d: IGraphNodeData) => this._graphData!.index[d.id].length !== 0)
+      .selectAll('rect')
+      .attr('fill', '#cccccc')
+    }
 
   private _getGraphTranslationAndScale(): ITransform {
     const transformRaw = this._g.attr('transform')
