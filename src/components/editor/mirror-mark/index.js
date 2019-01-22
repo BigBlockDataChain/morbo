@@ -127,25 +127,25 @@ class MirrorMark {
       preview: function() {
         const setPreviewMode = function(cm) {
           var converter = new Markdown.Converter()
-          var wrap = cm.getWrapperElement();
+          var wrap = cm.getWrapperElement()
           wrap.className += ' CodeMirror-has-preview'
           var previewNodes = wrap.getElementsByClassName("CodeMirror-preview")
           var previewNode
 
           if(previewNodes.length == 0) {
-            var previewNode = document.createElement('div');
-            previewNode.className = "CodeMirror-preview";
-            wrap.appendChild(previewNode);
+            var previewNode = document.createElement('div')
+            previewNode.className = "CodeMirror-preview"
+            wrap.appendChild(previewNode)
           } else {
-            previewNode = previewNodes[0];
+            previewNode = previewNodes[0]
           }
 
-          previewNode.innerHTML = converter.makeHtml(cm.getValue());
+          previewNode.innerHTML = converter.makeHtml(cm.getValue())
         }
         const setEditMode = function(cm) {
-          var wrap = cm.getWrapperElement();
-          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, "");
-          cm.refresh();
+          var wrap = cm.getWrapperElement()
+          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, "")
+          cm.refresh()
         }
         this.isEdit ? setPreviewMode(this.cm) : setEditMode(this.cm)
         this.isEdit = !this.isEdit
@@ -266,16 +266,16 @@ class MirrorMark {
           if(tool.toggleClass) {
             var classes = anchor.className.split(" "),
             remove = tool.className.split(" "),
-            add = tool.toggleClass.split(" ");
-            add.push("active");
+            add = tool.toggleClass.split(" ")
+            add.push("active")
             if(classes.indexOf("active") >= 0) {
-              var temp = add;
-              add = remove;
-              remove = temp;
+              var temp = add
+              add = remove
+              remove = temp
             }
-            classes = classes.filter(function(item) { return remove.indexOf(item) === -1; });
-            [].push.apply(classes, add);
-            anchor.className = classes.join(" ");
+            classes = classes.filter(function(item) { return remove.indexOf(item) === -1 });
+            [].push.apply(classes, add)
+            anchor.className = classes.join(" ")
           }
         }.bind(this)
       }
