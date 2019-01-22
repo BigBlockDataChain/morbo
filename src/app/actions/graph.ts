@@ -21,6 +21,7 @@ import {
   GraphNodeId,
   IGraphNodeData,
   IPosition,
+  NoteDataType,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 import {
@@ -97,6 +98,7 @@ export const actions: any = {
       ...metadata[node.id],
       title: node.title,
       tags: node.tags,
+      meta: node.meta
     }
 
     graphCommandStream.next(new EditNodeMetadataCommand(node))
@@ -105,11 +107,13 @@ export const actions: any = {
   },
 
   createNewNode: ({
+      nodeType,
       position,
       parent,
       selectNode,
       newNodeCallback = undefined,
     }: {
+      nodeType: NoteDataType
       position: IPosition,
       parent: null | GraphNodeId,
       selectNode?: (nodeId: GraphNodeId) => any,
@@ -129,6 +133,7 @@ export const actions: any = {
         x: position.x,
         y: position.y,
         tags: [],
+        type: nodeType
       }
 
       // Set parent if specified

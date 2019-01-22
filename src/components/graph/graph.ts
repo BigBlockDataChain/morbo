@@ -211,7 +211,7 @@ export default class GraphComponent {
         && this._dimensions
         && this._dimensions.height === dimensions.height
         && this._dimensions.width === dimensions.width) {
-      logger.log('No data has changed, skipping render')
+      // logger.log('No data has changed, skipping render')
       return
     }
 

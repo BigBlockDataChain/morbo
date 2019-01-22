@@ -1,3 +1,16 @@
+@keyframes spinAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin {
+  animation: spinAnimation 0.65s linear infinite;
+}
+
 #editor-container {
   height: 100%;
   padding: 0.5em;
@@ -5,6 +18,7 @@
   background: #eee;
   flex: 0 0 100%;
   z-index: 2;
+  overflow-y: auto;
 }
 
 .theme-dark #editor-container {
@@ -115,4 +129,11 @@
   height: 100% !important;
   cursor: text;
   padding: 0.5em;
+}
+
+#handwriting-editor {
+  width: calc(100vw - 16px);
+  height: calc(100vh - 78px);
+  overflow: auto;
+  background-color: white;
 }

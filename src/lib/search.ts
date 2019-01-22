@@ -115,6 +115,7 @@ async function _search(
       'data',
       'metadata.title',
       'metadata.tags',
+      'metadata.meta'
     ],
   }
 

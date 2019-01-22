@@ -1,7 +1,6 @@
 import * as html from '@hyperapp/html'
 import classNames from 'classnames'
 import {Subject} from 'rxjs'
-
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import * as Settings from '@components/settings/settings-component'
