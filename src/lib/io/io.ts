@@ -12,6 +12,8 @@ import {
   initDataDirectory as _initDataDirectory,
   readFile,
   writeFile,
+  deleteFile,
+  drag
 } from './io-utils'
 import {
   getFileExtensionFromNoteDataType,
@@ -62,6 +64,11 @@ export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<strin
   return readFile(notePath)
 }
 
+export function deleteNote (id: GraphNodeId) {
+  const notePath = join(BASE_DIR, `file${id}.txt`)
+  return deleteFile(notePath)
+}
+
 export function writeNote(
   id: GraphNodeId,
   dataType: NoteDataType,
@@ -71,4 +78,22 @@ export function writeNote(
   const ext = getFileExtensionFromNoteDataType(dataType)
   const notePath = join(BASE_DIR, `file${id}.${ext}`)
   return writeFile(notePath, data)
+}
+
+export function dragInNote() {
+  var dragFile = document.getElementById("drag-file")
+  dragFile.addEventListener('drop', function(e: Event) {
+    e.preventDefault()
+    e.stopPropagation()
+    //get the file path of the dragged over file
+    for (let f of e.dataTransfer.files){
+      ipcRenderer.send('ondrag', f.path)
+    }
+  })
+  dragFile.addEventListener('dragover', function(e: Event) {
+    e.preventDefault()
+    e.stopPropagation()
+  })
+  //read the data inside the dragged over file
+  return readFile(f.path)
 }

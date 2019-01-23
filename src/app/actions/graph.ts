@@ -9,10 +9,12 @@ import {
 } from '@components/graph/types'
 import * as graphTypes from '@components/graph/types'
 import {
+  deleteNote,
   loadIndex,
   loadMetadata,
   writeIndex,
   writeMetadata,
+  dragInNote,
 } from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {
@@ -104,6 +106,7 @@ export const actions: any = {
   },
 
   deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+    deleteNote(nodeId)
     // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]
@@ -260,4 +263,23 @@ export const actions: any = {
         metadata: {...state.metadata, [nextId]: nodeData},
       }
     },
+
+    _dragNodeIn: (
+      {
+        position,
+        parent,
+        selectNode,
+      }: {
+        position: IPosition,
+        parent: null | GraphNodeId,
+        selectNode: (nodeId: GraphNodeId) => any,
+      },
+    ) => (state: any, _actions: any) => {
+      //create a new Node
+      _createNewNode(position, parent, selectNode)
+      //read the data in the dragged over file
+      const data = dragInNote()
+      //write the data into the new Node
+      writeNote(nodeId, TEXT, data)
+    }
 }
