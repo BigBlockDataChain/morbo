@@ -33,7 +33,18 @@ export function writeFile(path: string, data: string): Promise<void> {
         reject(err)
         return
       }
+      resolve()
+    })
+  })
+}
 
+export function deleteFile(path: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    fs.unlink(path, (err: any) => {
+      if (err) {
+        reject (err)
+        return
+      }
       resolve()
     })
   })
