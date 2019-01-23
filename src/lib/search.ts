@@ -2,10 +2,10 @@ import Fuse from 'fuse.js'
 import {ActionResult} from 'hyperapp'
 
 import {loadNote} from '@lib/io'
+import {getLogger} from '@lib/logger'
 import {NoteDataType, SearchResults} from '@lib/types'
 import {clone} from '@lib/utils'
 import {GraphNodeId, IGraphMetadata} from './types'
-import {getLogger} from '@lib/logger'
 
 const logger = getLogger('lib/search')
 
