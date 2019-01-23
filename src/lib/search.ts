@@ -5,6 +5,9 @@ import {loadNote} from '@lib/io'
 import {NoteDataType, SearchResults} from '@lib/types'
 import {clone} from '@lib/utils'
 import {GraphNodeId, IGraphMetadata} from './types'
+import {getLogger} from '@lib/logger'
+
+const logger = getLogger('lib/search')
 
 interface IFileCache {
   [id: number]: string
@@ -81,10 +84,15 @@ async function _search(
     .map(Number)
     .map((id: GraphNodeId): Promise<void> => {
       if (fileCache[id] === undefined)
-        return loadNote(id, NoteDataType.TEXT).then((fileData: string) => {
-          setTimeout(() => updateFileCache({id, data: fileData}))
-          data.push({metadata: metadata[id], data: fileData})
-        })
+        return loadNote(id, NoteDataType.TEXT)
+          .then((fileData: string) => {
+            setTimeout(() => updateFileCache({id, data: fileData}))
+            data.push({metadata: metadata[id], data: fileData})
+          })
+          .catch(err => {
+            logger.warn('Failed to load note', id, err)
+            data.push({metadata: metadata[id], data: ''})
+          })
 
       data.push({metadata: metadata[id], data: fileCache[id]})
       return Promise.resolve()
