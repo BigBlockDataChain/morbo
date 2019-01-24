@@ -186,8 +186,12 @@ function headerButtons(
         html.input(
           {
             id: 'editor-title',
-            oninput: (ev: Event) =>
-              _actions.setNodeTitle((ev.target as HTMLInputElement).value),
+            oninput: (ev: Event) => {
+              _actions.setNodeTitle((ev.target as HTMLInputElement).value)
+            },
+            onfocusout: (ev: Event) => {
+              updateMetadata(_state.node)
+            },
             value: _state.node !== null ? _state.node.title : '',
           },
         ),
@@ -211,8 +215,12 @@ function headerButtons(
       {
         id: 'editor-tags',
         value: _state.tagsInputValue,
-        oninput: (ev: Event) =>
-          _actions.setNodeTags((ev.target as HTMLInputElement).value),
+        oninput: (ev: Event) => {
+          _actions.setNodeTags((ev.target as HTMLInputElement).value)
+        },
+        onfocusout: (ev: Event) => {
+          updateMetadata(_state.node)
+        },
       },
     ),
   ]
