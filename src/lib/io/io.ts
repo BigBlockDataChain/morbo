@@ -82,18 +82,21 @@ export function writeNote(
 
 export function dragInNote() {
   var dragFile = document.getElementById("drag-file")
-  dragFile.addEventListener('drop', function(e: Event) {
+  dragFile.addEventListener('drop', function(e) {
     e.preventDefault()
     e.stopPropagation()
+
+    const filePath = ''
     //get the file path of the dragged over file
     for (let f of e.dataTransfer.files){
+      filePath = f.path
       ipcRenderer.send('ondrag', f.path)
     }
   })
-  dragFile.addEventListener('dragover', function(e: Event) {
+  dragFile.addEventListener('dragover', function(e) {
     e.preventDefault()
     e.stopPropagation()
   })
   //read the data inside the dragged over file
-  return readFile(f.path)
+  return readFile(filePath)
 }
