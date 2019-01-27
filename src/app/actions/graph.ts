@@ -104,32 +104,6 @@ export const actions: any = {
     return {metadata}
   },
 
-  deleteNode: (nodeId: GraphNodeId) => (state: any) => {
-    deleteNote(nodeId)
-    // Remove from index and from parent's adjacency list
-    const index = {...state.index}
-    delete index[nodeId]
-    Object.keys(index)
-      .forEach((k: string) => {
-        index[k] = index[k].filter((l: GraphNodeId) => l !== nodeId)
-      })
-
-    // Delete from metadata
-    const metadata = {...state.metadata}
-    delete metadata[nodeId]
-    return {
-      index,
-      metadata,
-    }
-  },
-
-  deleteLink: ({source, target}: {source: GraphNodeId, target: GraphNodeId}) =>
-    (state: any) => {
-      const index = {...state.index}
-      index[source] = index[source].filter((c: GraphNodeId) => c !== target)
-      return {index}
-    },
-
   handleGraphActions: ({
     selectNode,
   }: {
@@ -156,7 +130,10 @@ export const actions: any = {
               selectNode(event.id)
               break
             case graphTypes.DELETE_NODE_TYPE:
-              _actions.deleteNode(event.nodeId)
+              _actions._deleteNode(event.nodeId)
+              break
+            case graphTypes.SET_NODE_PARENT_TYPE:
+              _actions._setNodeParent({parent: event.parent, child: event.child})
               break
             case graphTypes.NODE_CLICK_TYPE:
               break
@@ -261,5 +238,38 @@ export const actions: any = {
         index,
         metadata: {...state.metadata, [nextId]: nodeData},
       }
+    },
+
+  _deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+    deleteNote(nodeId)
+    // Remove from index and from parent's adjacency list
+    const index = {...state.index}
+    delete index[nodeId]
+    Object.keys(index)
+      .forEach((k: string) => {
+        index[k] = index[k].filter((l: GraphNodeId) => l !== nodeId)
+      })
+
+    // Delete from metadata
+    const metadata = {...state.metadata}
+    delete metadata[nodeId]
+    return {
+      index,
+      metadata,
+    }
+  },
+
+  _deleteLink: ({source, target}: {source: GraphNodeId, target: GraphNodeId}) =>
+    (state: any) => {
+      const index = {...state.index}
+      index[source] = index[source].filter((c: GraphNodeId) => c !== target)
+      return {index}
+    },
+
+  _setNodeParent: ({parent, child}: {parent: GraphNodeId, child: GraphNodeId}) =>
+    (state: any) => {
+      const index = {...state.index}
+      index[parent] = [...index[parent], child]
+      return {index}
     },
 }
