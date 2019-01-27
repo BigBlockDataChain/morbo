@@ -61,7 +61,7 @@ export function view(
               value: _state.query,
             },
           ),
-          html.img(
+          html.div(
             {
               class: 'clear-icon',
               src: clearSvg,
@@ -70,6 +70,9 @@ export function view(
                 (() => onClose())()
               },
             },
+            [
+              html.img({src: clearSvg}),
+            ],
           ),
         ],
       ),
@@ -79,19 +82,26 @@ export function view(
             {
               class: 'result-container',
             },
-            _state.results.map(result =>
-              html.div(
+            _state.results.map((result: any) => {
+              const value = result.matches[0].value
+              const formattedValue = value.length > 256
+                ? value.substring(0, 256) + '...'
+                : value
+              return html.div(
                 {
                   class: 'search-result',
                   onclick: () => {
-                    (() => onSearchResultClick(result))();
+                    (() => onSearchResultClick(result.item.metadata))();
                     (() => _actions.clearSearch())();
                     (() => onClose())()
                   },
                 },
-                result.title,
-              ),
-            ),
+                [
+                  html.div({class: 'search-result-title'}, result.item.metadata.title),
+                  html.div({class: 'search-result-match'}, formattedValue),
+                ],
+              )
+            }),
           )
         : Empty(),
     ],

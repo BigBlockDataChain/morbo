@@ -28,6 +28,7 @@ import './graph.css'
 const logger = getLogger('d3-graph')
 
 interface ITransform { translation: IPosition, scale: number }
+interface IHomeLocation extends IPosition { scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 interface IExtendedGraphData extends IGraphData {
   metadataItems: IGraphNodeData[]
@@ -102,7 +103,7 @@ export default class GraphComponent {
 
   private _lastClickWasSingle: boolean = false
 
-  private _locationFocusedLocation: null | IPosition = null
+  private _lastFocusedLocation: null | IPosition = null
   private _lastRightClickLocation: null | IPosition = null
 
   private _graphData: null | IExtendedGraphData = null
@@ -111,6 +112,8 @@ export default class GraphComponent {
   private _mode: IGraphMode = GraphMode.NORMAL
   private _startNode: null | GraphNodeId = null
   private _targetNode: null | GraphNodeId = null
+
+  private _homeLocation: IHomeLocation = {x: 0, y: 0, scale: 1}
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -211,6 +214,11 @@ export default class GraphComponent {
       return
     }
 
+    const dimensionsChanged
+      =  this._dimensions
+      && (this._dimensions!.height !== dimensions.height
+          || this._dimensions!.width !== dimensions.width)
+
     this._dimensions = dimensions
     this._updateGraphData(data)
 
@@ -233,7 +241,13 @@ export default class GraphComponent {
     this._enableLinkClickJumpingToOppositeNode()
     this._disableDoubleClickZoom()
 
-    // Focus graph on last clicked location
+    // Focus graph
+    if (this._selectedNode !== null && dimensionsChanged)
+      this._lastFocusedLocation = {
+        x: this._graphData!.metadata![this._selectedNode].x,
+        y: this._graphData!.metadata![this._selectedNode].y,
+      }
+
     this._focusGraph()
   }
 
@@ -262,7 +276,7 @@ export default class GraphComponent {
       {
         label: 'Center screen',
         click: () => {
-          this._locationFocusedLocation = {
+          this._lastFocusedLocation = {
             x: this._graphData!.metadata[this._selectedNode!].x,
             y: this._graphData!.metadata[this._selectedNode!].y,
           }
@@ -281,6 +295,15 @@ export default class GraphComponent {
           this._actionStream!.next(new graphTypes.DeleteNodeAction(this._selectedNode!))
         }, 50),
       },
+      {type: 'separator'},
+      {
+        label: 'Set here as home',
+        click: () => {
+          const node = this._graphData!.metadata![this._selectedNode!]
+          const {scale} = this._getGraphTranslationAndScale()
+          this._setHomeLocation({x: node.x, y: node.y, scale})
+        },
+      },
     ])
     registerContextMenu(GraphComponent._CONTEXT_MENU_LINK_KEY, [
       {
@@ -298,6 +321,18 @@ export default class GraphComponent {
           this._actionStream!.next(
             new graphTypes.CreateNewNodeAction(this._lastRightClickLocation!, null))
         }, 50),
+      },
+      {type: 'separator'},
+      {
+        label: 'Set here as home',
+        click: () => {
+          const {scale} = this._getGraphTranslationAndScale()
+
+          this._setHomeLocation({
+            ...this._svgToGraphPosition(this._lastRightClickLocation!),
+            scale,
+          })
+        },
       },
     ])
   }
@@ -424,11 +459,11 @@ export default class GraphComponent {
     switch (command.kind) {
       case graphTypes.FOCUS_TYPE:
         if (command.position !== undefined) {
-          this._locationFocusedLocation = command.position
+          this._lastFocusedLocation = command.position
           this._focusGraph()
         } else if (command.nodeId !== undefined) {
           const node = this._graphData!.metadata[command.nodeId]
-          this._locationFocusedLocation = {x: node.x, y: node.y}
+          this._lastFocusedLocation = {x: node.x, y: node.y}
           this._setSelectedNode(command.nodeId)
           this._focusGraph()
         } else {
@@ -477,21 +512,29 @@ export default class GraphComponent {
       .duration(GraphComponent._TRANSITION_DURATION)
       .call(
         this._zoomHandler.transform,
-        d3.zoomIdentity.translate(0, 0).scale(1),
+        d3.zoomIdentity
+          .translate(this._homeLocation.x, this._homeLocation.y)
+          .scale(this._homeLocation.scale),
       )
   }
 
+  private _setHomeLocation(location: IHomeLocation): void {
+    logger.trace('Setting home location', location)
+    this._homeLocation = location
+    this._resetPosition()
+  }
+
   /**
-   * Center graph on _locationFocusedLocation
+   * Center graph on _lastFocusedLocation
    */
   private _focusGraph(): void {
-    // TODO: Rework _locationFocusedLocation maybe (so it doesn't have to get set for this
+    // TODO: Rework _lastFocusedLocation maybe (so it doesn't have to get set for this
     //   method to work, maybe it can be an optional parameter to override the previous
     //   location otherwise it will set the graph to the existing value on the variable)
-    if (!this._locationFocusedLocation) return
+    if (!this._lastFocusedLocation) return
 
     const transform = this._getGraphTranslationAndScale()
-    const position = this._graphToSVGPosition(this._locationFocusedLocation)
+    const position = this._graphToSVGPosition(this._lastFocusedLocation)
     const x = transform.translation.x + this._width / 2 - position.x
     const y = transform.translation.y + this._height / 2 - position.y
 
@@ -525,7 +568,7 @@ export default class GraphComponent {
           x: d3.event.clientX,
           y: d3.event.clientY,
         })
-        this._locationFocusedLocation = null
+        this._lastFocusedLocation = null
         this._lastRightClickLocation = position
         this._setSelectedNode(null)
         showContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY)
@@ -549,7 +592,7 @@ export default class GraphComponent {
           y: d3.event.clientY,
         })
         this._lastClickWasSingle = true
-        this._locationFocusedLocation = null
+        this._lastFocusedLocation = null
         setTimeout(() => {
           if (this._lastClickWasSingle) {
             this._actionStream!.next(new graphTypes.BackgroundClickAction(position))
@@ -777,7 +820,7 @@ export default class GraphComponent {
             this._setSelectedNode(
               (distToSource < distToTarget) ? targetNode.id : sourceNode.id)
 
-            this._locationFocusedLocation = (distToSource < distToTarget)
+            this._lastFocusedLocation = (distToSource < distToTarget)
               ? {x: targetNode.x, y: targetNode.y}
               : {x: sourceNode.x, y: sourceNode.y}
             this._focusGraph()
@@ -849,7 +892,7 @@ export default class GraphComponent {
 
   // private _enableClickToCenter(): void {
   //   this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
-  //     this._locationFocusedLocation = {x: d.x, y: d.y}
+  //     this._lastFocusedLocation = {x: d.x, y: d.y}
   //     const transform = this._getGraphTranslationAndScale()
   //     const position = this._graphToSVGPosition(d)
   //     const x = transform.translation.x + this._width / 2 - position.x

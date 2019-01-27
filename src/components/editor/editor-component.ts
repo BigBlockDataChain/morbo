@@ -1,6 +1,5 @@
 import * as html from '@hyperapp/html'
 
-import Empty from '@components/widgets/empty'
 import {loadNote, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {
@@ -17,25 +16,25 @@ import './editor-component.css'
 const logger = getLogger('editor')
 
 const saveSvg = require('../../res/save-disk.svg')
-const deleteSvg = require('../../res/cancel.svg')
-const editSvg = require('../../res/edit.svg')
-const maximizeSvg = require('../../res/maximize.svg')
+const closeSvg = require('../../res/cancel.svg')
+const deleteSvg = require('../../res/garbage.svg')
 
 const SVG_ICONS = {
   SAVE: saveSvg,
+  CLOSE: closeSvg,
   DELETE: deleteSvg,
-  EDIT: editSvg,
-  MAXIMIZE: maximizeSvg,
 }
 
 interface IEditorState {
   node: null | IGraphNodeData,
+  tagsInputValue: string,
   handWritingEditor: any,
   textEditor: any,
 }
 
 export const state: IEditorState = {
   node: null,
+  tagsInputValue: '',
   handWritingEditor: {},
   textEditor: {
     mirrorMarkEditor: null,
@@ -43,6 +42,16 @@ export const state: IEditorState = {
 }
 
 export const actions = {
+  onCreate: (
+    {el, updateMetadata}: {el: El, updateMetadata: (node: IGraphNodeData) => void},
+  ) =>
+    (_state: any, _actions: any) => {
+      el.addEventListener(
+        'keydown',
+        (ev: KeyboardEvent) => _actions.handleKeyboardShortcut({ev, updateMetadata}),
+      )
+    },
+
   onEditorHostElementCreate: (el: El) => (_state: any) => {
     const mirrorMarkOptions = {
       showToolbar: true,
@@ -67,6 +76,16 @@ export const actions = {
     }
   },
 
+  setNodeTags: (tags: string) => (_state: any) => {
+    return {
+      tagsInputValue: tags,
+      node: {
+        ..._state.node,
+        tags: tags.split(',').map((p: string) => p.trim()),
+      },
+    }
+  },
+
   handWritingEditor: {
   },
 
@@ -85,15 +104,30 @@ export const actions = {
     _state.textEditor.mirrorMarkEditor.setValue(data)
   },
 
-  saveTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
+  saveTextNote: () => async (_state: any, _actions: any) => {
     const data = _state.textEditor.mirrorMarkEditor.getValue()
-    await writeNote(nodeId, NoteDataType.TEXT, data)
+    await writeNote(_state.node.id, NoteDataType.TEXT, data)
   },
 
   setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
     _actions.loadTextNote(node.id)
-    return {node}
+    return {
+      tagsInputValue: node.tags.toString(),
+      node,
+    }
   },
+
+  handleKeyboardShortcut: (
+    {ev, updateMetadata}:
+      {ev: KeyboardEvent, updateMetadata: (node: IGraphNodeData) => void},
+  ) => (_state: any, _actions: any) => {
+      if (!(ev.ctrlKey && ev.key === 's'))
+        return
+
+      logger.debug('Saving editor data')
+      updateMetadata(_state.node)
+      _actions.saveTextNote()
+    },
 }
 
 export function view(
@@ -101,11 +135,12 @@ export function view(
   _actions: any,
   node: IGraphNodeData,
   onClose: () => any,
-  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  updateMetadata: (node: IGraphNodeData) => void,
+  deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   if (_state.node === null || node.id !== _state.node.id) {
     // Save previous open note
-    if (_state.node !== null) _actions.saveTextNote(_state.node.id)
+    if (_state.node !== null) _actions.saveTextNote()
 
     // TODO: Find better approach. This _may_ fail if the editor still hasn't been created
     // yet
@@ -113,10 +148,15 @@ export function view(
     setTimeout(() => _actions.setNode({...node}))
   }
 
-  return html.div(
-    {id: 'editor-container'},
+  // NOTE: For some unknown reason, using a div makes the oncreate not work for this top
+  // level element. So instead the span is being used instead.
+  return html.span(
+    {
+      id: 'editor-container',
+      oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
+    },
     [
-      ...headerButtons(_state, _actions, onClose, onEditorUpdateMetadata),
+      ...headerButtons(_state, _actions, onClose, updateMetadata, deleteNode),
       html.div(
         {id: 'editor'},
         [
@@ -136,70 +176,54 @@ function headerButtons(
   _state: any,
   _actions: any,
   onClose: () => any,
-  onEditorUpdateMetadata: (node: IGraphNodeData) => void,
+  updateMetadata: (node: IGraphNodeData) => void,
+  deleteNode: (nodeId: GraphNodeId) => void,
 ) {
   return [
     html.div(
       {class: 'container'},
       [
-        html.button(
+        html.input(
           {
-            id: 'editor-close',
-            onclick: (ev: Event) => {
-              _actions.saveTextNote(_state.node.id),
-              onClose()
-            },
+            id: 'editor-title',
+            oninput: (ev: Event) =>
+              _actions.setNodeTitle((ev.target as HTMLInputElement).value),
+            value: _state.node !== null ? _state.node.title : '',
           },
-          'x',
-        ),
-        html.button(
-          {
-            id: 'editor-save',
-            onclick: () => {
-              _actions.saveTextNote(_state.node.id)
-              onEditorUpdateMetadata(_state.node)
-            },
-          },
-          'save',
         ),
         html.div(
           { id: 'editor-right-buttons' },
           [
-            icon(SVG_ICONS.SAVE),
-            icon(SVG_ICONS.DELETE),
-            icon(SVG_ICONS.EDIT),
-            icon(SVG_ICONS.MAXIMIZE),
+            icon(SVG_ICONS.DELETE, () => {
+              deleteNode(_state.node.id)
+              onClose()
+            }),
+            icon(SVG_ICONS.SAVE, () => {
+              _actions.saveTextNote()
+              updateMetadata(_state.node)
+            }),
+            icon(SVG_ICONS.CLOSE, onClose),
           ],
         ),
       ],
     ),
     html.input(
       {
-        id: 'editor-title',
+        id: 'editor-tags',
+        value: _state.tagsInputValue,
         oninput: (ev: Event) =>
-          _actions.setNodeTitle((ev.target as HTMLInputElement).value),
-        value: _state.node !== null ? _state.node.title : '',
+          _actions.setNodeTags((ev.target as HTMLInputElement).value),
       },
-    ),
-    html.div(
-      {id: 'editor-tags'},
-      [
-        html.div(
-          [
-            _state.node !== null
-              ? _state.node.tags.map(html.span)
-              : Empty(),
-            html.button({disabled: true}, '+'),
-          ],
-        ),
-      ],
     ),
   ]
 }
 
-function icon(imgSrc: string) {
+function icon(imgSrc: string, onClick: () => void) {
   return html.div(
-    {class: 'icon'},
+    {
+      class: 'icon',
+      onclick: () => onClick(),
+    },
     [
       html.img({src: imgSrc}),
     ],

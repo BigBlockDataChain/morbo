@@ -9,6 +9,7 @@ import {
 } from '@components/graph/types'
 import * as graphTypes from '@components/graph/types'
 import {
+  deleteNote,
   loadIndex,
   loadMetadata,
   writeIndex,
@@ -240,6 +241,7 @@ export const actions: any = {
     },
 
   _deleteNode: (nodeId: GraphNodeId) => (state: any) => {
+    deleteNote(nodeId)
     // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]

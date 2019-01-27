@@ -66,4 +66,20 @@ export interface ILinkTuple {
   target: GraphNodeId
 }
 
+// export type SearchResults = ISearchResult[]
+export type SearchResults = any
+
+// interface ISearchResultMatch {
+//   indices: Array<[number, number]>
+//   value: string
+//   key: string
+//   arrayIndex: number
+// }
+
+// export interface ISearchResult {
+//   item: any
+//   matches: ISearchResultMatch[]
+//   score: number
+// }
+
 export type VoidFunction = (...args: any[]) => void
