@@ -4,8 +4,6 @@ import {getLogger} from '@lib/logger'
 
 const fs = remote.require('fs')
 
-const {ipcMain} = require('electron')
-
 const logger = getLogger('io')
 
 /**

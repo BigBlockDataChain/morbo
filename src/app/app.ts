@@ -26,7 +26,7 @@ import {
 import './app.css'
 
 const logger = getLogger('main')
-//const {ipcRenderer} = require('electron')
+const {ipcRenderer} = require('electron')
 
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
