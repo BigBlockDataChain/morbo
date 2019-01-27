@@ -26,6 +26,7 @@ import {
 import './app.css'
 
 const logger = getLogger('main')
+//const {ipcRenderer} = require('electron')
 
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
@@ -183,6 +184,35 @@ export function view(state: IState, actions: any) {
             actions.graph.deleteNode,
           )
         : Empty(),
-    ],
-  )
-}
+
+        html.div(
+          {
+            herf: "#",
+            id: "drag",
+            style: {
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              height: '200px',
+              width: '200px',
+              background: 'White',
+            },
+          }
+
+            var dragFile = document.getElementById('drag')
+            dragFile.addEventListener('drop', function (e: any) {
+              e.preventDefault()
+              e.stopPropagation()
+
+              for (let f of e.dataTransfer.files) {
+                if(f.type == "text/plain") {
+                  console.log('The file(s) you dragged: ', f)
+                  ipcRenderer.send('ondragstart', f.path)
+                }
+            }
+          }
+        )
+      )
+      ],
+    )
+  }

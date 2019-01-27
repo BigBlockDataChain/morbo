@@ -33,6 +33,12 @@ function createWindow() {
       win.destroy()
     }
   })
+  
+  ipcMain.on('ondragstart', (event, filePath) => {
+    event.sender.startDrag({
+      file: filePath
+    })
+  })
 
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension: ${name}`))
