@@ -9,10 +9,10 @@ import {
   NoteDataType,
 } from '@lib/types'
 import {
+  deleteFile,
   initDataDirectory as _initDataDirectory,
   readFile,
   writeFile,
-  deleteFile,
 } from './io-utils'
 import {
   getFileExtensionFromNoteDataType,
@@ -63,7 +63,7 @@ export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<strin
   return readFile(notePath)
 }
 
-export function deleteNote (id: GraphNodeId) {
+export function deleteNote(id: GraphNodeId) {
   const notePath = join(BASE_DIR, `file${id}.txt`)
   return deleteFile(notePath)
 }

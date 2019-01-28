@@ -6,19 +6,16 @@ import GraphView from '@components/graph/graph-view-component'
 import Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
-import {initDataDirectory} from '@lib/io'
+import {initDataDirectory, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
-import {
-  GraphAction,
-} from '@components/graph/types'
 import {
   El,
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
-  IPosition,
+  NoteDataType,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
 import {actions as graphActions} from './actions/graph'
@@ -199,35 +196,39 @@ export function view(state: IState, actions: any) {
               width: '200px',
               background: 'White',
             },
-
-            ondragover: (ev: any) => {
+            ondragover: (ev: Event) => {
               ev.preventDefault()
               ev.stopPropagation()
-              console.log("dragging")
+              logger.log('dragging')
             },
-
-            ondragleave: (ev: any) => {
+            ondragleave: (ev: Event) => {
               ev.preventDefault()
               ev.stopPropagation()
-              console.log("leaving")
+              logger.log('leaving')
             },
-
-            ondrop: (ev: any, event: GraphAction) => {
+            ondrop: (ev: any) => {
               ev.preventDefault()
               ev.stopPropagation()
               for (const f of ev.dataTransfer.files) {
-                console.log(f.path)
-                let reader = new FileReader()
+                logger.log(f.path)
+                const reader = new FileReader()
                 reader.readAsDataURL(f)
-                reader.onloadend = function() {
-                  const x = reader.result!.toString().split(',')[1]
-                  console.log(atob(x))
+                reader.onloadend = () => {
+                  const base64Data: string = reader.result!.toString().split(',')[1]
+                  const fileContent = atob(base64Data)
+                  actions.graph.createNewNode({
+                    position: {x: 0, y: 0},
+                    parent: null,
+                    selectNode: actions.selectNode,
+                    newNodeCallback: (nodeId: GraphNodeId) => {
+                      writeNote(nodeId, NoteDataType.TEXT, fileContent)
+                    },
+                  })
               }
             }
-            //actions.graph.createNewNode()
           },
-        }
-      )
+        },
+      ),
     ],
   )
 }
