@@ -6,6 +6,11 @@
   flex: 0 0 100%;
   z-index: 2;
 }
+
+.theme-dark #editor-container {
+  background-color: grey;
+}
+
 @media (min-width: 1280px) {
   #editor-container {
     flex: 0 0 800px;

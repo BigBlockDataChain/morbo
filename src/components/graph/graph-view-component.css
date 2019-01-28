@@ -9,3 +9,7 @@
 #graph-view-component #d3-container {
   background: #f9f9ec;
 }
+
+.theme-dark #graph-view-component #d3-container {
+  background: #CED5D7;
+}
