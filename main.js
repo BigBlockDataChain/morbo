@@ -26,7 +26,6 @@ function createWindow() {
   })
   win.loadURL(indexPath)
 
-
   ipcMain.on('app_quit', (event, info) => {
     // NOTE: To allow reloading in development, the only way to shutdown in development is
     // by killing the process from the shell
