@@ -18,9 +18,11 @@ const logger = getLogger('editor')
 const saveSvg = require('../../res/save-disk.svg')
 const closeSvg = require('../../res/cancel.svg')
 const deleteSvg = require('../../res/garbage.svg')
+const needSaveSvg = require('../../res/save-solid.svg')
 
 const SVG_ICONS = {
   SAVE: saveSvg,
+  NEEDSAVE: needSaveSvg,
   CLOSE: closeSvg,
   DELETE: deleteSvg,
 }
@@ -30,6 +32,7 @@ interface IEditorState {
   tagsInputValue: string,
   handWritingEditor: any,
   textEditor: any,
+  saveIcon: any,
 }
 
 export const state: IEditorState = {
@@ -39,6 +42,7 @@ export const state: IEditorState = {
   textEditor: {
     mirrorMarkEditor: null,
   },
+  saveIcon: saveSvg
 }
 
 export const actions = {
@@ -52,12 +56,16 @@ export const actions = {
       )
     },
 
-  onEditorHostElementCreate: (el: El) => (_state: any) => {
+  onEditorHostElementCreate: (el: El) => (_state: any, _action: any) => {
     const mirrorMarkOptions = {
       showToolbar: true,
     }
     const mirrorMarkEditor = MirrorMark(el, mirrorMarkOptions)
     mirrorMarkEditor.render()
+
+    mirrorMarkEditor.cm.on("change", function(){
+      _action.updateSaveIcon(true)
+    })
 
     return {
       textEditor: {
@@ -114,6 +122,12 @@ export const actions = {
     return {
       tagsInputValue: node.tags.toString(),
       node,
+    }
+  },
+
+  updateSaveIcon: (isEdited: boolean) => (_state: any) => {
+    return {
+      saveIcon: isEdited ? needSaveSvg : saveSvg
     }
   },
 
@@ -202,9 +216,10 @@ function headerButtons(
               deleteNode(_state.node.id)
               onClose()
             }),
-            icon(SVG_ICONS.SAVE, () => {
+            icon(_state.saveIcon, () => {
               _actions.saveTextNote()
               updateMetadata(_state.node)
+              _actions.updateSaveIcon(false)
             }),
             icon(SVG_ICONS.CLOSE, onClose),
           ],
