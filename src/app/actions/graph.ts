@@ -130,6 +130,24 @@ export const actions: any = {
       return {index}
     },
 
+    createNewNode: (
+      {
+        position,
+        parent,
+        selectNode,
+        newNodeCallback,
+      }: {
+        position: IPosition,
+        parent: null | GraphNodeId,
+        selectNode: (nodeId: GraphNodeId) => any,
+        newNodeCallback: (nodeId: GraphNodeId) => any,
+      },
+    ) =>
+      (state: any, _actions: any) => {
+        const newState = _actions._createNewNode(position, parent, selectNode)
+      },
+
+
   handleGraphActions: ({
     selectNode,
   }: {

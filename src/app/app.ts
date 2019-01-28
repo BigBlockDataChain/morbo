@@ -10,11 +10,15 @@ import {initDataDirectory} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
 import {
+  GraphAction,
+} from '@components/graph/types'
+import {
   El,
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  IPosition,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
 import {actions as graphActions} from './actions/graph'
@@ -208,7 +212,7 @@ export function view(state: IState, actions: any) {
               console.log("leaving")
             },
 
-            ondrop: (ev: any) => {
+            ondrop: (ev: any, event: GraphAction) => {
               ev.preventDefault()
               ev.stopPropagation()
               for (const f of ev.dataTransfer.files) {
@@ -220,10 +224,10 @@ export function view(state: IState, actions: any) {
                   console.log(atob(x))
               }
             }
+            //actions.graph.createNewNode()
           },
-
-          }
-        )
-      ],
-    )
-  }
+        }
+      )
+    ],
+  )
+}
