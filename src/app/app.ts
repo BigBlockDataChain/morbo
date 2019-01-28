@@ -94,18 +94,17 @@ export const appActions = {
     })
   },
 
-  ondrop: (e: any) => (state: IState, actions: any) => {
+  ondrop: (ev: Event) => (state: IState, actions: any) => {
+    alert("test")
     var dragFile = document.getElementById('drag')!
-    dragFile.addEventListener('drop', function (e: any) {
+    dragFile.ondragstart = (e: any) => {
       e.preventDefault()
-      e.stopPropagation()
 
       for(let f of e.dataTransfer.files){
         console.log('The file(s) you dragged: ', f)
         ipcRenderer.send('ondragstart', f.path)
         }
-      })
-      return false
+      }
     },
 
   // ondragover: (e: any) => (state: IState, actions: any) => {
@@ -218,8 +217,7 @@ export function view(state: IState, actions: any) {
               width: '200px',
               background: 'White',
             },
-            onDrop: (e: any) => actions.ondrop(e),
-            // ondragOver: (e: any) => actions.ondragover(e),
+            onDrop: (ev: Event) => actions.ondrop(ev),
           }
         )
       ],
