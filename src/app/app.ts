@@ -26,7 +26,6 @@ import {
 import './app.css'
 
 const logger = getLogger('main')
-const {ipcRenderer} = require('electron')
 
 const editorOpenChange = new Subject<void>()
 const editorOpenChangeObservable = editorOpenChange.asObservable()
@@ -93,27 +92,6 @@ export const appActions = {
       selectNode: actions.selectNode,
     })
   },
-
-  ondrop: (ev: Event) => (state: IState, actions: any) => {
-    alert("test")
-    var dragFile = document.getElementById('drag')!
-    dragFile.ondragstart = (e: any) => {
-      e.preventDefault()
-
-      for(let f of e.dataTransfer.files){
-        console.log('The file(s) you dragged: ', f)
-        ipcRenderer.send('ondragstart', f.path)
-        }
-      }
-    },
-
-  // ondragover: (e: any) => (state: IState, actions: any) => {
-  //   var dragFile = document.getElementById('drag')!
-  //   dragFile.addEventListener('dragover', function (e: any) {
-  //     e.preventDefault()
-  //     e.stopPropagation()
-  //   })
-  // },
 
   save: () => (_: IState, actions: any) => {
     logger.log('Saving application data')
@@ -217,7 +195,33 @@ export function view(state: IState, actions: any) {
               width: '200px',
               background: 'White',
             },
-            onDrop: (ev: Event) => actions.ondrop(ev),
+
+            ondragover: (ev: any) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+              console.log("dragging")
+            },
+
+            ondragleave: (ev: any) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+              console.log("leaving")
+            },
+
+            ondrop: (ev: any) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+              for (const f of ev.dataTransfer.files) {
+                console.log(f.path)
+                let reader = new FileReader()
+                reader.readAsDataURL(f)
+                reader.onloadend = function() {
+                  const x = reader.result!.toString().split(',')[1]
+                  console.log(atob(x))
+              }
+            }
+          },
+
           }
         )
       ],

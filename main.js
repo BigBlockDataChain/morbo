@@ -35,25 +35,6 @@ function createWindow() {
     }
   })
 
-  ipcMain.on('ondragstart', (event, filePath) => {
-    readFile(filePath)
-
-    function readFile(filepath){
-      fs.readFile(filepath, 'utf-8', (err, data) => {
-        if (err){
-          alert("An error occured reading the file: " + err.message)
-          return
-        }
-        event.sender.send('fileData', data)
-      })
-    }
-  })
-  // ipcMain.on('ondragstart', (event, filePath) => {
-  //   event.sender.send({
-  //     file: filePath
-  //   })
-  // })
-
   installExtension(REDUX_DEVTOOLS)
     .then((name) => console.log(`Added Extension: ${name}`))
     .catch((err) => console.warn('An error occurred:', err))
