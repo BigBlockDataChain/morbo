@@ -58,7 +58,7 @@ export const actions = {
       )
     },
 
-  onEditorHostElementCreate: (el: El) => (_state: any, _action: any) => {
+  onEditorHostElementCreate: (el: El) => (_state: any) => {
     const mirrorMarkOptions = {
       showToolbar: true,
     }
@@ -126,7 +126,7 @@ export const actions = {
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
   },
 
-  setNode: (node: IGraphNodeData) => (_state: any, _actions: any) => {
+  setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
     _actions.loadTextNote(node.id)
     return {
       tagsInputValue: node.tags.toString(),
