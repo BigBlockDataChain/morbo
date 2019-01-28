@@ -219,7 +219,6 @@ export function view(state: IState, actions: any) {
                   actions.graph.createNewNode({
                     position: {x: 0, y: 0},
                     parent: null,
-                    selectNode: actions.selectNode,
                     newNodeCallback: (nodeId: GraphNodeId) => {
                       writeNote(nodeId, NoteDataType.TEXT, fileContent)
                     },
