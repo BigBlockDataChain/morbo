@@ -94,6 +94,28 @@ export const appActions = {
     })
   },
 
+  ondrop: (e: any) => (state: IState, actions: any) => {
+    var dragFile = document.getElementById('drag')!
+    dragFile.addEventListener('drop', function (e: any) {
+      e.preventDefault()
+      e.stopPropagation()
+
+      for(let f of e.dataTransfer.files){
+        console.log('The file(s) you dragged: ', f)
+        ipcRenderer.send('ondragstart', f.path)
+        }
+      })
+      return false
+    },
+
+  // ondragover: (e: any) => (state: IState, actions: any) => {
+  //   var dragFile = document.getElementById('drag')!
+  //   dragFile.addEventListener('dragover', function (e: any) {
+  //     e.preventDefault()
+  //     e.stopPropagation()
+  //   })
+  // },
+
   save: () => (_: IState, actions: any) => {
     logger.log('Saving application data')
     return actions.graph.save()
@@ -187,8 +209,7 @@ export function view(state: IState, actions: any) {
 
         html.div(
           {
-            herf: "#",
-            id: "drag",
+            id: 'drag',
             style: {
               position: 'absolute',
               bottom: 0,
@@ -197,22 +218,10 @@ export function view(state: IState, actions: any) {
               width: '200px',
               background: 'White',
             },
-          }
-
-            var dragFile = document.getElementById('drag')
-            dragFile.addEventListener('drop', function (e: any) {
-              e.preventDefault()
-              e.stopPropagation()
-
-              for (let f of e.dataTransfer.files) {
-                if(f.type == "text/plain") {
-                  console.log('The file(s) you dragged: ', f)
-                  ipcRenderer.send('ondragstart', f.path)
-                }
-            }
+            onDrop: (e: any) => actions.ondrop(e),
+            // ondragOver: (e: any) => actions.ondragover(e),
           }
         )
-      )
       ],
     )
   }
