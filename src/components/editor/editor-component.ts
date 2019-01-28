@@ -33,6 +33,7 @@ interface IEditorState {
   handWritingEditor: any,
   textEditor: any,
   saveIcon: any,
+  originalData: any,
 }
 
 export const state: IEditorState = {
@@ -42,7 +43,8 @@ export const state: IEditorState = {
   textEditor: {
     mirrorMarkEditor: null,
   },
-  saveIcon: saveSvg
+  saveIcon: saveSvg,
+  originalData: '',
 }
 
 export const actions = {
@@ -62,10 +64,6 @@ export const actions = {
     }
     const mirrorMarkEditor = MirrorMark(el, mirrorMarkOptions)
     mirrorMarkEditor.render()
-
-    mirrorMarkEditor.cm.on("change", function(){
-      _action.updateSaveIcon(true)
-    })
 
     return {
       textEditor: {
@@ -100,7 +98,7 @@ export const actions = {
   textEditor: {
   },
 
-  loadTextNote: (nodeId: GraphNodeId) => async (_state: any) => {
+  loadTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
     let data = ''
     try {
       data = await loadNote(nodeId, NoteDataType.TEXT)
@@ -110,6 +108,17 @@ export const actions = {
     // TODO: This making an assumption that mirrorMarkEditor has been initialized. This
     // may not hold.
     _state.textEditor.mirrorMarkEditor.setValue(data)
+    _actions.setOriginalData(data)
+  },
+
+  setOriginalData: (data: any) => (_state: any, _actions: any) => {
+    const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
+    codeMirrorEditor.on('keyup', () => {
+      _actions.updateSaveIcon(codeMirrorEditor.getValue() !== data)
+    })
+    return{
+      originalData: data,
+    }
   },
 
   saveTextNote: () => async (_state: any, _actions: any) => {
@@ -117,7 +126,7 @@ export const actions = {
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
   },
 
-  setNode: (node: IGraphNodeData) => (_: any, _actions: any) => {
+  setNode: (node: IGraphNodeData) => (_state: any, _actions: any) => {
     _actions.loadTextNote(node.id)
     return {
       tagsInputValue: node.tags.toString(),
@@ -127,7 +136,7 @@ export const actions = {
 
   updateSaveIcon: (isEdited: boolean) => (_state: any) => {
     return {
-      saveIcon: isEdited ? needSaveSvg : saveSvg
+      saveIcon: isEdited ? needSaveSvg : saveSvg,
     }
   },
 
