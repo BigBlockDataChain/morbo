@@ -9,7 +9,7 @@ import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
 import {initDataDirectory} from '@lib/io'
 import {getLogger} from '@lib/logger'
-import search from '@lib/search'
+import * as Search from '@lib/search'
 import {
   El,
   GraphNodeId,
@@ -39,6 +39,7 @@ interface IState {
   settings: any
   runtime: IRuntime
   toolbar: any
+  search: any
 }
 
 interface IGraphState {
@@ -69,6 +70,7 @@ export const initialState: IState = {
     selectedNode: null,
     settingsOpen: true,
   },
+  search: Search.state,
 }
 
 export const appActions = {
@@ -76,6 +78,7 @@ export const appActions = {
   editor: Editor.actions,
   toolbar: Toolbar.actions,
   settings: Settings.actions,
+  search: Search.actions,
 
   onCreate: (el: El) => async (state: IState, actions: any) => {
     logger.debug('element created (app)', el)
@@ -157,7 +160,7 @@ export function view(state: IState, actions: any) {
           onSettings: actions.toggleSettingsPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },
-        (query: string) => search(state.graph.metadata, query),
+        (query: string) => actions.search.search({metadata: state.graph.metadata, query}),
       ),
       (state.runtime.settingsOpen === false)
         ? Settings.view(
