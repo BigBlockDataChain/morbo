@@ -23,6 +23,7 @@ class MirrorMark {
       {name: 'italicize', action: 'italicize', className: 'fa fa-italic'},
       {name: 'blockquote', action: 'blockquote', className: 'fa fa-quote-left'},
       {name: 'link', action: 'link', className: 'fa fa-link'},
+      {name: 'nodelink', action: 'nodelink', className: 'fa fa-connectdevelop'},
       {name: 'image', action: 'image', className: 'fa fa-image'},
       {name: 'unorderedList', action: 'unorderedList', className: 'fa fa-list'},
       {name: 'orderedList', action: 'orderedList', className: 'fa fa-list-ol'},
@@ -75,6 +76,9 @@ class MirrorMark {
       },
       link: function () {
         this.insertAround('[', '](http://)')
+      },
+      nodelink: function() {
+        this.insertAround('[', '](note:)')
       },
       hr: function () {
         this.insert('---')
