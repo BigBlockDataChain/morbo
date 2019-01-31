@@ -194,7 +194,7 @@ export function view(state: IState, actions: any) {
               right: 0,
               height: '200px',
               width: '200px',
-              background: 'White',
+              background: '#f9f9ec',
             },
             ondragover: (ev: Event) => {
               ev.preventDefault()
