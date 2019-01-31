@@ -199,18 +199,16 @@ export function view(state: IState, actions: any) {
             ondragover: (ev: Event) => {
               ev.preventDefault()
               ev.stopPropagation()
-              logger.log('dragging')
             },
             ondragleave: (ev: Event) => {
               ev.preventDefault()
               ev.stopPropagation()
-              logger.log('leaving')
             },
             ondrop: (ev: any) => {
               ev.preventDefault()
               ev.stopPropagation()
               for (const f of ev.dataTransfer.files) {
-                logger.log(f.path)
+                logger.debug('Dropped file path = ' + f.path)
                 const reader = new FileReader()
                 reader.readAsDataURL(f)
                 reader.onloadend = () => {
