@@ -848,12 +848,9 @@ export default class GraphComponent {
             d.x += d3.event.dx
             d.y += d3.event.dy
 
-            const home = this._homeLocation
-            const {translation} = this._centreOnPoint(
-              this._graphToSVGPosition({x: d.x, y: d.y}))
-
+            const {translation} = this._centreOnPoint(d)
             if (d.id === this._homeNode)
-              this._setHomeLocation({translation, scale: home.scale})
+              this._setHomeLocation({translation, scale: this._homeLocation.scale})
 
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
