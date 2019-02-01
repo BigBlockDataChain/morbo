@@ -28,7 +28,6 @@ import './graph.css'
 const logger = getLogger('d3-graph')
 
 interface ITransform { translation: IPosition, scale: number }
-interface IHomeLocation extends IPosition { scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 interface IExtendedGraphData extends IGraphData {
   metadataItems: IGraphNodeData[]
@@ -97,6 +96,7 @@ export default class GraphComponent {
   private _drag: any | null = null
 
   private _selectedNode: GraphNodeId | null = null
+  private _homeNode: GraphNodeId | null = null
   private _lastSelectedLink: ILinkTuple | null = null
 
   private _actionStream: Subject<graphTypes.GraphAction> | null = null
@@ -113,7 +113,7 @@ export default class GraphComponent {
   private _startNode: null | GraphNodeId = null
   private _targetNode: null | GraphNodeId = null
 
-  private _homeLocation: IHomeLocation = {x: 0, y: 0, scale: 1}
+  private _homeLocation: ITransform = {translation: {x: 0, y: 0}, scale: 1}
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -300,8 +300,8 @@ export default class GraphComponent {
         label: 'Set here as home',
         click: () => {
           const node = this._graphData!.metadata![this._selectedNode!]
-          const {scale} = this._getGraphTranslationAndScale()
-          this._setHomeLocation({x: node.x, y: node.y, scale})
+          this._homeNode = this._selectedNode
+          this._setHomeLocation(this._centreOnPoint(node))
         },
       },
     ])
@@ -326,12 +326,7 @@ export default class GraphComponent {
       {
         label: 'Set here as home',
         click: () => {
-          const {scale} = this._getGraphTranslationAndScale()
-
-          this._setHomeLocation({
-            ...this._svgToGraphPosition(this._lastRightClickLocation!),
-            scale,
-          })
+          this._setHomeLocation(this._centreOnPoint(this._lastRightClickLocation!))
         },
       },
     ])
@@ -513,15 +508,14 @@ export default class GraphComponent {
       .call(
         this._zoomHandler.transform,
         d3.zoomIdentity
-          .translate(this._homeLocation.x, this._homeLocation.y)
+          .translate(this._homeLocation.translation.x, this._homeLocation.translation.y)
           .scale(this._homeLocation.scale),
       )
   }
 
-  private _setHomeLocation(location: IHomeLocation): void {
+  private _setHomeLocation(location: ITransform): void {
     logger.trace('Setting home location', location)
     this._homeLocation = location
-    this._resetPosition()
   }
 
   /**
@@ -854,6 +848,13 @@ export default class GraphComponent {
             d.x += d3.event.dx
             d.y += d3.event.dy
 
+            const home = this._homeLocation
+            const {translation} = this._centreOnPoint(
+              this._graphToSVGPosition({x: d.x, y: d.y}))
+
+            if (d.id === this._homeNode)
+              this._setHomeLocation({translation, scale: home.scale})
+
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
               if (l.source === d.id)
@@ -1121,4 +1122,14 @@ export default class GraphComponent {
     return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
+  /**
+   * Returns transform of the graph with the given point at the centre
+   */
+  private _centreOnPoint(d: IPosition): ITransform {
+    const transform = this._getGraphTranslationAndScale()
+    d = this._graphToSVGPosition(d)
+    const x = transform.translation.x + this._width / 2 - d.x
+    const y = transform.translation.y + this._height / 2 - d.y
+    return {translation: {x, y}, scale: transform.scale}
+  }
 }
