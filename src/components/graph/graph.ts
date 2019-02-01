@@ -305,8 +305,8 @@ export default class GraphComponent {
           const newHome = this._centreOnPoint(node)
           this._setHomeLocation({
             x: newHome.translation.x,
-            y: newHome.translation.y, 
-            scale: newHome.scale
+            y: newHome.translation.y,
+            scale: newHome.scale,
           })
         },
       },
@@ -335,8 +335,8 @@ export default class GraphComponent {
           const newHome = this._centreOnPoint(this._lastRightClickLocation!)
           this._setHomeLocation({
             x: newHome.translation.x,
-            y: newHome.translation.y, 
-            scale: newHome.scale
+            y: newHome.translation.y,
+            scale: newHome.scale,
           })
         },
       },
@@ -864,7 +864,7 @@ export default class GraphComponent {
               this._setHomeLocation({
                 x: translation.x,
                 y: translation.y,
-                scale: this._homeLocation.scale
+                scale: this._homeLocation.scale,
               })
 
             // Update link positions
