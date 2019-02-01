@@ -28,6 +28,7 @@ import './graph.css'
 const logger = getLogger('d3-graph')
 
 interface ITransform { translation: IPosition, scale: number }
+interface IHomeLocation extends IPosition { scale: number }
 interface ICorner { minX: number, maxX: number, minY: number, maxY: number }
 interface IExtendedGraphData extends IGraphData {
   metadataItems: IGraphNodeData[]
@@ -113,7 +114,7 @@ export default class GraphComponent {
   private _startNode: null | GraphNodeId = null
   private _targetNode: null | GraphNodeId = null
 
-  private _homeLocation: ITransform = {translation: {x: 0, y: 0}, scale: 1}
+  private _homeLocation: IHomeLocation = {x: 0, y: 0, scale: 1}
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -301,7 +302,12 @@ export default class GraphComponent {
         click: () => {
           const node = this._graphData!.metadata![this._selectedNode!]
           this._homeNode = this._selectedNode
-          this._setHomeLocation(this._centreOnPoint(node))
+          const newHome = this._centreOnPoint(node)
+          this._setHomeLocation({
+            x: newHome.translation.x,
+            y: newHome.translation.y, 
+            scale: newHome.scale
+          })
         },
       },
     ])
@@ -326,7 +332,12 @@ export default class GraphComponent {
       {
         label: 'Set here as home',
         click: () => {
-          this._setHomeLocation(this._centreOnPoint(this._lastRightClickLocation!))
+          const newHome = this._centreOnPoint(this._lastRightClickLocation!)
+          this._setHomeLocation({
+            x: newHome.translation.x,
+            y: newHome.translation.y, 
+            scale: newHome.scale
+          })
         },
       },
     ])
@@ -508,12 +519,12 @@ export default class GraphComponent {
       .call(
         this._zoomHandler.transform,
         d3.zoomIdentity
-          .translate(this._homeLocation.translation.x, this._homeLocation.translation.y)
+          .translate(this._homeLocation.x, this._homeLocation.y)
           .scale(this._homeLocation.scale),
       )
   }
 
-  private _setHomeLocation(location: ITransform): void {
+  private _setHomeLocation(location: IHomeLocation): void {
     logger.trace('Setting home location', location)
     this._homeLocation = location
   }
@@ -850,7 +861,11 @@ export default class GraphComponent {
 
             const {translation} = this._centreOnPoint(d)
             if (d.id === this._homeNode)
-              this._setHomeLocation({translation, scale: this._homeLocation.scale})
+              this._setHomeLocation({
+                x: translation.x,
+                y: translation.y,
+                scale: this._homeLocation.scale
+              })
 
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
