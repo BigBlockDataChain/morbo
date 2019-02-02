@@ -29,9 +29,11 @@ const logger = getLogger('editor')
 const saveSvg = require('../../res/save-disk.svg')
 const closeSvg = require('../../res/cancel.svg')
 const deleteSvg = require('../../res/garbage.svg')
+const needSaveSvg = require('../../res/save-solid.svg')
 
 const SVG_ICONS = {
   SAVE: saveSvg,
+  NEEDSAVE: needSaveSvg,
   CLOSE: closeSvg,
   DELETE: deleteSvg,
 }
@@ -42,6 +44,8 @@ interface IEditorState {
   ocrEditor: IOcrEditorState,
   handwritingEditor: IHandwritingEditorState,
   textEditor: any,
+  saveIcon: any,
+  originalData: any,
 }
 
 export const state: IEditorState = {
@@ -52,6 +56,8 @@ export const state: IEditorState = {
   textEditor: {
     mirrorMarkEditor: null,
   },
+  saveIcon: saveSvg,
+  originalData: '',
 }
 
 export const actions = {
@@ -105,7 +111,7 @@ export const actions = {
   textEditor: {
   },
 
-  loadTextNote: (nodeId: GraphNodeId) => async (_state: any) => {
+  loadTextNote: (nodeId: GraphNodeId) => async (_state: any, _actions: any) => {
     let data = ''
     try {
       data = await loadNote(nodeId, NoteDataType.TEXT)
@@ -115,6 +121,17 @@ export const actions = {
     // TODO: This making an assumption that mirrorMarkEditor has been initialized. This
     // may not hold.
     _state.textEditor.mirrorMarkEditor.setValue(data)
+    _actions.setOriginalData(data)
+  },
+
+  setOriginalData: (data: any) => (_state: any, _actions: any) => {
+    const codeMirrorEditor = _state.textEditor.mirrorMarkEditor.cm
+    codeMirrorEditor.on('keyup', () => {
+      _actions.updateSaveIcon(codeMirrorEditor.getValue() !== data)
+    })
+    return{
+      originalData: data,
+    }
   },
 
   saveTextNote: () => async (_state: any, _actions: any) => {
@@ -132,6 +149,12 @@ export const actions = {
     return {
       tagsInputValue: node.tags.toString(),
       node,
+    }
+  },
+
+  updateSaveIcon: (isEdited: boolean) => (_state: any) => {
+    return {
+      saveIcon: isEdited ? needSaveSvg : saveSvg,
     }
   },
 
@@ -225,8 +248,12 @@ function headerButtons(
         html.input(
           {
             id: 'editor-title',
-            oninput: (ev: Event) =>
-              _actions.setNodeTitle((ev.target as HTMLInputElement).value),
+            oninput: (ev: Event) => {
+              _actions.setNodeTitle((ev.target as HTMLInputElement).value)
+            },
+            onfocusout: (ev: Event) => {
+              updateMetadata(_state.node)
+            },
             value: _state.node !== null ? _state.node.title : '',
           },
         ),
@@ -237,9 +264,10 @@ function headerButtons(
               deleteNode(_state.node.id)
               onClose()
             }),
-            icon(SVG_ICONS.SAVE, () => {
+            icon(_state.saveIcon, () => {
               _actions.saveTextNote()
               updateMetadata(_state.node)
+              _actions.updateSaveIcon(false)
             }),
             icon(SVG_ICONS.CLOSE, onClose),
             /* TODO: find a good svg icon to represent the OCR button. */
@@ -258,8 +286,12 @@ function headerButtons(
       {
         id: 'editor-tags',
         value: _state.tagsInputValue,
-        oninput: (ev: Event) =>
-          _actions.setNodeTags((ev.target as HTMLInputElement).value),
+        oninput: (ev: Event) => {
+          _actions.setNodeTags((ev.target as HTMLInputElement).value)
+        },
+        onfocusout: (ev: Event) => {
+          updateMetadata(_state.node)
+        },
       },
     ),
   ]
