@@ -1,6 +1,6 @@
 import * as html from '@hyperapp/html'
-import {ActionResult} from 'hyperapp'
 import classNames from 'classnames'
+import {ActionResult} from 'hyperapp'
 import './toolbox.css'
 
 export enum Tool {
@@ -33,15 +33,15 @@ export const toolboxActions: IToolboxActions = {
 }
 
 const colors = [
-  "white",
-  "black",
-  "red",
-  "orange",
-  "yellow",
-  "green",
-  "blue",
-  "indigo",
-  "violet",
+  'white',
+  'black',
+  'red',
+  'orange',
+  'yellow',
+  'green',
+  'blue',
+  'indigo',
+  'violet',
 ]
 
 export default function view(state: IToolboxState, actions: IToolboxActions) {
@@ -51,53 +51,79 @@ export default function view(state: IToolboxState, actions: IToolboxActions) {
           class: 'toolbox',
         },
         [
-          /*--------------------------------------------------------------------
-            Tool Controls
-          --------------------------------------------------------------------*/
+          // Tool Controls
           html.div(
             {
               class: classNames(
                 'toolbox-tool',
                 {
                   'toolbox-tool-pen': state.selectedTool === Tool.PEN,
-                  'toolbox-tool-eraser': state.selectedTool === Tool.ERASER
-                }
+                  'toolbox-tool-eraser': state.selectedTool === Tool.ERASER,
+                },
               ),
-              onclick: () => actions.selectTool(state.selectedTool === Tool.PEN ? Tool.ERASER : Tool.PEN),
+              onclick: () => actions.selectTool(
+                state.selectedTool === Tool.PEN ? Tool.ERASER : Tool.PEN),
             },
             [state.selectedTool === Tool.PEN ? '✎' : '✗'],
           ),
 
-          /*--------------------------------------------------------------------
-            Stroke Width Controls
-          --------------------------------------------------------------------*/
+          // Stroke Width Controls
           html.div({
-            class: `toolbox-size small ${state.selectedTool === Tool.ERASER ? 'toolbox-size-eraser' : 'toolbox-size-pen'} ${state.stroke_width === 2 ? 'selected' : ''}`,
-            onclick: () => actions.strokeWidthChange(2)
+            class: `
+              toolbox-size small
+              ${
+                state.selectedTool === Tool.ERASER
+                  ? 'toolbox-size-eraser'
+                  : 'toolbox-size-pen'
+              }
+              ${state.stroke_width === 2 ? 'selected' : ''}
+            `,
+            onclick: () => actions.strokeWidthChange(2),
           }),
           html.div({
-            class: `toolbox-size medium ${state.selectedTool === Tool.ERASER ? 'toolbox-size-eraser' : 'toolbox-size-pen'} ${state.stroke_width === 16 ? 'selected' : ''}`,
-            onclick: () => actions.strokeWidthChange(16)
+            class: `
+              toolbox-size medium
+              ${
+                state.selectedTool === Tool.ERASER
+                  ? 'toolbox-size-eraser'
+                  : 'toolbox-size-pen'
+              }
+              ${state.stroke_width === 16 ? 'selected' : ''}
+            `,
+            onclick: () => actions.strokeWidthChange(16),
           }),
           html.div({
-            class: `toolbox-size large ${state.selectedTool === Tool.ERASER ? 'toolbox-size-eraser' : 'toolbox-size-pen'} ${state.stroke_width === 32 ? 'selected' : ''}`,
-            onclick: () => actions.strokeWidthChange(32)
+            class: `
+              toolbox-size large
+              ${
+                state.selectedTool === Tool.ERASER
+                  ? 'toolbox-size-eraser'
+                  : 'toolbox-size-pen'
+              }
+              ${
+                state.stroke_width === 32
+                  ? 'selected'
+                  : ''
+              }
+            `,
+            onclick: () => actions.strokeWidthChange(32),
           }),
 
-          /*--------------------------------------------------------------------
-            Color Controls
-          --------------------------------------------------------------------*/
+          // Color Controls
           html.div(
             {class: 'toolbox-palette'},
             [
               ...colors.map(color => html.div({
-                  class: `toolbox-palette-item toolbox-palette-item-${color}`,
-                  onclick: () => actions.changeColor(color),
-                },
-              )),
+                class: `toolbox-palette-item toolbox-palette-item-${color}`,
+                onclick: () => actions.changeColor(color),
+              })),
               html.div({
-                className: `toolbox-palette-item toolbox-palette-current-color toolbox-palette-item-${state.color}`
-              })
+                className: `
+                  toolbox-palette-item
+                  toolbox-palette-current-color
+                  toolbox-palette-item-${state.color}
+                `,
+              }),
             ],
           ),
         ],

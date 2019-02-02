@@ -210,7 +210,7 @@ export const actions: any = {
         x: position.x,
         y: position.y,
         tags: [],
-        type: NoteDataType.TEXT
+        type: NoteDataType.TEXT,
       }
 
       // Set parent if specified

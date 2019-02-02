@@ -1,15 +1,15 @@
 import * as html from '@hyperapp/html'
+import { writeNote } from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {NoteDataType} from '@lib/types'
 import {ActionResult} from 'hyperapp'
 import './handwriting-editor-component.css'
-import { writeNote } from '@lib/io';
 import Toolbox, {
-  Tool,
   initialToolboxState,
-  toolboxActions,
+  IToolboxActions,
   IToolboxState,
-  IToolboxActions
+  Tool,
+  toolboxActions,
 } from './toolbox'
 
 const logger = getLogger('handwriting-editor-component')
@@ -27,25 +27,39 @@ interface IState {
 
 interface IActions {
   toolbox: IToolboxActions
-  save: (data: {imageData: any, noteId: number}) => (state: IState) => ActionResult<IState>
+
+  save: (data: {imageData: any, noteId: number}) =>
+    (state: IState) =>
+      ActionResult<IState>
+
   setImage: (imageBytes: string) => (state: IState, actions: IActions)
     => ActionResult<IState>
+
   canvasCreated: (element: HTMLCanvasElement) => () => ActionResult<IState>
+
   mouseDownOnCanvas: (event: MouseEvent) => () => ActionResult<IState>
-  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) => (state: IState, actions: IActions) => ActionResult<IState>
-  mouseMoveOnCanvas: (event: MouseEvent) => (state: IState, actions: IActions) => ActionResult<IState>
-  updateCanvasSize: (size: {width: number, height: number})
-    => (state: IState, actions: IActions)
-    => ActionResult<IState>
-  uploadFile: () => (state: IState) => ActionResult<IState>
-  clearImage: () => (state: IState, actions: IActions) => ActionResult<IState>
+
+  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) =>
+    (state: IState, actions: IActions) =>
+      ActionResult<IState>
+
+  mouseMoveOnCanvas: (event: MouseEvent) =>
+    (state: IState, actions: IActions) =>
+      ActionResult<IState>
+
+  updateCanvasSize: (size: {width: number, height: number}) =>
+    (state: IState, actions: IActions) =>
+      ActionResult<IState>
+
+  clearImage: () =>
+    (state: IState, actions: IActions) =>
+      ActionResult<IState>
 }
 
 const SIZE_INCREASE_THRESHOLD = 150
 const SIZE_INCREASE_ON_THRESHOLD_REACH = 500
 const INITIAL_CANVAS_WIDTH = 400
 const INITIAL_CANVAS_HEIGHT = 400
-
 
 export const handwritingState: IState = {
   toolbox: initialToolboxState,
@@ -62,7 +76,7 @@ export const handwritingActions: IActions = {
     writeNote(
       data.noteId,
       NoteDataType.HANDWRITING,
-      data.imageData
+      data.imageData,
     )
   },
 
@@ -72,10 +86,10 @@ export const handwritingActions: IActions = {
     if (state.canvasEl) {
       // get current image data
       const imageData = state.canvasCtx!.getImageData(
-        0, 0, state.canvasEl.width, state.canvasEl.height
+        0, 0, state.canvasEl.width, state.canvasEl.height,
       )
 
-      console.log('Updating canvas size to', size.width, size.height);
+      logger.debug('Updating canvas size to', size.width, size.height)
 
       if (size.width) state.canvasEl.width = size.width
       if (size.height) state.canvasEl.height = size.height
@@ -90,7 +104,7 @@ export const handwritingActions: IActions = {
   setImage: (buffer: any) => (state: IState, actions: IActions) => {
     if (!state.canvasCtx) return {}
 
-    const base64Image = btoa(String.fromCharCode.apply(null, buffer));
+    const base64Image = btoa(String.fromCharCode.apply(null, buffer))
 
     const image = new Image()
     image.onload = () => {
@@ -119,21 +133,22 @@ export const handwritingActions: IActions = {
     })
   },
 
-  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) => (state: IState, actions: IActions) => {
-    if (state.canvasEl) {
-      const dataURI = state.canvasEl.toDataURL('image/png')
+  mouseUpOnCanvas: (args: {event: MouseEvent, noteId: number}) =>
+    (state: IState, actions: IActions) => {
+      if (state.canvasEl) {
+        const dataURI = state.canvasEl.toDataURL('image/png')
 
-      const base64Data = dataURI.replace(/^data:image\/png;base64,/, '');
-      const buffer = new Buffer(base64Data, 'base64')
+        const base64Data = dataURI.replace(/^data:image\/png;base64,/, '')
+        const buffer = new Buffer(base64Data, 'base64')
 
-      actions.save({imageData:buffer, noteId: args.noteId})
-    }
+        actions.save({imageData: buffer, noteId: args.noteId})
+      }
 
-    return ({
-      isMouseDown: false,
-      event_type: args.event.type,
-    })
-  },
+      return {
+        isMouseDown: false,
+        event_type: args.event.type,
+      }
+    },
 
   mouseMoveOnCanvas: (event: MouseEvent) => (state: IState, actions: IActions) => {
     const newMouseLocation: [number, number] = [event.offsetX, event.offsetY]
@@ -147,18 +162,24 @@ export const handwritingActions: IActions = {
     const ctx = state.canvasCtx
     const canvasEl = state.canvasEl
 
-    const rect = canvasEl.getBoundingClientRect();
-    const mouseX = event.clientX - rect.left;// relative to canvas 0, 0
-    const mouseY = event.clientY - rect.top; // relative to canvas 0, 0
+    const rect = canvasEl.getBoundingClientRect()
+    const mouseX = event.clientX - rect.left// relative to canvas 0, 0
+    const mouseY = event.clientY - rect.top // relative to canvas 0, 0
     const canvasWidth = canvasEl.width
     const canvasHeight = canvasEl.height
     if (mouseX > canvasWidth - SIZE_INCREASE_THRESHOLD) {
-      console.log('HEIGHT=', canvasHeight);
-      actions.updateCanvasSize({width: canvasWidth + SIZE_INCREASE_ON_THRESHOLD_REACH, height:canvasHeight})
+      logger.debug('HEIGHT=', canvasHeight)
+      actions.updateCanvasSize({
+        width: canvasWidth + SIZE_INCREASE_ON_THRESHOLD_REACH,
+        height: canvasHeight,
+      })
     }
 
     if (mouseY > canvasHeight - SIZE_INCREASE_THRESHOLD) {
-      actions.updateCanvasSize({width:canvasWidth, height:canvasHeight + SIZE_INCREASE_ON_THRESHOLD_REACH})
+      actions.updateCanvasSize({
+        width: canvasWidth,
+        height: canvasHeight + SIZE_INCREASE_ON_THRESHOLD_REACH,
+      })
     }
 
     switch (state.toolbox.selectedTool) {
@@ -173,11 +194,11 @@ export const handwritingActions: IActions = {
         ctx.stroke()
         break
       case Tool.ERASER:
-        const mouseX = state.mouseLastLocation[0]
-        const mouseY = state.mouseLastLocation[1]
+        const mouseX_ = state.mouseLastLocation[0]
+        const mouseY_ = state.mouseLastLocation[1]
         const eraserSize = Math.max(state.toolbox.stroke_width, 1)
-        const x = mouseX - eraserSize / 2
-        const y = mouseY - eraserSize / 2
+        const x = mouseX_ - eraserSize / 2
+        const y = mouseY_ - eraserSize / 2
         const width = eraserSize
         const height = eraserSize
         ctx.clearRect(x, y, width, height)
@@ -187,17 +208,19 @@ export const handwritingActions: IActions = {
     return nextState
   },
 
-  uploadFile: () => (state: IState) => {},
   clearImage: () => (state: IState, actions: IActions) => {
     if (state.canvasCtx) {
       state.canvasCtx.clearRect(
         0,
         0,
         state.canvasCtx.canvas.width,
-        state.canvasCtx.canvas.height
+        state.canvasCtx.canvas.height,
       )
 
-      actions.updateCanvasSize({width: INITIAL_CANVAS_WIDTH, height: INITIAL_CANVAS_HEIGHT})
+      actions.updateCanvasSize({
+        width: INITIAL_CANVAS_WIDTH,
+        height: INITIAL_CANVAS_HEIGHT,
+      })
     }
   },
 
@@ -212,21 +235,20 @@ export default function view(state: IState, actions: IActions, noteId: number) {
     },
     [
       html.div({
-        class: 'handwriting-editor-component-menu-wrapper'
+        class: 'handwriting-editor-component-menu-wrapper',
       }, [
         html.div(
           {class: 'handwriting-editor-component-menu'},
           [
-            html.button({onclick: actions.uploadFile}, 'U'),
             html.button({onclick: actions.clearImage}, '♻'),
-            Toolbox(state.toolbox, actions.toolbox)
+            Toolbox(state.toolbox, actions.toolbox),
           ],
         ),
       ]),
 
       html.div(
         {
-          class: 'handwriting-component-canvas-wrapper'
+          class: 'handwriting-component-canvas-wrapper',
         },
         [
           html.canvas(
@@ -241,7 +263,7 @@ export default function view(state: IState, actions: IActions, noteId: number) {
             },
           ),
         ],
-      )
+      ),
     ],
   )
 }
