@@ -27,6 +27,7 @@ export function view(onClose: () => any, _state: any, _actions: any) {
         [
           html.button(
             {
+              class: 'close-button',
               onclick: (ev: Event) => onClose(),
             },
             'x',
@@ -49,6 +50,12 @@ export function view(onClose: () => any, _state: any, _actions: any) {
               class: 'checkbox-container',
             },
             [
+              html.label(
+                {
+                  class: 'theme-label',
+                },
+                'Dark Theme',
+              ),
               html.input(
                 {
                   class: 'switch',
@@ -56,10 +63,10 @@ export function view(onClose: () => any, _state: any, _actions: any) {
                   checked: _state.darkTheme,
                 },
               ),
-              // html.label('Dark Theme',),
               html.label(
                 {
                   for: 'switch',
+                  class: 'toggle-switch',
                   onclick: (ev: Event) => _actions.toggleDarkTheme(),
                 },
               ),

@@ -13,14 +13,23 @@
 }
 
  .theme-dark #settings-component {
-  background-color: #808080;
-  border-color: #FFF;
+  background-color: #111A23;
+  border-color: #758188;
 }
 
 #settings-component .settings-close {
   text-align: right;
   align-items: right;
   margin-right: 0.1em;
+}
+
+#settings-component .close-button {
+  border: none;
+}
+
+.theme-dark #settings-component .close-button {
+  background-color: #111A23;
+  color: white;
 }
 
 #settings-component .settings-container {
@@ -37,14 +46,17 @@
 }
 
 .theme-dark #settings-component .settings-container {
-  background-color: #808080;
-  border-color: #FFF;
+  background-color: #111A23;
+  border-color: #758188;
+  color: white;
 }
 
 #settings-component .settings-title {
   padding-top: 0em;
   text-align: center;
   color: black;
+  font-size: 1.5em;
+  font-weight: bold;
 }
 
 .theme-dark #settings-component .settings-title {
@@ -52,7 +64,7 @@
 }
 
 #settings-component .checkbox-container {
-  padding-top: 2em;
+  padding-top: 3em;
 }
 
 #settings-component .settings-checkbox {
@@ -70,41 +82,48 @@
   margin-bottom: 0.3em;
 }
 
-input[type=checkbox]{
+#settings-component input[type=checkbox]{
   height: 0;
   width: 0;
   visibility: hidden;
 }
 
-#settings-component label {
+#settings-component .toggle-switch {
   cursor: pointer;
-  text-indent: -9999px;
-  width: 100px;
-  height: 50px;
-  margin-left: 3em;
+  width: 60px;
+  height: 30px;
+  margin-left: 20em;
+  margin-top: -0.2em;
   background: grey;
-  display: block;
+  display: inline-block;
   border-radius: 100px;
   position: relative;
 }
 
-#settings-component label:after {
+#settings-component .toggle-switch:after {
   content: '';
   position: absolute;
   top: 3px;
   left: 4px;
-  width: 45px;
-  height: 45px;
+  width: 25px;
+  height: 25px;
   background: #fff;
   border-radius: 90px;
   transition: 0.3s;
 }
 
-#settings-component input:checked + label {
+#settings-component input:checked + .toggle-switch {
   background: #bada55;
 }
 
-#settings-component input:checked + label:after {
+#settings-component input:checked + .toggle-switch:after {
   left: calc(100% - 5px);
   transform: translateX(-100%);
+}
+
+#settings-component .theme-label {
+  position: absolute;
+  font-size: 1.25em;
+  padding-left: 1em;
+  padding-top: -5em;
 }
