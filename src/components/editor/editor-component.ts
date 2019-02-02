@@ -1,12 +1,7 @@
-import OcrEditor, {
-  ocrActions,
-  IOcrEditorState,
-  ocrState
-} from '@components/editor/ocr/ocr-editor-component'
 import HandwritingEditor, {
   handwritingActions,
+  handwritingState,
   IHandwritingEditorState,
-  handwritingState
 } from '@components/editor/handwriting/handwriting-editor-component'
 import * as html from '@hyperapp/html'
 
@@ -20,7 +15,6 @@ import {
 } from '@lib/types'
 import './mirror-mark'
 import MirrorMark from './mirror-mark'
-import Empty from '../widgets/empty'
 
 import './editor-component.css'
 
@@ -41,7 +35,6 @@ const SVG_ICONS = {
 interface IEditorState {
   node: null | IGraphNodeData,
   tagsInputValue: string,
-  ocrEditor: IOcrEditorState,
   handwritingEditor: IHandwritingEditorState,
   textEditor: any,
   saveIcon: any,
@@ -51,7 +44,6 @@ interface IEditorState {
 export const state: IEditorState = {
   node: null,
   tagsInputValue: '',
-  ocrEditor: ocrState as IOcrEditorState,
   handwritingEditor: handwritingState as IHandwritingEditorState,
   textEditor: {
     mirrorMarkEditor: null,
@@ -105,7 +97,6 @@ export const actions = {
     }
   },
 
-  ocrEditor: ocrActions,
   handwritingEditor: handwritingActions,
 
   textEditor: {
@@ -218,15 +209,6 @@ export function view(
           (node.type !== NoteDataType.HANDWRITING) ? html.span() : (
             handwritingEditor(_state, _actions, node, onClose)
           ),
-
-          /* Pop-up OCR Editor -- only rendered when the popup is open */
-          (_state.ocrEditor.isOpen)
-            ? OcrEditor(
-              _state.ocrEditor,
-              _actions.ocrEditor,
-              _state.textEditor.mirrorMarkEditor
-            )
-            : html.span(), /* Empty() prevents the execution of the oncreate lifecycle method for some reason */
         ],
       ),
     ],
@@ -270,14 +252,6 @@ function headerButtons(
               _actions.updateSaveIcon(false)
             }),
             icon(SVG_ICONS.CLOSE, onClose),
-            /* TODO: find a good svg icon to represent the OCR button. */
-            noteType !== NoteDataType.HANDWRITING ? html.button(
-              {
-                onclick: _actions.ocrEditor.open,
-                disabled: false,
-              },
-              'ocr',
-            ) : Empty(),
           ],
         ),
       ],
