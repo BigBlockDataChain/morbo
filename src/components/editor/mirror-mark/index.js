@@ -146,6 +146,13 @@ class MirrorMark {
           }
 
           previewNode.innerHTML = converter.makeHtml(cm.getValue())
+          var anchors = document.getElementsByTagName("a")
+          for(var i = 0; i < anchors.length; i++){
+            var anchor = anchors[i]
+            anchor.onclick = () => {
+              // TODO: Add redirection code.
+            }
+          }
         }
         const setEditMode = function(cm) {
           var wrap = cm.getWrapperElement()
