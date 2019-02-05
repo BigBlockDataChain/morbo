@@ -193,14 +193,6 @@ export function view(state: IState, actions: any) {
         html.div(
           {
             id: 'drag',
-            style: {
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              height: '200px',
-              width: '200px',
-              background: '#f9f9ec',
-            },
             ondragover: (ev: Event) => {
               ev.preventDefault()
               ev.stopPropagation()
