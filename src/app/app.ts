@@ -1,9 +1,10 @@
 import * as html from '@hyperapp/html'
+import classNames from 'classnames'
 import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
-import Settings from '@components/settings/settings-component'
+import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
 import {initDataDirectory, writeNote} from '@lib/io'
@@ -58,13 +59,13 @@ interface IRuntime {
 export const initialState: IState = {
   toolbar: Toolbar.state,
   editor: Editor.state,
+  settings: Settings.state,
   graph: {
     index: {},
     metadata: {},
     height: 0,
     width: 0,
   },
-  settings: {},
   runtime: {
     showEditor: true,
     selectedNode: null,
@@ -77,6 +78,7 @@ export const appActions = {
   graph: graphActions,
   editor: Editor.actions,
   toolbar: Toolbar.actions,
+  settings: Settings.actions,
   search: Search.actions,
 
   onCreate: (el: El) => async (state: IState, actions: any) => {
@@ -146,6 +148,7 @@ export function view(state: IState, actions: any) {
   return html.div(
     {
       id: 'app',
+      class: classNames({'theme-dark': state.settings.darkTheme}),
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
@@ -161,8 +164,10 @@ export function view(state: IState, actions: any) {
         (query: string) => actions.search.search({metadata: state.graph.metadata, query}),
       ),
       (state.runtime.settingsOpen === false)
-        ? Settings(
+        ? Settings.view(
           actions.toggleSettingsPanel,
+          state.settings,
+          actions.settings,
         )
         : Empty(),
       GraphView(
