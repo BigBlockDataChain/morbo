@@ -92,19 +92,20 @@
   cursor: pointer;
   width: 60px;
   height: 30px;
-  margin-left: 20em;
+  margin-right: 5%;
   margin-top: -0.2em;
   background: grey;
   display: inline-block;
   border-radius: 100px;
-  position: relative;
+  float: right;
 }
 
 #settings-component .toggle-switch:after {
   content: '';
-  position: absolute;
+  float: right;
+  position: relative;
   top: 3px;
-  left: 4px;
+  left: -32px;
   width: 25px;
   height: 25px;
   background: #fff;
@@ -113,11 +114,11 @@
 }
 
 #settings-component input:checked + .toggle-switch {
-  background: #bada55;
+  background: gray;
 }
 
 #settings-component input:checked + .toggle-switch:after {
-  left: calc(100% - 5px);
+  left: calc(100% - 38px);
   transform: translateX(-100%);
 }
 
