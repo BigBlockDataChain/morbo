@@ -134,40 +134,40 @@ class MirrorMark {
           var converter = new Markdown.Converter()
           var wrap = _this.cm.getWrapperElement()
           wrap.className += ' CodeMirror-has-preview'
-          var previewNodes = wrap.getElementsByClassName("CodeMirror-preview")
+          var previewNodes = wrap.getElementsByClassName('CodeMirror-preview')
           var previewNode
 
           if(previewNodes.length == 0) {
             var previewNode = document.createElement('div')
-            previewNode.className = "CodeMirror-preview"
+            previewNode.className = 'CodeMirror-preview'
             wrap.appendChild(previewNode)
           } else {
             previewNode = previewNodes[0]
           }
 
           previewNode.innerHTML = converter.makeHtml(_this.cm.getValue())
-          var anchors = document.getElementsByTagName("a")
+          var anchors = document.getElementsByTagName('a')
           for(var i = 0; i < anchors.length; i++){
             var anchor = anchors[i]
 
             // If the anchor is not a redirection link, the skip.
-            if(anchor.href === ""){
+            if(anchor.href === ''){
               continue
             }
 
             anchor.onclick = (el) => {
               var hyperlink = el.target.href
-              if(hyperlink.substring(0,5) === "note:"){
+              if(hyperlink.substring(0,5) === 'note:'){
                 // Retrieve the note ID and dispatch to caller.
                 var noteId = hyperlink.substring(5)
-                var textEditor = document.getElementById("editor-container")
-                var event = new CustomEvent("reference", {detail: noteId})
+                var textEditor = document.getElementById('editor-container')
+                var event = new CustomEvent('reference', {detail: noteId})
 
                 // Update the editor internal state.
                 textEditor.dispatchEvent(event)
                 setEditMode(_this.cm)
                 _this.isEdit = true
-                var previewButton = document.getElementById("preview-button")
+                var previewButton = document.getElementById('preview-button')
                 previewButton.className = 'fa fa-file'
 
                 return false
@@ -178,7 +178,7 @@ class MirrorMark {
         }
         const setEditMode = function(cm) {
           var wrap = cm.getWrapperElement()
-          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, "")
+          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, '')
           cm.refresh()
         }
         this.isEdit ? setPreviewMode(this) : setEditMode(this.cm)
