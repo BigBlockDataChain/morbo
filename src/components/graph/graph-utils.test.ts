@@ -1,14 +1,15 @@
 import {
-  IGraphMetadata,
   IGraphChildParentIndex,
   IGraphIndex,
+  IGraphMetadata,
   IGraphNodeData,
   ILinkTuple,
+  NoteDataType,
 } from '@lib/types'
 import {
-  makeChildParentIndex,
-  graphMetadataToList,
   flattenGraphIndex,
+  graphMetadataToList,
+  makeChildParentIndex,
 } from './graph-utils'
 
 const index: IGraphIndex = {
@@ -59,6 +60,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     1: {
       id: 0,
@@ -68,6 +70,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     2: {
       id: 2,
@@ -77,6 +80,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
   }
 
@@ -89,6 +93,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     {
       id: 0,
@@ -98,6 +103,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     {
       id: 2,
@@ -107,6 +113,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
   ]
 
