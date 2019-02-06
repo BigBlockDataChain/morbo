@@ -157,7 +157,7 @@ class MirrorMark {
 
             anchor.onclick = (el) => {
               var hyperlink = el.target.href
-              if(hyperlink.substring(0,5) === 'note:'){
+              if(hyperlink.substring(0,5) === 'note:') {
                 // Retrieve the note ID and dispatch to caller.
                 var noteId = hyperlink.substring(5)
                 var textEditor = document.getElementById('editor-container')
