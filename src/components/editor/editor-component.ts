@@ -285,13 +285,24 @@ export function view(
         },
         [
           _state.node && _state.node.type === undefined
-            ? selectTypeDialog(
-              (type: NoteDataType) => _actions.setNodeType({type, updateMetadata}),
+            ? html.div(
+              {
+                key: 'type-selector',
+                class: 'editor-element-wrapper',
+              },
+              [
+                selectTypeDialog(
+                  (type: NoteDataType) => _actions.setNodeType({type, updateMetadata}),
+                ),
+              ],
             )
 
           : _state.node && _state.node.type === NoteDataType.TEXT
-            ? (
+            ? html.div(
+              {class: 'editor-element-wrapper'},
+              [
                 html.textarea({
+                  key: 'text-editor',
                   id: 'text-editor',
                   oncreate: (el: El) =>
                     _actions.textEditor.onCreate({
@@ -301,13 +312,16 @@ export function view(
                     }),
                   ondestroy: (...args: any[]) =>
                     _actions.textEditor.onDestroy(),
-                })
-              )
+                }),
+              ],
+            )
 
           : _state.node && _state.node.type === NoteDataType.HANDWRITING
             ? html.div(
               {
+                key: 'handwriting-editor-container',
                 id: 'handwriting-editor-container',
+                class: 'editor-element-wrapper',
                 oncreate: (el: El) => _actions.handwritingEditor.onCreate({
                   el,
                   nodeId: _state.node.id,
