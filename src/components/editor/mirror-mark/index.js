@@ -57,7 +57,7 @@ class MirrorMark {
         this.insertAround('**', '**')
       },
       italicize: function () {
-        this.insertAround('*', '*')
+        this.insertAround('_', '_')
       },
       code: function () {
         this.insertAround('```\r\n', '\r\n```')

@@ -5,3 +5,12 @@
   flex-direction: row;
   position: relative;
 }
+
+#drag {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 200px;
+  width: 200px;
+  background: none;
+}
