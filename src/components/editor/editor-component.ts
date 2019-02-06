@@ -70,6 +70,9 @@ export const actions = {
       )
     },
 
+  // Reset state
+  onDestroy: () => ({...state}),
+
   handleKeyboardShortcut: (
     {ev, updateMetadata}:
       {ev: KeyboardEvent, updateMetadata: (node: IGraphNodeData) => void},
@@ -265,6 +268,7 @@ export function view(
     {
       id: 'editor-container',
       oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
+      ondestroy: () => _actions.onDestroy(),
       onkeydown: (ev: KeyboardEvent) => ev.stopPropagation(),
     },
     [
