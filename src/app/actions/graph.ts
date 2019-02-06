@@ -21,7 +21,6 @@ import {
   GraphNodeId,
   IGraphNodeData,
   IPosition,
-  NoteDataType,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 import {
@@ -98,6 +97,7 @@ export const actions: any = {
       ...metadata[node.id],
       title: node.title,
       tags: node.tags,
+      type: node.type,
     }
 
     graphCommandStream.next(new EditNodeMetadataCommand(node))
@@ -201,16 +201,16 @@ export const actions: any = {
       const ids = Object.keys(state.index)
         .map(Number)
         .sort((a: number, b: number) => a - b)
-      const nextId = ids[ids.length - 1] + 1 || 0
+      const nextId = ids[ids.length - 1] + 1 || 1
       const nodeData: IGraphNodeData = {
         id: nextId,
-        title: 'File ' + nextId,
+        title: 'Note ' + nextId,
         lastModified: '',
         created: '',
         x: position.x,
         y: position.y,
         tags: [],
-        type: NoteDataType.TEXT,
+        type: undefined,
       }
 
       // Set parent if specified
@@ -243,7 +243,6 @@ export const actions: any = {
     },
 
   _deleteNode: (nodeId: GraphNodeId) => (state: any) => {
-    deleteNote(nodeId)
     // Remove from index and from parent's adjacency list
     const index = {...state.index}
     delete index[nodeId]
@@ -252,8 +251,12 @@ export const actions: any = {
         index[k] = index[k].filter((l: GraphNodeId) => l !== nodeId)
       })
 
-    // Delete from metadata
     const metadata = {...state.metadata}
+
+    // Delete file
+    deleteNote(nodeId, metadata[nodeId].type)
+
+    // Delete from metadata
     delete metadata[nodeId]
     return {
       index,

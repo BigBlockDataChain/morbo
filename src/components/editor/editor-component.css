@@ -1,34 +1,44 @@
 #editor-container {
   height: 100%;
+  width: 100%;
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
   padding: 0.5em;
   box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);
   background: #eee;
-  flex: 0 0 100%;
   z-index: 2;
-  overflow-y: auto;
 }
 @media (min-width: 1280px) {
   #editor-container {
     flex: 0 0 800px;
+    width: 800px;
   }
 }
 @media (min-width: 1600px) {
   #editor-container {
     flex: 0 0 1024px;
+    width: 1024px;
   }
 }
 
-#editor-container > .container {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.3em;
+#editor-container #header {
+  margin-bottom: 1em;
 }
 
-#editor-container #editor-right-buttons {
+#editor-container #header .row {
   display: flex;
 }
 
-#editor-container #editor-right-buttons .icon {
+#editor-container #header .row:first-child {
+  margin-bottom: 0.75em
+}
+
+#editor-container #header #header-buttons {
+  display: flex;
+}
+
+#editor-container #header #header-buttons .icon {
   width: 24px;
   height: 24px;
   cursor: pointer;
@@ -36,52 +46,71 @@
   opacity: 0.4;
 }
 
-#editor-container #editor-right-buttons img {
+#editor-container #header #header-buttons img {
   width: 100%;
   height: 100%;
 }
 
-#editor-container #editor-right-buttons .icon:not(:last-child) {
+#editor-container #header #header-buttons .icon:not(:last-child) {
   margin-right: 32px;
 }
 
-#editor-container #editor-right-buttons .icon:hover {
+#editor-container #header #header-buttons .icon:hover {
   opacity: 1;
 }
 
-#editor-container #editor-title {
+#editor-container #header #editor-title {
   background: none;
   border: none;
   font-size: 125%;
   flex: auto;
   margin-right: 64px;
 }
-#editor-container #editor-title:focus {
+#editor-container #header #editor-title:focus {
   background: white;
   border: default;
 }
 
-#editor-container #editor-tags {
+#editor-container #header #editor-tags {
+  display: flex;
+  flex: auto;
+}
+
+#editor-container #header #editor-tags label {
+  margin-right: 0.5em;
+  color: gray;
+}
+
+#editor-container #header #editor-tags input {
+  flex: auto;
   background: none;
   border: none;
-  width: 100%;
   font-size: 90%;
 }
-#editor-container #editor-tags:focus {
+#editor-container #header #editor-tags input:focus {
   background: white;
   border: default;
+}
+
+#editor-container #header #last-save {
+  color: gray;
+  font-size: 90%;
+}
+#editor-container #header #last-save span:first-child {
+  margin-right: 0.5em;
 }
 
 #editor-container #editor {
-  height: 85%;
+  height: 100%;
   width: 100%;
   resize: none;
-  padding: 16px 0 0;
   border: 0 !important;
+  display: flex;
 }
 
 #editor-container #editor .cm-s-mirrormark {
   height: 100%;
+  width: 100%;
 }
 
 #editor-container #editor .CodeMirror-scroll {
@@ -90,9 +119,31 @@
   padding: 0.5em;
 }
 
-#handwriting-editor {
-  width: calc(100vw - 16px);
-  height: calc(100vh - 78px);
-  overflow: auto;
-  background-color: white;
+#editor-container #editor #type-selector-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#editor-container #editor #type-selector-dialog button {
+  height: 2em;
+  width: 8em;
+  font-size: 1.5em;
+  background: purple;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  margin: 2em;
+  box-sizing: content-box;
+  cursor: pointer;
+}
+#editor-container #editor #type-selector-dialog button:hover {
+  box-shadow: 0 0 0px 2px purple;
+}
+
+#handwriting-editor-container {
+  height: 100%;
+  width: 100%;
 }

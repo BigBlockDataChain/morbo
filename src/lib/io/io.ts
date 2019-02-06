@@ -63,8 +63,9 @@ export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<strin
   return readFile(notePath)
 }
 
-export function deleteNote(id: GraphNodeId) {
-  const notePath = join(BASE_DIR, `file${id}.txt`)
+export function deleteNote(id: GraphNodeId, type: NoteDataType) {
+  const ext = type === NoteDataType.TEXT ? 'txt' : 'png'
+  const notePath = join(BASE_DIR, `file${id}.${ext}`)
   return deleteFile(notePath)
 }
 
