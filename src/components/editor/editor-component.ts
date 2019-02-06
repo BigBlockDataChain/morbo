@@ -265,6 +265,7 @@ export function view(
     {
       id: 'editor-container',
       oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
+      onkeydown: (ev: KeyboardEvent) => ev.stopPropagation(),
     },
     [
       headerButtons(
