@@ -226,8 +226,13 @@ export const actions = {
         }
       },
 
-    onDestroy: () => () => {
+    onDestroy: () => (_state: any) => {
       logger.debug('Destroy handwriting editor')
+      _state.saveDebounceSub.unsubscribe()
+      return {
+        editor: null,
+        saveDebounceSub: null,
+      }
     },
 
     loadNote: ({nodeId}: {nodeId: GraphNodeId}) => (_: any, _actions: any) => {
