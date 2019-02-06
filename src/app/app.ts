@@ -181,6 +181,7 @@ export function view(state: IState, actions: any) {
             actions.onEditorClose,
             actions.onEditorUpdateMetadata,
             actions.graph.deleteNode,
+            actions.selectNode,
           )
         : Empty(),
     ],

@@ -160,6 +160,7 @@ export function view(
   onClose: () => any,
   updateMetadata: (node: IGraphNodeData) => void,
   deleteNode: (nodeId: GraphNodeId) => void,
+  selectNode: (nodeId: GraphNodeId) => void,
 ) {
   if (_state.node === null || node.id !== _state.node.id) {
     // Save previous open note
@@ -177,6 +178,7 @@ export function view(
     {
       id: 'editor-container',
       oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
+      onreference: (ev: CustomEvent) => selectNode(ev.detail),
     },
     [
       ...headerButtons(_state, _actions, onClose, updateMetadata, deleteNode),

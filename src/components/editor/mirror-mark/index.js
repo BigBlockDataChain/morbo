@@ -149,8 +149,22 @@ class MirrorMark {
           var anchors = document.getElementsByTagName("a")
           for(var i = 0; i < anchors.length; i++){
             var anchor = anchors[i]
-            anchor.onclick = () => {
-              // TODO: Add redirection code.
+
+            // If the anchor is not a redirection link, the skip.
+            if(anchor.href === ""){
+              continue
+            }
+
+            anchor.onclick = (el) => {
+              var hyperlink = el.target.href
+              if(hyperlink.substring(0,5) === "note:"){
+                var noteId = hyperlink.substring(5)
+                var textEditor = document.getElementById("editor-container")
+                var event = new CustomEvent("reference", {detail: noteId})
+                textEditor.dispatchEvent(event)
+                return false
+              }
+              return true
             }
           }
         }
