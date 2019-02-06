@@ -2,10 +2,22 @@ import * as html from '@hyperapp/html'
 
 import './settings-component.css'
 
-export default function(onClose: () => any) {
+interface IState {
+  darkTheme: boolean,
+}
+
+export const state: IState = {
+  darkTheme: false,
+}
+
+export const actions = {
+  toggleDarkTheme: () => (_state: IState) => ({darkTheme: !_state.darkTheme}),
+}
+
+export function view(onClose: () => any, _state: any, _actions: any) {
   return html.div(
     {
-      id: 'settings-panel',
+      id: 'settings-component',
     },
     [
       html.div(
@@ -15,6 +27,7 @@ export default function(onClose: () => any) {
         [
           html.button(
             {
+              class: 'close-button',
               onclick: (ev: Event) => onClose(),
             },
             'x',
@@ -37,150 +50,25 @@ export default function(onClose: () => any) {
               class: 'checkbox-container',
             },
             [
+              html.label(
+                {
+                  class: 'theme-label',
+                },
+                'Dark Theme',
+              ),
               html.input(
                 {
-                  class: 'settings-checkbox',
+                  class: 'switch',
                   type: 'checkbox',
+                  checked: _state.darkTheme,
                 },
               ),
               html.label(
                 {
-                  class: 'settings-label',
-                  for: 'settings-checkbox',
+                  for: 'switch',
+                  class: 'toggle-switch',
+                  onclick: (ev: Event) => _actions.toggleDarkTheme(),
                 },
-                'Option Name',
-              ),
-              html.input(
-                {
-                  class: 'settings-checkbox',
-                  type: 'checkbox',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-checkbox',
-                },
-                'Option Name',
-              ),
-              html.input(
-                {
-                  class: 'settings-checkbox',
-                  type: 'checkbox',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-checkbox',
-                },
-                'Option Name',
-              ),
-            ],
-          ),
-          html.div(
-            {
-              class: 'radio-container',
-            },
-            [
-              html.input(
-                {
-                  class: 'settings-radio',
-                  type: 'radio',
-                  name: 'placeholder',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-radio',
-                },
-                'Option A',
-              ),
-              html.input(
-                {
-                  class: 'settings-radio',
-                  type: 'radio',
-                  name: 'placeholder',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-radio',
-                },
-                'Option B',
-              ),
-              html.input(
-                {
-                  class: 'settings-radio',
-                  type: 'radio',
-                  name: 'placeholder',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-radio',
-                },
-                'Option C',
-              ),
-              html.input(
-                {
-                  class: 'settings-radio',
-                  type: 'radio',
-                  name: 'placeholder',
-                },
-              ),
-              html.label(
-                {
-                  class: 'settings-label',
-                  for: 'settings-radio',
-                },
-                'Option D',
-              ),
-            ],
-          ),
-          html.div(
-            {
-              class: 'selection-container',
-            },
-            [
-              html.select(
-                {
-                  class: 'settings-select',
-                },
-                [
-                  html.option('Select'),
-                  html.option('Option A'),
-                  html.option('Option B'),
-                  html.option('Option C'),
-                  html.option('Option D'),
-                ],
-              ),
-              html.select(
-                {
-                  class: 'settings-select',
-                },
-                [
-                  html.option('Select'),
-                  html.option('Option A'),
-                  html.option('Option B'),
-                  html.option('Option C'),
-                  html.option('Option D'),
-                ],
-              ),
-              html.select(
-                {
-                  class: 'settings-select',
-                },
-                [
-                  html.option('Select'),
-                  html.option('Option A'),
-                  html.option('Option B'),
-                  html.option('Option C'),
-                  html.option('Option D'),
-                ],
               ),
             ],
           ),

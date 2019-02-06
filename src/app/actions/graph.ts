@@ -105,6 +105,64 @@ export const actions: any = {
     return {metadata}
   },
 
+  createNewNode: ({
+      position,
+      parent,
+      selectNode,
+      newNodeCallback = undefined,
+    }: {
+      position: IPosition,
+      parent: null | GraphNodeId,
+      selectNode?: (nodeId: GraphNodeId) => any,
+      newNodeCallback?: (nodeId: GraphNodeId) => any,
+    },
+  ) =>
+    (state: any, _actions: any) => {
+      const ids = Object.keys(state.index)
+        .map(Number)
+        .sort((a: number, b: number) => a - b)
+      const nextId = ids[ids.length - 1] + 1 || 1
+      const nodeData: IGraphNodeData = {
+        id: nextId,
+        title: 'Note ' + nextId,
+        lastModified: '',
+        created: '',
+        x: position.x,
+        y: position.y,
+        tags: [],
+        type: undefined,
+      }
+
+      // Set parent if specified
+      let index
+      if (parent !== null) {
+        const originalParentIndex = state.index[parent]
+        index = {
+          ...state.index,
+          [parent]: [...originalParentIndex, nextId],
+          [nextId]: [],
+        }
+      } else {
+        index = {
+          ...state.index,
+          [nextId]: [],
+        }
+      }
+
+      setTimeout(
+        () => _actions.focusNode(nextId), GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
+      if (selectNode)
+        setTimeout(() => selectNode(nextId), GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
+
+      if (newNodeCallback)
+        setTimeout(() => newNodeCallback(nextId))
+
+      return {
+        index,
+        metadata: {...state.metadata, [nextId]: nodeData},
+      }
+    },
+
   handleGraphActions: ({
     selectNode,
   }: {
@@ -124,7 +182,7 @@ export const actions: any = {
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
             case graphTypes.CREATE_NEW_NODE_TYPE:
-              _actions._createNewNode(
+              _actions.createNewNode(
                 {position: event.position, parent: event.parent, selectNode})
               break
             case graphTypes.EDIT_NODE_TYPE:
@@ -184,62 +242,6 @@ export const actions: any = {
       }
 
       return {metadata}
-    },
-
-  _createNewNode: (
-    {
-      position,
-      parent,
-      selectNode,
-    }: {
-      position: IPosition,
-      parent: null | GraphNodeId,
-      selectNode: (nodeId: GraphNodeId) => any,
-    },
-  ) =>
-    (state: any, _actions: any) => {
-      const ids = Object.keys(state.index)
-        .map(Number)
-        .sort((a: number, b: number) => a - b)
-      const nextId = ids[ids.length - 1] + 1 || 1
-      const nodeData: IGraphNodeData = {
-        id: nextId,
-        title: 'Note ' + nextId,
-        lastModified: '',
-        created: '',
-        x: position.x,
-        y: position.y,
-        tags: [],
-        type: undefined,
-      }
-
-      // Set parent if specified
-      let index
-      if (parent !== null) {
-        const originalParentIndex = state.index[parent]
-        index = {
-          ...state.index,
-          [parent]: [...originalParentIndex, nextId],
-          [nextId]: [],
-        }
-      } else {
-        index = {
-          ...state.index,
-          [nextId]: [],
-        }
-      }
-
-      setTimeout(
-        () => _actions.focusNode(nextId), GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
-      setTimeout(
-        () => {
-          selectNode(nextId)
-        }, GRAPH_FOCUS_AFTER_NEW_NODE_CREATED_DELAY)
-
-      return {
-        index,
-        metadata: {...state.metadata, [nextId]: nodeData},
-      }
     },
 
   _deleteNode: (nodeId: GraphNodeId) => (state: any) => {

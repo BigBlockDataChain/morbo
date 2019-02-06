@@ -9,6 +9,11 @@
   background: #eee;
   z-index: 2;
 }
+
+.theme-dark #editor-container {
+  background-color: #323A45;
+}
+
 @media (min-width: 1280px) {
   #editor-container {
     flex: 0 0 800px;
@@ -38,6 +43,10 @@
   display: flex;
 }
 
+.theme-dark #editor-container #header #header-buttons {
+  filter: invert(1);
+}
+
 #editor-container #header #header-buttons .icon {
   width: 24px;
   height: 24px;
@@ -61,6 +70,7 @@
 
 #editor-container #header #editor-title {
   background: none;
+  color: black;
   border: none;
   font-size: 125%;
   flex: auto;
@@ -70,10 +80,24 @@
   background: white;
   border: default;
 }
+.theme-dark #editor-container #header #editor-title {
+  color: white;
+}
+.theme-dark #editor-container #header #editor-title:focus {
+  background-color: #111A23;
+  color: white;
+}
 
 #editor-container #header #editor-tags {
   display: flex;
   flex: auto;
+}
+.theme-dark #editor-container #header #editor-tags input {
+  color: white;
+}
+.theme-dark #editor-container #header #editor-tags input:focus {
+  background-color: #111A23;
+  color: white;
 }
 
 #editor-container #header #editor-tags label {
