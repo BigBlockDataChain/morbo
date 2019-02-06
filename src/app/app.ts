@@ -1,9 +1,11 @@
+import * as html from '@hyperapp/html'
+import {Subject} from 'rxjs'
+
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
 import Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
-import * as html from '@hyperapp/html'
 import {initDataDirectory} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
@@ -15,7 +17,6 @@ import {
   IGraphNodeData,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
-import {Subject} from 'rxjs'
 import {actions as graphActions} from './actions/graph'
 import {
   graphActionStream,

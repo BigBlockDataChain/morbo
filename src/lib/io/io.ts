@@ -32,7 +32,7 @@ export async function initDataDirectory(): Promise<void> {
 export async function loadIndex(): Promise<IGraphIndex> {
   try {
     const raw = await readFile(INDEX_PATH)
-    return JSON.parse(raw) as IGraphIndex
+    return JSON.parse(raw.toString()) as IGraphIndex
   } catch (err) {
     logger.warn('Failed to load index. Returning empty index')
     return {} as IGraphIndex
@@ -46,7 +46,7 @@ export function writeIndex(index: IGraphIndex): Promise<void> {
 export async function loadMetadata(): Promise<IGraphMetadata> {
   try {
     const raw = await readFile(METADATA_PATH)
-    return JSON.parse(raw) as IGraphMetadata
+    return JSON.parse(raw.toString()) as IGraphMetadata
   } catch (err) {
       logger.warn('Failed to load metadata. Returning empty metadata')
       return {} as IGraphMetadata
@@ -57,10 +57,11 @@ export function writeMetadata(metadata: IGraphMetadata): Promise<void> {
   return writeFile(METADATA_PATH, JSON.stringify(metadata))
 }
 
-export function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<string> {
+export async function loadNote(id: GraphNodeId, dataType: NoteDataType): Promise<any> {
   const ext = getFileExtensionFromNoteDataType(dataType)
   const notePath = join(BASE_DIR, `file${id}.${ext}`)
-  return readFile(notePath)
+  const data = await readFile(notePath)
+  return dataType === NoteDataType.TEXT ? data.toString() : data
 }
 
 export function deleteNote(id: GraphNodeId, type: NoteDataType) {

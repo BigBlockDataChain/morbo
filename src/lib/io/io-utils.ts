@@ -10,19 +10,15 @@ const logger = getLogger('io')
  * @returns Either resolves or rejects promise with data or error based on
  * success of read operation
  */
-export function readFile(path: string): Promise<string> {
+export function readFile(path: string): Promise<any> {
   return new Promise((resolve, reject) => {
     fs.readFile(path, (err: any, data: string) => {
       if (err) {
         reject(err)
         return
       }
-      // for images, we need to return the raw data
-      if (path.endsWith('.png')) {
-        resolve(data)
-      } else {
-        resolve(data.toString())
-      }
+
+      resolve(data)
     })
   })
 }

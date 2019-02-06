@@ -90,7 +90,7 @@ export const actions = {
       _state.handwritingEditor.editor
       && node.type === NoteDataType.HANDWRITING
     ) {
-      // TODO
+      // noop
     }
 
     return {
