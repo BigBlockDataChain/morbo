@@ -3,13 +3,9 @@
   flex: auto;
   height: 100%;
   overflow: hidden;
-  background: #f8f8f8;
-}
-
-#graph-view-component #d3-container {
   background: #f9f9ec;
 }
 
-.theme-dark #graph-view-component #d3-container {
+.theme-dark #graph-view-component {
   background: #323A45;
 }
