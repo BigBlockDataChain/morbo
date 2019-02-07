@@ -257,6 +257,7 @@ export function view(
   onClose: () => any,
   updateMetadata: (node: IGraphNodeData) => void,
   deleteNode: (nodeId: GraphNodeId) => void,
+  selectNode: (nodeId: GraphNodeId) => void,
 ) {
   if (_state.node === null || _state.node.id !== node.id) {
     _actions.setNode({...node})
@@ -287,10 +288,23 @@ export function view(
         updateMetadata,
         deleteNode,
       ),
-
       html.div(
         {
           id: 'editor',
+          onclick: (ev: Event) => {
+            if ((ev.target as El).tagName !== 'A') {
+              return
+            }
+            ev.preventDefault()
+            const link = (ev.target as El).getAttribute('href')
+            if (link !== null) {
+              const noteId = link.match(/^note:(\d+)$/)
+              if (noteId !== null) {
+                _state.textEditor.editor.previewButton.click()
+                selectNode(parseInt(noteId[1], 10))
+              }
+            }
+          },
           onkeydown: () => saveDebounceSubject.next(),
         },
         [

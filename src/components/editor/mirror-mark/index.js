@@ -17,17 +17,19 @@ class MirrorMark {
     this.element = element
     this.options = options
     this.isEdit = true
+    this.previewButton = null
 
     this.tools = [
       {name: 'bold', action: 'bold', className: 'fa fa-bold'},
       {name: 'italicize', action: 'italicize', className: 'fa fa-italic'},
       {name: 'blockquote', action: 'blockquote', className: 'fa fa-quote-left'},
       {name: 'link', action: 'link', className: 'fa fa-link'},
+      {name: 'nodelink', action: 'nodelink', className: 'fa fa-connectdevelop'},
       {name: 'image', action: 'image', className: 'fa fa-image'},
       {name: 'unorderedList', action: 'unorderedList', className: 'fa fa-list'},
       {name: 'orderedList', action: 'orderedList', className: 'fa fa-list-ol'},
       {name: 'fullScreen', action: 'fullScreen', className: 'fa fa-expand', toggleClass: "fa fa-compress"},
-      {name: 'preview', action: 'preview', className: 'fa fa-file', toggleClass: 'fa fa-file-o'}
+      {name: 'preview', id: 'preview-button', action: 'preview', className: 'fa fa-file', toggleClass: 'fa fa-file-o'}
     ]
 
     this.keyMaps = {
@@ -75,6 +77,9 @@ class MirrorMark {
       },
       link: function () {
         this.insertAround('[', '](http://)')
+      },
+      nodelink: function() {
+        this.insertAround('[', '](note:)')
       },
       hr: function () {
         this.insert('---')
@@ -126,29 +131,28 @@ class MirrorMark {
         }
       },
       preview: function() {
-        const setPreviewMode = function(cm) {
+        const setPreviewMode = function(_this) {
           var converter = new Markdown.Converter()
-          var wrap = cm.getWrapperElement()
+          var wrap = _this.cm.getWrapperElement()
           wrap.className += ' CodeMirror-has-preview'
-          var previewNodes = wrap.getElementsByClassName("CodeMirror-preview")
+          var previewNodes = wrap.getElementsByClassName('CodeMirror-preview')
           var previewNode
 
           if(previewNodes.length == 0) {
             var previewNode = document.createElement('div')
-            previewNode.className = "CodeMirror-preview"
+            previewNode.className = 'CodeMirror-preview'
             wrap.appendChild(previewNode)
           } else {
             previewNode = previewNodes[0]
           }
-
-          previewNode.innerHTML = converter.makeHtml(cm.getValue())
+          previewNode.innerHTML = converter.makeHtml(_this.cm.getValue())
         }
         const setEditMode = function(cm) {
           var wrap = cm.getWrapperElement()
-          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, "")
+          wrap.className = wrap.className.replace(/\s*CodeMirror-has-preview\b/, '')
           cm.refresh()
         }
-        this.isEdit ? setPreviewMode(this.cm) : setEditMode(this.cm)
+        this.isEdit ? setPreviewMode(this) : setEditMode(this.cm)
         this.isEdit = !this.isEdit
       }
     }
@@ -253,6 +257,13 @@ class MirrorMark {
 
       if (tool.className) {
         anchor.className = tool.className
+      }
+
+      if (tool.id) {
+        anchor.id = tool.id
+        if (tool.id = 'preview-button') {
+          this.previewButton = anchor
+        }
       }
 
       if (tool.showName) {
