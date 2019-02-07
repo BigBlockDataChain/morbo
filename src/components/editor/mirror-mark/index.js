@@ -158,18 +158,11 @@ class MirrorMark {
             anchor.onclick = (el) => {
               var hyperlink = el.target.href
               if(hyperlink.substring(0,5) === 'note:') {
-                // Retrieve the note ID and dispatch to caller.
-                var noteId = hyperlink.substring(5)
-                var textEditor = document.getElementById('editor-container')
-                var event = new CustomEvent('reference', {detail: noteId})
-
                 // Update the editor internal state.
-                textEditor.dispatchEvent(event)
                 setEditMode(_this.cm)
                 _this.isEdit = true
                 var previewButton = document.getElementById('preview-button')
                 previewButton.className = 'fa fa-file'
-
                 return false
               }
               return true

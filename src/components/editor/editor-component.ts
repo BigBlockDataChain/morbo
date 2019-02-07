@@ -269,7 +269,6 @@ export function view(
     {
       id: 'editor-container',
       oncreate: (el: El) => _actions.onCreate({el, updateMetadata}),
-      onreference: (ev: CustomEvent) => selectNode(ev.detail),
       ondestroy: () => _actions.onDestroy(),
       onkeydown: (ev: KeyboardEvent) => ev.stopPropagation(),
     },
@@ -289,10 +288,19 @@ export function view(
         updateMetadata,
         deleteNode,
       ),
-
       html.div(
         {
           id: 'editor',
+          onclick: (ev: Event) => {
+            if ((ev.target as El).tagName !== 'A') {
+              return
+            }
+            ev.preventDefault()
+            const link = (ev.target as El).getAttribute('href')
+            if (link !== null) {
+              selectNode(parseInt(link.substring(5), 10))
+            }
+          },
           onkeydown: () => saveDebounceSubject.next(),
         },
         [
