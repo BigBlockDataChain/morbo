@@ -1,7 +1,7 @@
 #toolbar {
   position: absolute;
   width: 100%;
-  padding: 30px 30px 0;
+  padding: 16px 16px 0;
   z-index: 1;
   display: flex;
   justify-content: space-between;
@@ -38,6 +38,17 @@
 }
 #toolbar .icon:active {
   box-shadow: none;
+}
+
+.theme-dark #toolbar .icon {
+  border: 2px solid;
+  border-color: #E0E3E5;
+  opacity: 0.75;
+}
+.theme-dark #toolbar .icon:hover {
+  background: #323A45;
+  box-shadow: 0 0 0 2px white;
+  opacity: 1;
 }
 
 #toolbar .search {

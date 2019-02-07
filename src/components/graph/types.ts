@@ -1,5 +1,35 @@
 import {GraphNodeId, IGraphNodeData, IPosition} from '@lib/types'
 
+export const DELETE_LINK_TYPE = 'deleteLink'
+type DeleteLinkType           = 'deleteLink'
+export interface IDeleteLinkAction {
+  readonly kind: DeleteLinkType
+  readonly source: GraphNodeId
+  readonly target: GraphNodeId
+}
+export class DeleteLinkAction implements IDeleteLinkAction {
+  public readonly kind = DELETE_LINK_TYPE
+  public constructor(
+    public readonly source: GraphNodeId,
+    public readonly target: GraphNodeId,
+  ) {}
+}
+
+export const SET_NODE_PARENT_TYPE = 'setParent'
+type SetNodeParentType            = 'setParent'
+export interface ISetNodeParentType {
+  readonly kind: SetNodeParentType
+  readonly parent: GraphNodeId
+  readonly child: GraphNodeId
+}
+export class SetNodeParentAction implements ISetNodeParentType {
+  public readonly kind = SET_NODE_PARENT_TYPE
+  public constructor(
+    public readonly parent: GraphNodeId,
+    public readonly child: GraphNodeId,
+  ) {}
+}
+
 export const NODE_CLICK_TYPE = 'nodeClick'
 type NodeClickType           = 'nodeClick'
 export interface INodeClickAction {
@@ -169,6 +199,8 @@ export type GraphAction
   | ICreateNewNodeAction
   | IEditNodeAction
   | IDeleteNodeAction
+  | IDeleteLinkAction
+  | ISetNodeParentType
 
 export const FOCUS_TYPE = 'focus'
 export type FocusType   = 'focus'

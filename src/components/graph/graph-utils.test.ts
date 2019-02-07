@@ -5,6 +5,7 @@ import {
   IGraphMetadata,
   IGraphNodeData,
   ILinkTuple,
+  NoteDataType,
 } from '@lib/types'
 import {
   calculateLinearEquationFromPoints,
@@ -62,6 +63,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     1: {
       id: 0,
@@ -71,6 +73,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     2: {
       id: 2,
@@ -80,6 +83,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
   }
 
@@ -92,6 +96,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     {
       id: 0,
@@ -101,6 +106,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
     {
       id: 2,
@@ -110,6 +116,7 @@ describe('graphMetadataToList', () => {
       x: 0,
       y: 0,
       tags: [],
+      type: NoteDataType.TEXT,
     },
   ]
 

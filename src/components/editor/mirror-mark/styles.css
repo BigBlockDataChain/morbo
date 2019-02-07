@@ -330,10 +330,10 @@ span.CodeMirror-selectedtext { background: none; }
 }
 
 .cm-s-mirrormark .CodeMirror-scroll {
-    height: auto !important;
-    overflow: visible !important;
-	padding: 4%;
-	box-sizing: border-box;
+  height: auto !important;
+  overflow: visible !important;
+  padding: 30px 4%;
+  box-sizing: border-box;
 }
 
 .cm-s-mirrormark .cm-header-1 {
@@ -379,6 +379,9 @@ span.CodeMirror-selectedtext { background: none; }
 
 .mirrormark-toolbar li.fullScreen {
     float: right;
+}
+.mirrormark-toolbar li.preview {
+  float: right;
 }
 
 .mirrormark-toolbar li a {
@@ -458,4 +461,26 @@ span.CodeMirror-selectedtext { background: none; }
 :-webkit-full-screen .CodeMirror-scroll {
 	height: 100% !important;
 	overflow: scroll !important;
+}
+
+/* Preview */
+.CodeMirror.CodeMirror-has-preview .CodeMirror-scroll{
+  display: none;
+}
+
+.CodeMirror.CodeMirror-has-preview .CodeMirror-preview{
+  display: block;
+}
+
+.CodeMirror .CodeMirror-preview {
+  display: none;
+  height: auto !important;
+  overflow: visible !important;
+  padding: 30px 4%;
+  box-sizing: border-box;
+}
+
+.cm-s-mirrormark.CodeMirror-fullscreen .CodeMirror-preview{
+  height: 100% !important;
+  overflow: scroll !important;
 }

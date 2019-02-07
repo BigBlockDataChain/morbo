@@ -1,0 +1,56 @@
+#handwriting-editor-component {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#handwriting-component-canvas-wrapper {
+  overflow: auto;
+}
+
+canvas {
+  background: white;
+}
+
+.handwriting-editor-component-menu {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 3em;
+  background: white;
+  border-bottom: 1px solid gray;
+}
+
+.handwriting-editor-component-menu #tools, .handwriting-editor-component-menu #colors {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.handwriting-editor-component-menu .icon {
+  margin: 0 0.5em;
+  height: 1.5em;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.color-icon {
+  border-radius: 100%;
+  border: 2px solid black;
+  width: 1.5em;
+}
+
+.tool-icon {
+  width: 4em;
+  font-weight: bold;
+}
+
+.icon.selected {
+  border: 3px solid white;
+  box-shadow: 0 0 0 1px black;
+}

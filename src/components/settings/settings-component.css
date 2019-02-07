@@ -1,4 +1,4 @@
-#settings-panel {
+#settings-component {
   position: absolute;
   height: 80%;
   width: 50%;
@@ -12,58 +12,69 @@
   overflow: auto;
 }
 
-#settings-panel .settings-close {
+ .theme-dark #settings-component {
+  background-color: #111A23;
+  border-color: #758188;
+}
+
+#settings-component .settings-close {
   text-align: right;
   align-items: right;
   margin-right: 0.1em;
 }
 
-#settings-panel .settings-container {
+#settings-component .close-button {
+  border: none;
+}
+
+.theme-dark #settings-component .close-button {
+  background-color: #111A23;
+  color: white;
+}
+
+#settings-component .settings-container {
   height: 80%;
   width: 80%;
   left: 9.5%;
   top: 3%;
   position: relative;
+  background: #FFF;
   border-style: solid;
   border-width: 2px;
   border-color: #000000;
   overflow: auto;
 }
 
-#settings-panel .settings-title {
+.theme-dark #settings-component .settings-container {
+  background-color: #111A23;
+  border-color: #758188;
+  color: white;
+}
+
+#settings-component .settings-title {
   padding-top: 0em;
   text-align: center;
+  color: black;
+  font-size: 1.5em;
+  font-weight: bold;
 }
 
-#settings-panel .settings-select {
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
-  width: 300px;
+.theme-dark #settings-component .settings-title {
+  color: white;
 }
 
-#settings-panel .checkbox-container {
-  padding-top: 2em;
+#settings-component .checkbox-container {
+  padding-top: 3em;
 }
 
-#settings-panel .settings-checkbox {
+#settings-component .settings-checkbox {
   margin-left: 3.2em;
   display: inline-block;
   width: 15px;
   vertical-align: text-top;
 }
 
-#settings-panel .radio-container {
-  padding-top: 1em;
-}
-
-#settings-panel .settings-radio {
-  margin-left: 3.2em;
-  display: inline-block;
-  width: 15px;
-  vertical-align: text-top;
-}
-
-#settings-panel .settings-label {
+#settings-component .settings-label {
   display: inline-block;
   width: 300px;
   word-break: break-all;
@@ -71,7 +82,49 @@
   margin-bottom: 0.3em;
 }
 
-#settings-panel .selection-container {
-  padding-top: 1em;
-  text-align: center;
+#settings-component input[type=checkbox]{
+  height: 0;
+  width: 0;
+  visibility: hidden;
+}
+
+#settings-component .toggle-switch {
+  cursor: pointer;
+  width: 60px;
+  height: 30px;
+  margin-right: 5%;
+  margin-top: -0.2em;
+  background: grey;
+  display: inline-block;
+  border-radius: 100px;
+  float: right;
+}
+
+#settings-component .toggle-switch:after {
+  content: '';
+  float: right;
+  position: relative;
+  top: 3px;
+  left: -32px;
+  width: 25px;
+  height: 25px;
+  background: #fff;
+  border-radius: 90px;
+  transition: 0.3s;
+}
+
+#settings-component input:checked + .toggle-switch {
+  background: gray;
+}
+
+#settings-component input:checked + .toggle-switch:after {
+  left: calc(100% - 38px);
+  transform: translateX(-100%);
+}
+
+#settings-component .theme-label {
+  position: absolute;
+  font-size: 1.25em;
+  padding-left: 1em;
+  padding-top: -5em;
 }

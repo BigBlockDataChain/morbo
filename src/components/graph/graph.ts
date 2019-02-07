@@ -23,35 +23,32 @@ import {
   intersectLineWithRectange,
   makeChildParentIndex,
 } from './graph-utils'
-import {
-  BackgroundClickAction,
-  BackgroundDblClickAction,
-  CreateNewNodeAction,
-  DeleteNodeAction,
-  EDIT_NODE_METADATA_TYPE,
-  EditNodeAction,
-  FOCUS_TYPE,
-  GraphAction,
-  GraphCommand,
-  NodeClickAction,
-  NodeDblClickAction,
-  NodeDragAction,
-  NodeHoverEndAction,
-  NodeHoverShortAction,
-  NodeRightClickAction,
-  RESET_GRAPH_TYPE,
-  ZoomAction,
-} from './types'
+import * as graphTypes from './types'
 
 import './graph.css'
 
 const logger = getLogger('d3-graph')
 
 interface ITransform { translation: IPosition, scale: number }
+interface IHomeLocation extends IPosition { scale: number }
 interface IExtendedGraphData extends IGraphData {
   metadataItems: IGraphNodeData[]
   childParentIndex: IGraphChildParentIndex
   linkData: ILinkTuple[]
+}
+
+enum GraphModeKind {
+  SET_AS_PARENT = 'setAsParent',
+  NORMAL = 'normal',
+}
+
+interface IGraphMode {
+  kind: GraphModeKind.SET_AS_PARENT | GraphModeKind.NORMAL
+}
+
+class GraphMode {
+  public static NORMAL: IGraphMode = {kind: GraphModeKind.NORMAL}
+  public static SET_AS_PARENT: IGraphMode = {kind: GraphModeKind.SET_AS_PARENT}
 }
 
 export default class GraphComponent {
@@ -59,12 +56,9 @@ export default class GraphComponent {
   private static readonly _LABEL_FONT_SIZE = 20
   private static readonly _NODE_STROKE = 5
   private static readonly _NODE_STROKE_HOVER = 9
-  private static readonly _NODE_STROKE_COLOR = 'black'
-  private static readonly _NODE_STROKE_COLOR_SELECTED = 'purple'
   private static readonly _NODE_HEIGHT = 48
   private static readonly _NODE_WIDTH = 192
 
-  private static readonly _LINK_STROKE_COLOR = 'black'
   private static readonly _LINK_STROKE = 9
   private static readonly _LINK_STROKE_HOVER = 16
 
@@ -75,6 +69,7 @@ export default class GraphComponent {
   private static readonly _ZOOM_MAX = 1
 
   private static readonly _CONTEXT_MENU_NODE_KEY = 'graph.node'
+  private static readonly _CONTEXT_MENU_LINK_KEY = 'graph.link'
   private static readonly _CONTEXT_MENU_BACKGROUND_KEY = 'graph.background'
 
   /*
@@ -93,6 +88,7 @@ export default class GraphComponent {
   // @ts-ignore // no unused variable
   private _c10: any | null = null
   private _g: any | null = null
+  private _gNewLink: any | null = null
   private _gNodes: any | null = null
   private _gLinks: any | null = null
   private _zoomHandler: any | null = null
@@ -102,16 +98,24 @@ export default class GraphComponent {
   private _drag: any | null = null
 
   private _selectedNode: GraphNodeId | null = null
+  private _homeNode: GraphNodeId | null = null
+  private _lastSelectedLink: ILinkTuple | null = null
 
-  private _actionStream: Subject<GraphAction> | null = null
+  private _actionStream: Subject<graphTypes.GraphAction> | null = null
 
   private _lastClickWasSingle: boolean = false
 
-  private _locationFocusedLocation: null | IPosition = null
+  private _lastFocusedLocation: null | IPosition = null
   private _lastRightClickLocation: null | IPosition = null
 
   private _graphData: null | IExtendedGraphData = null
   private _dimensions: null | IDimensions = null
+
+  private _mode: IGraphMode = GraphMode.NORMAL
+  private _startNode: null | GraphNodeId = null
+  private _targetNode: null | GraphNodeId = null
+
+  private _homeLocation: IHomeLocation = {x: 0, y: 0, scale: 1}
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -127,8 +131,8 @@ export default class GraphComponent {
   public init(
     host: El,
     dimensions: IDimensions,
-    actionStream: Subject<GraphAction>,
-    commandStream: Observable<GraphCommand>,
+    actionStream: Subject<graphTypes.GraphAction>,
+    commandStream: Observable<graphTypes.GraphCommand>,
   ): void {
     if (this._d3Initialized
         && dimensions.height === this._height
@@ -156,6 +160,8 @@ export default class GraphComponent {
     this._svg = this._createSvg(host, dimensions)
     this._g = this._svg.append('g')
       .attr('class', 'everything')
+    this._gNewLink = this._g.append('g')
+      .attr('class', 'new-link')
     this._gLinks = this._g.append('g')
       .attr('class', 'links')
     this._gNodes = this._g.append('g')
@@ -168,7 +174,8 @@ export default class GraphComponent {
     this._zoomHandler = d3.zoom()
       .scaleExtent([GraphComponent._ZOOM_MIN, GraphComponent._ZOOM_MAX])
       .on('zoom.a', zoomActions)
-      .on('zoom.b', () => actionStream.next(new ZoomAction()))
+      .on('zoom.b', () => actionStream.next(new graphTypes.ZoomAction()))
+      .on('zoom.mode', () => this._handleZoomInMode())
     // Handle zooming on SVG
     this._zoomHandler(this._svg)
 
@@ -184,7 +191,7 @@ export default class GraphComponent {
 
     if (this._commandStreamSub == null)
       this._commandStreamSub = commandStream
-        .subscribe((cmd: GraphCommand) => this._handleCommandStream(cmd))
+        .subscribe((cmd: graphTypes.GraphCommand) => this._handleCommandStream(cmd))
 
     this._registerContextMenus()
   }
@@ -209,6 +216,11 @@ export default class GraphComponent {
       return
     }
 
+    const dimensionsChanged
+      =  this._dimensions
+      && (this._dimensions!.height !== dimensions.height
+          || this._dimensions!.width !== dimensions.width)
+
     this._dimensions = dimensions
     this._updateGraphData(data)
 
@@ -231,7 +243,13 @@ export default class GraphComponent {
     this._enableLinkClickJumpingToOppositeNode()
     this._disableDoubleClickZoom()
 
-    // Focus graph on last clicked location
+    // Focus graph
+    if (this._selectedNode !== null && dimensionsChanged)
+      this._lastFocusedLocation = {
+        x: this._graphData!.metadata![this._selectedNode].x,
+        y: this._graphData!.metadata![this._selectedNode].y,
+      }
+
     this._focusGraph()
   }
 
@@ -246,21 +264,21 @@ export default class GraphComponent {
             y: nodeY + GraphComponent._NODE_HEIGHT * 2,
           }
           this._actionStream!.next(
-            new CreateNewNodeAction(position, this._selectedNode!))
+            new graphTypes.CreateNewNodeAction(position, this._selectedNode!))
         }, 50),
       },
       {type: 'separator'},
       {
         label: 'Edit',
         click: () => {
-          this._actionStream!.next(new EditNodeAction(this._selectedNode!))
+          this._actionStream!.next(new graphTypes.EditNodeAction(this._selectedNode!))
         },
       },
       {type: 'separator'},
       {
         label: 'Center screen',
         click: () => {
-          this._locationFocusedLocation = {
+          this._lastFocusedLocation = {
             x: this._graphData!.metadata[this._selectedNode!].x,
             y: this._graphData!.metadata[this._selectedNode!].y,
           }
@@ -270,24 +288,37 @@ export default class GraphComponent {
       {type: 'separator'},
       {
         label: 'Make Parent of...',
-        enabled: false,
-        click: () => {
-          logger.log('Make parent of...')
-        },
-      },
-      {
-        label: 'Make Child of...',
-        enabled: false,
-        click: () => {
-          logger.log('Make child of...')
-        },
+        click: () => this._changeMode(GraphMode.SET_AS_PARENT),
       },
       {type: 'separator'},
       {
         label: 'Delete',
         click: () => setTimeout(() => {
-          this._actionStream!.next(new DeleteNodeAction(this._selectedNode!))
+          this._actionStream!.next(new graphTypes.DeleteNodeAction(this._selectedNode!))
         }, 50),
+      },
+      {type: 'separator'},
+      {
+        label: 'Set here as home',
+        click: () => {
+          const node = this._graphData!.metadata![this._selectedNode!]
+          this._homeNode = this._selectedNode
+          const newHome = this._centreOnPoint(node)
+          this._setHomeLocation({
+            x: newHome.translation.x,
+            y: newHome.translation.y,
+            scale: newHome.scale,
+          })
+        },
+      },
+    ])
+    registerContextMenu(GraphComponent._CONTEXT_MENU_LINK_KEY, [
+      {
+        label: 'Delete',
+        click: () => {
+          const {source, target} = this._lastSelectedLink!
+          this._actionStream!.next(new graphTypes.DeleteLinkAction(source, target))
+        },
       },
     ])
     registerContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY, [
@@ -295,8 +326,20 @@ export default class GraphComponent {
         label: 'New note',
         click: () => setTimeout(() => {
           this._actionStream!.next(
-            new CreateNewNodeAction(this._lastRightClickLocation!, null))
+            new graphTypes.CreateNewNodeAction(this._lastRightClickLocation!, null))
         }, 50),
+      },
+      {type: 'separator'},
+      {
+        label: 'Set here as home',
+        click: () => {
+          const newHome = this._centreOnPoint(this._lastRightClickLocation!)
+          this._setHomeLocation({
+            x: newHome.translation.x,
+            y: newHome.translation.y,
+            scale: newHome.scale,
+          })
+        },
       },
     ])
   }
@@ -307,41 +350,10 @@ export default class GraphComponent {
       .attr('id', 'graph')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height)
-      .on('contextmenu', () => {
-        const position = this._svgToGraphPosition({
-          x: d3.event.clientX,
-          y: d3.event.clientY,
-        })
-        this._locationFocusedLocation = null
-        this._lastRightClickLocation = position
-        this._setSelectedNode(null)
-        showContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY)
-      })
-      .on('click', () => {
-        this._setSelectedNode(null)
-        d3.event.stopPropagation()
-        const position = this._svgToGraphPosition({
-          x: d3.event.clientX,
-          y: d3.event.clientY,
-        })
-        this._lastClickWasSingle = true
-        this._locationFocusedLocation = null
-        setTimeout(() => {
-          if (this._lastClickWasSingle) {
-            this._actionStream!.next(new BackgroundClickAction(position))
-          }
-        }, GraphComponent._SINGLE_CLICK_DELAY)
-      })
-      .on('dblclick', () => {
-        this._setSelectedNode(null)
-        d3.event.stopPropagation()
-        this._lastClickWasSingle = false
-        const position = this._svgToGraphPosition({
-          x: d3.event.clientX,
-          y: d3.event.clientY,
-        })
-        this._actionStream!.next(new BackgroundDblClickAction(position))
-      })
+      .on('mousemove', () => this._onBackgroundMoveMove())
+      .on('contextmenu', () => this._onBackgroundContextMenu())
+      .on('click', () => this._onBackgroundClick())
+      .on('dblclick', () => this._onBackgroundDblClick())
     return svg
   }
 
@@ -385,8 +397,10 @@ export default class GraphComponent {
       .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
       .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
       .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
-      .on('mouseover.action', (d: IGraphNodeData) => this._onNodeMouseOver(d))
-      .on('mouseout.action', (d: IGraphNodeData) => this._onNodeMouseOut(d))
+      .on('mouseover.action', (d: IGraphNodeData, i: number, refs: any[]) =>
+          this._onNodeMouseOver(d, i, refs))
+      .on('mouseout.action', (d: IGraphNodeData, i: number, refs: any[]) =>
+          this._onNodeMouseOut(d, i, refs))
       .call(this._drag)
 
     newNodes
@@ -407,9 +421,7 @@ export default class GraphComponent {
       .attr('y', 0)
       .attr('width', GraphComponent._NODE_WIDTH)
       .attr('height', GraphComponent._NODE_HEIGHT)
-      .attr('fill', 'white')
-      .attr('stroke', (d: IGraphNodeData) => this._getNodeColor(d.id))
-      .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
+      .attr('stroke-width', GraphComponent._NODE_STROKE)
 
     newNodes
       .append('text')
@@ -447,12 +459,6 @@ export default class GraphComponent {
       })
   }
 
-  private _getNodeColor(nodeId: GraphNodeId): string {
-    return this._selectedNode === nodeId
-      ? GraphComponent._NODE_STROKE_COLOR_SELECTED
-      : GraphComponent._NODE_STROKE_COLOR
-  }
-
   private _renderLinks(): void {
 
     const existingLinks = this._gLinks.selectAll('.link')
@@ -463,7 +469,7 @@ export default class GraphComponent {
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .enter()
       .append('line')
-      .attr('class', (l: ILinkTuple) => 'link link-' + l.source + '-' + l.target)
+      .attr('class', 'link')
       .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
         const sourceNode = this._graphData!.metadataItems.filter(
           (d: IGraphNodeData) => d.id === l.source)[0]
@@ -476,9 +482,8 @@ export default class GraphComponent {
         d3.select(refs[i]).attr('y2', targetNode.y)
         return targetNode.x
       })
-      .attr('fill', 'none')
-      .attr('stroke', GraphComponent._LINK_STROKE_COLOR)
-      .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+      .attr('stroke-width', GraphComponent._LINK_STROKE)
+      .on('contextmenu', (l: ILinkTuple) => this._onLinkContextMenu(l))
 
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
@@ -490,25 +495,25 @@ export default class GraphComponent {
     this._links = this._g.selectAll('.link')
   }
 
-  private _handleCommandStream(command: GraphCommand): void {
+  private _handleCommandStream(command: graphTypes.GraphCommand): void {
     switch (command.kind) {
-      case FOCUS_TYPE:
+      case graphTypes.FOCUS_TYPE:
         if (command.position !== undefined) {
-          this._locationFocusedLocation = command.position
+          this._lastFocusedLocation = command.position
           this._focusGraph()
         } else if (command.nodeId !== undefined) {
           const node = this._graphData!.metadata[command.nodeId]
-          this._locationFocusedLocation = {x: node.x, y: node.y}
+          this._lastFocusedLocation = {x: node.x, y: node.y}
           this._setSelectedNode(command.nodeId)
           this._focusGraph()
         } else {
           logger.warn('Focus comamnd does not contain a position or a nodeId')
         }
         break
-      case RESET_GRAPH_TYPE:
+      case graphTypes.RESET_GRAPH_TYPE:
         this._resetPosition()
         break
-      case EDIT_NODE_METADATA_TYPE:
+      case graphTypes.EDIT_NODE_METADATA_TYPE:
         if (!this._graphData) {
           logger.log(
             'Graph data not set. Skipping update to graph data with new metadata')
@@ -527,27 +532,48 @@ export default class GraphComponent {
     }
   }
 
+  private _handleZoomInMode(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        this._updateNewLink()
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
   private _resetPosition(): void {
     this._svg
       .transition()
       .duration(GraphComponent._TRANSITION_DURATION)
       .call(
         this._zoomHandler.transform,
-        d3.zoomIdentity.translate(0, 0).scale(1),
+        d3.zoomIdentity
+          .translate(this._homeLocation.x, this._homeLocation.y)
+          .scale(this._homeLocation.scale),
       )
   }
 
+  private _setHomeLocation(location: IHomeLocation): void {
+    logger.trace('Setting home location', location)
+    this._homeLocation = location
+  }
+
   /**
-   * Center graph on _locationFocusedLocation
+   * Center graph on _lastFocusedLocation
    */
   private _focusGraph(): void {
-    // TODO: Rework _locationFocusedLocation maybe (so it doesn't have to get set for this
+    // TODO: Rework _lastFocusedLocation maybe (so it doesn't have to get set for this
     //   method to work, maybe it can be an optional parameter to override the previous
     //   location otherwise it will set the graph to the existing value on the variable)
-    if (!this._locationFocusedLocation) return
+    if (!this._lastFocusedLocation) return
 
     const transform = this._getGraphTranslationAndScale()
-    const position = this._graphToSVGPosition(this._locationFocusedLocation)
+    const position = this._graphToSVGPosition(this._lastFocusedLocation)
     const x = transform.translation.x + this._width / 2 - position.x
     const y = transform.translation.y + this._height / 2 - position.y
 
@@ -560,39 +586,252 @@ export default class GraphComponent {
       )
   }
 
+  private _onBackgroundMoveMove(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        this._updateNewLink()
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _onBackgroundContextMenu(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
+        this._lastFocusedLocation = null
+        this._lastRightClickLocation = position
+        this._setSelectedNode(null)
+        showContextMenu(GraphComponent._CONTEXT_MENU_BACKGROUND_KEY)
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _onBackgroundClick(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._setSelectedNode(null)
+        d3.event.stopPropagation()
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
+        this._lastClickWasSingle = true
+        this._lastFocusedLocation = null
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new graphTypes.BackgroundClickAction(position))
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _onBackgroundDblClick(): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._setSelectedNode(null)
+        d3.event.stopPropagation()
+        this._lastClickWasSingle = false
+        const position = this._svgToGraphPosition({
+          x: d3.event.clientX,
+          y: d3.event.clientY,
+        })
+        this._actionStream!.next(new graphTypes.BackgroundDblClickAction(position))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _onLinkContextMenu(l: ILinkTuple): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        d3.event.stopPropagation()
+        this._lastSelectedLink = l
+        showContextMenu(GraphComponent._CONTEXT_MENU_LINK_KEY)
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
   private _onNodeClick(d: IGraphNodeData): void {
-    this._setSelectedNode(d.id)
-    d3.event.stopPropagation()
-    this._lastClickWasSingle = true
-    setTimeout(() => {
-      if (this._lastClickWasSingle) {
-        this._actionStream!.next(new NodeClickAction(d.id))
-      }
-    }, GraphComponent._SINGLE_CLICK_DELAY)
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._setSelectedNode(d.id)
+        d3.event.stopPropagation()
+        this._lastClickWasSingle = true
+        setTimeout(() => {
+          if (this._lastClickWasSingle) {
+            this._actionStream!.next(new graphTypes.NodeClickAction(d.id))
+          }
+        }, GraphComponent._SINGLE_CLICK_DELAY)
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        if (d.id === this._selectedNode) return
+
+        // Node has a parent
+        if (this._graphData!.childParentIndex[d.id] !== null) return
+
+        this._actionStream!
+          .next(new graphTypes.SetNodeParentAction(this._startNode!, d.id))
+        this._changeMode(GraphMode.NORMAL)
+        this._handleSetAsParentExit()
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
   }
 
   private _onNodeDblClick(d: IGraphNodeData): void {
-    d3.event.stopPropagation()
-    this._lastClickWasSingle = false
-    this._actionStream!.next(new NodeDblClickAction(d.id))
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        d3.event.stopPropagation()
+        this._lastClickWasSingle = false
+        this._actionStream!.next(new graphTypes.NodeDblClickAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
   }
 
   private _onNodeContextMenu(d: IGraphNodeData): void {
-    this._setSelectedNode(d.id)
-    // TODO make menu label a constant
-    showContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY)
-    d3.event.stopPropagation()
-    this._actionStream!.next(new NodeRightClickAction(d.id))
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._setSelectedNode(d.id)
+        showContextMenu(GraphComponent._CONTEXT_MENU_NODE_KEY)
+        d3.event.stopPropagation()
+        this._actionStream!.next(new graphTypes.NodeRightClickAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
   }
 
-  private _onNodeMouseOver(d: IGraphNodeData): void {
-    d3.event.stopPropagation()
-    this._actionStream!.next(new NodeHoverShortAction(d.id))
+  private _onNodeMouseOver(d: IGraphNodeData, i: number, refs: any[]): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        d3.event.stopPropagation()
+        this._actionStream!.next(new graphTypes.NodeHoverShortAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        if (d.id === this._startNode) return
+
+        // Node has a parent
+        if (this._graphData!.childParentIndex[d.id] !== null) return
+
+        this._targetNode = d.id
+        d3.select(refs[i])
+          .classed('valid-target', true)
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
   }
 
-  private _onNodeMouseOut(d: IGraphNodeData): void {
-    d3.event.stopPropagation()
-    this._actionStream!.next(new NodeHoverEndAction(d.id))
+  private _onNodeMouseOut(d: IGraphNodeData, i: number, refs: any[]): void {
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        d3.event.stopPropagation()
+        this._actionStream!.next(new graphTypes.NodeHoverEndAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        if (d.id !== this._targetNode) return
+
+        this._targetNode = null
+        d3.select(refs[i])
+          .classed('valid-target', false)
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _changeMode(mode: IGraphMode): void {
+    switch (mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._mode = GraphMode.NORMAL
+        break
+      case GraphModeKind.SET_AS_PARENT:
+        this._mode = GraphMode.SET_AS_PARENT
+        this._handleModeChangeToSetAsParent()
+        break
+      default:
+        assertNever(mode.kind)
+    }
+  }
+
+  /**
+   * Assumes _selectedNode is the parent node.
+   */
+  private _handleModeChangeToSetAsParent(): void {
+    this._startNode = this._selectedNode!
+    const node = this._graphData!.metadata[this._startNode]
+    const position = {x: node.x, y: node.y}
+    this._gNewLink
+    .selectAll('.new-link')
+      .data([null])
+      .enter()
+      .append('line')
+      .attr('class', 'link new-link')
+      .attr('x1', position.x)
+      .attr('y1', position.y)
+      .attr('x2', position.x)
+      .attr('y2', position.y)
+      .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER)
+  }
+
+  private _handleSetAsParentExit(): void {
+    this._gNodes
+      .select('.valid-target')
+      .classed('valid-target', false)
+
+    this._startNode = null
+    this._targetNode = null
+    this._gNewLink.select('.new-link').remove()
   }
 
   // EXTENDED GRAPH FUNCTIONALITY //////////////////////////////////////////////
@@ -603,25 +842,35 @@ export default class GraphComponent {
   private _enableLinkClickJumpingToOppositeNode() {
     this._links
       .on('click', (d: ILinkTuple) => {
-        d3.event.stopPropagation()
+        switch (this._mode.kind) {
+          case GraphModeKind.NORMAL:
+            d3.event.stopPropagation()
 
-        const position = this._svgToGraphPosition({
-          x: d3.event.clientX,
-          y: d3.event.clientY,
-        })
-        const sourceNode = this._graphData!.metadata[d.source]
-        const targetNode = this._graphData!.metadata[d.target]
+            const position = this._svgToGraphPosition({
+              x: d3.event.clientX,
+              y: d3.event.clientY,
+            })
+            const sourceNode = this._graphData!.metadata[d.source]
+            const targetNode = this._graphData!.metadata[d.target]
 
-        const distToSource = cartesianDistance(position, sourceNode)
-        const distToTarget = cartesianDistance(position, targetNode)
+            const distToSource = cartesianDistance(position, sourceNode)
+            const distToTarget = cartesianDistance(position, targetNode)
 
-        this._setSelectedNode(
-          (distToSource < distToTarget) ? targetNode.id : sourceNode.id)
+            this._setSelectedNode(
+              (distToSource < distToTarget) ? targetNode.id : sourceNode.id)
 
-        this._locationFocusedLocation = (distToSource < distToTarget)
-           ? {x: targetNode.x, y: targetNode.y}
-           : {x: sourceNode.x, y: sourceNode.y}
-        this._focusGraph()
+            this._lastFocusedLocation = (distToSource < distToTarget)
+              ? {x: targetNode.x, y: targetNode.y}
+              : {x: sourceNode.x, y: sourceNode.y}
+            this._focusGraph()
+            break
+
+          case GraphModeKind.SET_AS_PARENT:
+            break
+
+          default:
+            assertNever(this._mode.kind)
+        }
       })
   }
 
@@ -629,86 +878,100 @@ export default class GraphComponent {
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: IGraphNodeData, i: number, refs: any[]) => {
-        // TODO: A refactor of this logic may be good. Reduce duplication and handle
-        // updates in a nicer way regardless of whether a text label was used to drag a
-        // node of node itself
+        switch (this._mode.kind) {
+          case GraphModeKind.NORMAL:
+            this._setSelectedNode(d.id)
 
-        // NOTE: If node labels change such that they are not outside the node circle --
-        // as it is currently -- then there is no need to handle dragging on the labels
+            d.x += d3.event.dx
+            d.y += d3.event.dy
 
-        this._setSelectedNode(d.id)
-
-        d.x += d3.event.dx
-        d.y += d3.event.dy
-
-        // Update link positions
-        this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
-          if (l.source === d.id)
-            d3.select(refs_[i_])
-              .attr('x1', d.x)
-              .attr('y1', d.y)
-          else if (l.target === d.id)
-            d3.select(refs_[i_])
-              .attr('x2', d.x)
-              .attr('y2', d.y)
-        })
-
-        // Update node position
-        this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
-          if (n.id === d.id) {
-            d3.select(refs_[i_])
-              .attr('transform', () => {
-                const x = d.x - GraphComponent._NODE_WIDTH / 2
-                const y = d.y - GraphComponent._NODE_HEIGHT / 2
-                return `translate(${x}, ${y}) scale(1)`
+            const {translation} = this._centreOnPoint(d)
+            if (d.id === this._homeNode)
+              this._setHomeLocation({
+                x: translation.x,
+                y: translation.y,
+                scale: this._homeLocation.scale,
               })
 
-            const nodes: IGraphNodeData[] = []
-            const hasParent: boolean[] = []
-            const parentId = this._graphData!.childParentIndex[d.id]
-            const childIds = this._graphData!.index[d.id]
-            if (parentId !== null) {
-              nodes.push(this._graphData!.metadata[parentId])
-              hasParent.push(true)
-            }
-            if (childIds !== null) {
-              for (const k of childIds) {
-                nodes.push(this._graphData!.metadata[k])
-                hasParent.push(false)
+            // Update link positions
+            this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
+              if (l.source === d.id)
+                d3.select(refs_[i_])
+                  .attr('x1', d.x)
+                  .attr('y1', d.y)
+              else if (l.target === d.id)
+                d3.select(refs_[i_])
+                  .attr('x2', d.x)
+                  .attr('y2', d.y)
+            })
+
+            // Update node position
+            this._nodes.each((n: IGraphNodeData, i_: number, refs_: any[]) => {
+              if (n.id === d.id) {
+                d3.select(refs_[i_])
+                  .attr('transform', () => {
+                    const x = d.x - GraphComponent._NODE_WIDTH / 2
+                    const y = d.y - GraphComponent._NODE_HEIGHT / 2
+                    return `translate(${x}, ${y}) scale(1)`
+                  })
+
+                const nodes: IGraphNodeData[] = []
+                const hasParent: boolean[] = []
+                const parentId = this._graphData!.childParentIndex[d.id]
+                const childIds = this._graphData!.index[d.id]
+                if (parentId !== null) {
+                  nodes.push(this._graphData!.metadata[parentId])
+                  hasParent.push(true)
+                }
+                if (childIds !== null) {
+                  for (const k of childIds) {
+                    nodes.push(this._graphData!.metadata[k])
+                    hasParent.push(false)
+                  }
+                }
+
+                for (let j = 0; j < nodes.length; j++) {
+                  let line: any
+                  if (hasParent[j]) line = {start: d, end: nodes[j]}
+                  else line = {start: nodes[j], end: d}
+
+                  const rect = {
+                    xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
+                    yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
+                    xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
+                    yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
+                  }
+
+                  const intersection = intersectLineWithRectange(line, rect)
+
+                  const x = d3.select(refs_[line.start.id])
+                  console.log(refs_, line.start.id)
+                  x
+                    .select('circle')
+                    .attr('cx', () =>
+                      intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
+                      .attr('cy', () =>
+                        intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
+                }
               }
-            }
+            })
 
-            for (let j = 0; j < nodes.length; j++) {
-              let line: any
-              if (hasParent[j]) line = {start: d, end: nodes[j]}
-              else line = {start: nodes[j], end: d}
+            this._actionStream!
+              .next(new graphTypes.NodeDragAction(d.id, {x: d.x, y: d.y}))
+            break
 
-              const rect = {
-                xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
-                yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
-                xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
-                yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
-              }
+          case GraphModeKind.SET_AS_PARENT:
+            break
 
-              const intersection = intersectLineWithRectange(line, rect)
-
-              d3.select(refs_[line.start.id])
-                .select('circle')
-                .attr('cx', () =>
-                  intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
-                  .attr('cy', () =>
-                    intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
-            }
-          }
-        })
-
-        this._actionStream!.next(new NodeDragAction(d.id, {x: d.x, y: d.y}))
+          default:
+            assertNever(this._mode.kind)
+        }
       })
   }
 
   // private _enableClickToCenter(): void {
   //   this._nodes.on('click.centerOnNode', (d: IGraphNodeData) => {
-  //     this._locationFocusedLocation = {x: d.x, y: d.y}
+  //     this._lastFocusedLocation = {x: d.x, y: d.y}
   //     const transform = this._getGraphTranslationAndScale()
   //     const position = this._graphToSVGPosition(d)
   //     const x = transform.translation.x + this._width / 2 - position.x
@@ -725,70 +988,95 @@ export default class GraphComponent {
 
   private _enableKeyboardPanning(): void {
     const keymap = {
+      ESC: 27,
       LEFT: 37,
       UP: 38,
       RIGHT: 39,
       DOWN: 40,
     }
 
-    d3.select('.graph')
-      .on('keydown', () => {
-        const transform = this._getGraphTranslationAndScale()
-        let offsetRight = transform.translation.x
-        let offsetDown = transform.translation.y
-        switch (d3.event.keyCode) {
-          case keymap.DOWN:
-            offsetDown = transform.translation.y - GraphComponent._PAN_MOVEMENT_OFFSET
-            break
-          case keymap.UP:
-            offsetDown = transform.translation.y + GraphComponent._PAN_MOVEMENT_OFFSET
-            break
-          case keymap.RIGHT:
-            offsetRight = transform.translation.x - GraphComponent._PAN_MOVEMENT_OFFSET
-            break
-          case keymap.LEFT:
-            offsetRight = transform.translation.x + GraphComponent._PAN_MOVEMENT_OFFSET
-            break
-          default:
-            break
-        }
+    d3.select('body').on('keydown', () => {
+      const event = d3.event
+      switch (this._mode.kind) {
+        case GraphModeKind.NORMAL:
+          const transform = this._getGraphTranslationAndScale()
+          let offsetRight = transform.translation.x
+          let offsetDown = transform.translation.y
+          switch (event.keyCode) {
+            case keymap.DOWN:
+              offsetDown = transform.translation.y - GraphComponent._PAN_MOVEMENT_OFFSET
+              break
+            case keymap.UP:
+              offsetDown = transform.translation.y + GraphComponent._PAN_MOVEMENT_OFFSET
+              break
+            case keymap.RIGHT:
+              offsetRight
+                = transform.translation.x - GraphComponent._PAN_MOVEMENT_OFFSET
+              break
+            case keymap.LEFT:
+              offsetRight
+                = transform.translation.x + GraphComponent._PAN_MOVEMENT_OFFSET
+              break
+            default:
+              break
+          }
 
-        this._svg
-          .transition()
-          .duration(GraphComponent._TRANSITION_DURATION / 5)
-          .call(
-            this._zoomHandler.transform,
-            d3.zoomIdentity.translate(offsetRight, offsetDown).scale(transform.scale),
-          )
+          this._svg
+            .transition()
+            .duration(GraphComponent._TRANSITION_DURATION / 5)
+            .call(
+              this._zoomHandler.transform,
+              d3.zoomIdentity.translate(offsetRight, offsetDown).scale(transform.scale),
+            )
 
-        graphTransform.updateGraphTransform(this._graphTransformToString())
-        this._actionStream!.next(new ZoomAction())
-      })
+          graphTransform.updateGraphTransform(this._graphTransformToString())
+          this._actionStream!.next(new graphTypes.ZoomAction())
+          break
+
+        case GraphModeKind.SET_AS_PARENT:
+          if (event.keyCode !== keymap.ESC) return
+
+          this._changeMode(GraphMode.NORMAL)
+          this._handleSetAsParentExit()
+          break
+
+        default:
+          assertNever(this._mode.kind)
+      }
+    })
   }
 
   private _enableNodeHighlightOnHover(): void {
     this._nodes
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
+        if (this._mode !== GraphMode.NORMAL) return
+
         d3.select(refs[i])
           .select('rect')
-          .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER)
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
+        if (this._mode !== GraphMode.NORMAL) return
+
         d3.select(refs[i])
           .select('rect')
-          .attr('stroke-width', GraphComponent._NODE_STROKE + 'px')
+          .attr('stroke-width', GraphComponent._NODE_STROKE)
       })
   }
 
   private _enableLinkHighlightOnHover(): void {
     this._links
       .on('mouseover', (d: IGraphNodeData, i: number, refs: any[]) => {
+        if (this._mode !== GraphMode.NORMAL) return
+
         d3.select(refs[i])
-          .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE_HOVER)
       })
       .on('mouseout', (d: IGraphNodeData, i: number, refs: any[]) => {
+        if (this._mode !== GraphMode.NORMAL) return
+
         d3.select(refs[i])
-          .attr('stroke-width', GraphComponent._LINK_STROKE + 'px')
+          .attr('stroke-width', GraphComponent._LINK_STROKE)
       })
   }
 
@@ -810,22 +1098,49 @@ export default class GraphComponent {
     }
   }
 
+  private _updateNewLink(): void {
+    const nodeStart = this._graphData!.metadata[this._startNode!]
+    const positionStart = {x: nodeStart.x, y: nodeStart.y}
+
+    const newLinkEl = this._gNewLink.select('.new-link')
+      .attr('x1', positionStart.x)
+      .attr('y1', positionStart.y)
+
+    if (this._targetNode !== null) {
+      const nodeEnd = this._graphData!.metadata[this._targetNode]
+      const positionEnd = {x: nodeEnd.x, y: nodeEnd.y}
+      newLinkEl
+        .attr('x2', positionEnd.x)
+        .attr('y2', positionEnd.y)
+    } else {
+      // Prevents link from jumping when zooming (b/c clientX and clientY are undefined
+      // then)
+      if (d3.event.clientX && d3.event.clientY) {
+        const positionEnd = this._svgToGraphPosition(
+          {x: d3.event.clientX, y: d3.event.clientY})
+        newLinkEl
+          .attr('x2', positionEnd.x)
+          .attr('y2', positionEnd.y)
+      }
+    }
+  }
+
   private _setSelectedNode(id: GraphNodeId | null): void {
     if (this._selectedNode === id) return
 
     if (this._selectedNode !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === this._selectedNode)
-        .selectAll('rect')
+        .classed('selected', false)
+        .select('rect')
         .attr('stroke-width', GraphComponent._NODE_STROKE)
-        .attr('stroke', GraphComponent._NODE_STROKE_COLOR)
 
     if (id !== null)
       this._nodes
         .filter((d: IGraphNodeData) => d.id === id)
-        .selectAll('rect')
+        .classed('selected', true)
+        .select('rect')
         .attr('stroke-width', GraphComponent._NODE_STROKE_HOVER)
-        .attr('stroke', GraphComponent._NODE_STROKE_COLOR_SELECTED)
 
     logger.debug('Setting selected node to', id)
     this._selectedNode = id
@@ -886,4 +1201,14 @@ export default class GraphComponent {
     return [transform.translation.x, transform.translation.y, transform.scale]
   }
 
+  /**
+   * Returns transform of the graph with the given point at the centre
+   */
+  private _centreOnPoint(d: IPosition): ITransform {
+    const transform = this._getGraphTranslationAndScale()
+    d = this._graphToSVGPosition(d)
+    const x = transform.translation.x + this._width / 2 - d.x
+    const y = transform.translation.y + this._height / 2 - d.y
+    return {translation: {x, y}, scale: transform.scale}
+  }
 }

@@ -1,20 +1,22 @@
 import * as html from '@hyperapp/html'
+import classNames from 'classnames'
 import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
-import Settings from '@components/settings/settings-component'
+import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
-import {initDataDirectory} from '@lib/io'
+import {initDataDirectory, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
-import search from '@lib/search'
+import * as Search from '@lib/search'
 import {
   El,
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  NoteDataType,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
 import {actions as graphActions} from './actions/graph'
@@ -38,6 +40,7 @@ interface IState {
   settings: any
   runtime: IRuntime
   toolbar: any
+  search: any
 }
 
 interface IGraphState {
@@ -56,24 +59,27 @@ interface IRuntime {
 export const initialState: IState = {
   toolbar: Toolbar.state,
   editor: Editor.state,
+  settings: Settings.state,
   graph: {
     index: {},
     metadata: {},
     height: 0,
     width: 0,
   },
-  settings: {},
   runtime: {
     showEditor: true,
     selectedNode: null,
     settingsOpen: true,
   },
+  search: Search.state,
 }
 
 export const appActions = {
   graph: graphActions,
   editor: Editor.actions,
   toolbar: Toolbar.actions,
+  settings: Settings.actions,
+  search: Search.actions,
 
   onCreate: (el: El) => async (state: IState, actions: any) => {
     logger.debug('element created (app)', el)
@@ -142,6 +148,7 @@ export function view(state: IState, actions: any) {
   return html.div(
     {
       id: 'app',
+      class: classNames({'theme-dark': state.settings.darkTheme}),
       oncreate: (el: El) => actions.onCreate(el),
     },
     [
@@ -151,15 +158,16 @@ export function view(state: IState, actions: any) {
         {
           onBack: emptyFunction,
           onHome: actions.resetGraph,
-          onSave: actions.save,
           onSettings: actions.toggleSettingsPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },
-        (query: string) => search(state.graph.metadata, query),
+        (query: string) => actions.search.search({metadata: state.graph.metadata, query}),
       ),
       (state.runtime.settingsOpen === false)
-        ? Settings(
+        ? Settings.view(
           actions.toggleSettingsPanel,
+          state.settings,
+          actions.settings,
         )
         : Empty(),
       GraphView(
@@ -173,13 +181,48 @@ export function view(state: IState, actions: any) {
       ),
       (state.runtime.showEditor && state.runtime.selectedNode !== null)
         ? Editor.view(
-          state.editor,
-          actions.editor,
-          state.graph.metadata[state.runtime.selectedNode],
-          actions.onEditorClose,
-          actions.onEditorUpdateMetadata,
-        )
+            state.editor,
+            actions.editor,
+            state.graph.metadata[state.runtime.selectedNode],
+            actions.onEditorClose,
+            actions.onEditorUpdateMetadata,
+            actions.graph.deleteNode,
+          )
         : Empty(),
+
+        html.div(
+          {
+            id: 'drag',
+            ondragover: (ev: Event) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+            },
+            ondragleave: (ev: Event) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+            },
+            ondrop: (ev: any) => {
+              ev.preventDefault()
+              ev.stopPropagation()
+              for (const f of ev.dataTransfer.files) {
+                logger.debug('Dropped file path = ' + f.path)
+                const reader = new FileReader()
+                reader.readAsDataURL(f)
+                reader.onloadend = () => {
+                  const base64Data: string = reader.result!.toString().split(',')[1]
+                  const fileContent = atob(base64Data)
+                  actions.graph.createNewNode({
+                    position: {x: 0, y: 0},
+                    parent: null,
+                    newNodeCallback: (nodeId: GraphNodeId) => {
+                      writeNote(nodeId, NoteDataType.TEXT, fileContent)
+                    },
+                  })
+              }
+            }
+          },
+        },
+      ),
     ],
   )
 }

@@ -14,17 +14,25 @@ const app = devtools(hyperapp)(
   document.querySelector('#root'),
 )
 
-if (process.env.NODE_ENV === 'PRODUCTION') {
-  window.onbeforeunload = (e: Event) => {
-    app.save()
+window.onbeforeunload = (e: Event) => {
+  app.save()
     .catch(() => {
       alert('Failed to save. Click okay to shutdown anyway')
     })
     .finally(() => {
       ipcRenderer.send('app_quit')
+
+      // Remove event handler to prevent recursion
       window.onbeforeunload = null
+
+      // If the app_quit event causes window to get destroyed, production works as
+      // expected. If during development a reload is expected, then it works as expected
+      //
+      // But as a result in development only way to shutdown the app is by interrupting
+      // the process in the shell or by killing the process by some other means.
+      location.reload()
     })
+
   // Required by Chrome to prevent default
-    e.returnValue = false
-  }
+  e.returnValue = false
 }
