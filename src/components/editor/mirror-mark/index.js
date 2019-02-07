@@ -17,6 +17,7 @@ class MirrorMark {
     this.element = element
     this.options = options
     this.isEdit = true
+    this.previewButton = null
 
     this.tools = [
       {name: 'bold', action: 'bold', className: 'fa fa-bold'},
@@ -144,30 +145,7 @@ class MirrorMark {
           } else {
             previewNode = previewNodes[0]
           }
-
           previewNode.innerHTML = converter.makeHtml(_this.cm.getValue())
-          var anchors = document.getElementsByTagName('a')
-          for(var i = 0; i < anchors.length; i++){
-            var anchor = anchors[i]
-
-            // If the anchor is not a redirection link, the skip.
-            if(anchor.href === ''){
-              continue
-            }
-
-            anchor.onclick = (el) => {
-              var hyperlink = el.target.href
-              if(hyperlink.substring(0,5) === 'note:') {
-                // Update the editor internal state.
-                setEditMode(_this.cm)
-                _this.isEdit = true
-                var previewButton = document.getElementById('preview-button')
-                previewButton.className = 'fa fa-file'
-                return false
-              }
-              return true
-            }
-          }
         }
         const setEditMode = function(cm) {
           var wrap = cm.getWrapperElement()
@@ -283,6 +261,9 @@ class MirrorMark {
 
       if (tool.id) {
         anchor.id = tool.id
+        if (tool.id = 'preview-button') {
+          this.previewButton = anchor
+        }
       }
 
       if (tool.showName) {

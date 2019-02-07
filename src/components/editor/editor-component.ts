@@ -298,7 +298,11 @@ export function view(
             ev.preventDefault()
             const link = (ev.target as El).getAttribute('href')
             if (link !== null) {
-              selectNode(parseInt(link.substring(5), 10))
+              const noteId = link.match(/^note:(\d+)$/)
+              if (noteId !== null) {
+                _state.textEditor.editor.previewButton.click()
+                selectNode(parseInt(noteId[1], 10))
+              }
             }
           },
           onkeydown: () => saveDebounceSubject.next(),
