@@ -1,5 +1,5 @@
 import {remote} from 'electron'
-import {join} from 'path'
+import {basename, join} from 'path'
 
 import {
   IGraphIndex,
@@ -33,7 +33,7 @@ function createNodes(
     if (typeof f === 'string') {
       metadata[nextId] = {
         id: nextId,
-        title: f,
+        title: basename(f),
         lastModified: new Date().toString(),
         created: new Date().toString(),
         x: 100 * depth,
@@ -46,7 +46,7 @@ function createNodes(
     } else {
       metadata[nextId] = {
         id: nextId,
-        title: f.name,
+        title: basename(f.name),
         lastModified: new Date().toString(),
         created: new Date().toString(),
         x: 100 * depth,
