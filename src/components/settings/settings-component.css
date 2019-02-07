@@ -1,30 +1,42 @@
 #settings-component {
   position: absolute;
-  height: 80%;
-  width: 50%;
-  top: 15%;
-  left: 25%;
-  background: #FFF;
-  z-index: 3;
-  border-style: solid;
-  border-width: 2px;
-  border-color: #000000;
-  overflow: auto;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
- .theme-dark #settings-component {
+#settings-component #settings-modal {
+  box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);
+  background-color: white;
+  width: calc(512px + 64px);
+  max-height: 85%;
+  padding: 64px;
+  position: relative;
+}
+.theme-dark #settings-component #settings-modal {
   background-color: #111A23;
-  border-color: #758188;
+  color: white;
 }
 
 #settings-component .settings-close {
-  text-align: right;
-  align-items: right;
-  margin-right: 0.1em;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 #settings-component .close-button {
-  border: none;
+  background: none;
+  color: black;
+  margin: 0.5em 0.5em 0;
+  font-size: 1.5em;
+  width: unset;
+  height: unset;
 }
 
 .theme-dark #settings-component .close-button {
@@ -32,23 +44,8 @@
   color: white;
 }
 
-#settings-component .settings-container {
-  height: 80%;
-  width: 80%;
-  left: 9.5%;
-  top: 3%;
-  position: relative;
-  background: #FFF;
-  border-style: solid;
-  border-width: 2px;
-  border-color: #000000;
-  overflow: auto;
-}
-
 .theme-dark #settings-component .settings-container {
-  background-color: #111A23;
-  border-color: #758188;
-  color: white;
+  overflow: auto;
 }
 
 #settings-component .settings-title {
@@ -63,23 +60,16 @@
   color: white;
 }
 
-#settings-component .checkbox-container {
+#settings-component .item {
   padding-top: 3em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
-#settings-component .settings-checkbox {
-  margin-left: 3.2em;
-  display: inline-block;
-  width: 15px;
-  vertical-align: text-top;
-}
-
-#settings-component .settings-label {
-  display: inline-block;
-  width: 300px;
-  word-break: break-all;
-  margin-top: 0.3em;
-  margin-bottom: 0.3em;
+#settings-component .item label {
+  font-size: 1.25em;
 }
 
 #settings-component input[type=checkbox]{
@@ -92,12 +82,9 @@
   cursor: pointer;
   width: 60px;
   height: 30px;
-  margin-right: 5%;
-  margin-top: -0.2em;
-  background: grey;
+  background: purple;
   display: inline-block;
   border-radius: 100px;
-  float: right;
 }
 
 #settings-component .toggle-switch:after {
@@ -108,13 +95,13 @@
   left: -32px;
   width: 25px;
   height: 25px;
-  background: #fff;
+  background: white;
   border-radius: 90px;
   transition: 0.3s;
 }
 
-#settings-component input:checked + .toggle-switch {
-  background: gray;
+.theme-dark #settings-component input:checked + .toggle-switch {
+  background: lightcoral;
 }
 
 #settings-component input:checked + .toggle-switch:after {
@@ -122,9 +109,15 @@
   transform: translateX(-100%);
 }
 
-#settings-component .theme-label {
-  position: absolute;
-  font-size: 1.25em;
-  padding-left: 1em;
-  padding-top: -5em;
+#settings-component button {
+  border: none;
+  border-radius: 6px;
+  background: purple;
+  color: white;
+  height: 2em;
+  width: 5em;
+  cursor: pointer;
+}
+.theme-dark #settings-component button {
+  background: lightcoral;
 }

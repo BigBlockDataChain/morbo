@@ -165,10 +165,11 @@ export function view(state: IState, actions: any) {
       ),
       (state.runtime.settingsOpen === false)
         ? Settings.view(
-          actions.toggleSettingsPanel,
-          state.settings,
-          actions.settings,
-        )
+            state.settings,
+            actions.settings,
+            actions.toggleSettingsPanel,
+            actions.graph.importDirectory,
+          )
         : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
@@ -188,7 +189,7 @@ export function view(state: IState, actions: any) {
             actions.onEditorUpdateMetadata,
             actions.graph.deleteNode,
           )
-        : Empty(),
+        : null as any,
 
         html.div(
           {
