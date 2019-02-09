@@ -109,15 +109,11 @@ export const actions: any = {
   createNewNode: ({
       position,
       parent,
-      modifiedAt,
-      createdAt,
       selectNode,
       newNodeCallback = undefined,
     }: {
       position: IPosition,
       parent: null | GraphNodeId,
-      modifiedAt: Date,
-      createdAt: Date,
       selectNode?: (nodeId: GraphNodeId) => any,
       newNodeCallback?: (nodeId: GraphNodeId) => any,
     },
@@ -127,11 +123,12 @@ export const actions: any = {
         .map(Number)
         .sort((a: number, b: number) => a - b)
       const nextId = ids[ids.length - 1] + 1 || 1
+      const currentDate = new Date()
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'Note ' + nextId,
-        lastModified: modifiedAt,
-        created: createdAt,
+        lastModified: currentDate,
+        created: currentDate,
         x: position.x,
         y: position.y,
         tags: [],
@@ -187,13 +184,7 @@ export const actions: any = {
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
             case graphTypes.CREATE_NEW_NODE_TYPE:
-              _actions.createNewNode({
-                position: event.position,
-                parent: event.parent,
-                modifiedAt: event.modifiedAt,
-                createdAt: event.createdAt,
-                selectNode,
-              })
+              _actions.createNewNode({position: event.position, parent: event.parent, selectNode})
               break
             case graphTypes.EDIT_NODE_TYPE:
               selectNode(event.id)

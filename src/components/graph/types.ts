@@ -153,16 +153,12 @@ export interface ICreateNewNodeAction {
   readonly kind: CreateNewNodeType,
   readonly position: IPosition,
   readonly parent: null | GraphNodeId,
-  readonly modifiedAt: Date,
-  readonly createdAt: Date,
 }
 export class CreateNewNodeAction implements ICreateNewNodeAction {
   public readonly kind = CREATE_NEW_NODE_TYPE
   public constructor(
     public readonly position: IPosition,
     public readonly parent: null | GraphNodeId,
-    public readonly modifiedAt: Date,
-    public readonly createdAt: Date,
   ) {}
 }
 

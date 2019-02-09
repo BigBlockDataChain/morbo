@@ -262,14 +262,8 @@ export default class GraphComponent {
             x: nodeX + GraphComponent._NODE_WIDTH / 4,
             y: nodeY + GraphComponent._NODE_HEIGHT * 2,
           }
-          const currentTime = new Date()
           this._actionStream!.next(
-            new graphTypes.CreateNewNodeAction(
-              position,
-              this._selectedNode!,
-              currentTime,
-              currentTime,
-            ))
+            new graphTypes.CreateNewNodeAction(position, this._selectedNode!))
         }, 50),
       },
       {type: 'separator'},
@@ -330,14 +324,8 @@ export default class GraphComponent {
       {
         label: 'New note',
         click: () => setTimeout(() => {
-          const currentTime = new Date()
           this._actionStream!.next(
-            new graphTypes.CreateNewNodeAction(
-              this._lastRightClickLocation!,
-              null,
-              currentTime,
-              currentTime,
-            ))
+            new graphTypes.CreateNewNodeAction(this._lastRightClickLocation!, null))
         }, 50),
       },
       {type: 'separator'},
