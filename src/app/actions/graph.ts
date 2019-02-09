@@ -184,7 +184,8 @@ export const actions: any = {
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
             case graphTypes.CREATE_NEW_NODE_TYPE:
-              _actions.createNewNode({position: event.position, parent: event.parent, selectNode})
+              _actions.createNewNode(
+                {position: event.position, parent: event.parent, selectNode})
               break
             case graphTypes.EDIT_NODE_TYPE:
               selectNode(event.id)
