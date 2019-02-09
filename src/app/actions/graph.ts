@@ -96,6 +96,7 @@ export const actions: any = {
     metadata[node.id] = {
       ...metadata[node.id],
       title: node.title,
+      lastModified: node.lastModified,
       tags: node.tags,
       type: node.type,
     }
@@ -108,11 +109,15 @@ export const actions: any = {
   createNewNode: ({
       position,
       parent,
+      modifiedAt,
+      createdAt,
       selectNode,
       newNodeCallback = undefined,
     }: {
       position: IPosition,
       parent: null | GraphNodeId,
+      modifiedAt: Date,
+      createdAt: Date,
       selectNode?: (nodeId: GraphNodeId) => any,
       newNodeCallback?: (nodeId: GraphNodeId) => any,
     },
@@ -125,8 +130,8 @@ export const actions: any = {
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'Note ' + nextId,
-        lastModified: '',
-        created: '',
+        lastModified: modifiedAt,
+        created: createdAt,
         x: position.x,
         y: position.y,
         tags: [],
@@ -182,8 +187,13 @@ export const actions: any = {
         .subscribe((event: GraphAction) => {
           switch (event.kind) {
             case graphTypes.CREATE_NEW_NODE_TYPE:
-              _actions.createNewNode(
-                {position: event.position, parent: event.parent, selectNode})
+              _actions.createNewNode({
+                position: event.position,
+                parent: event.parent,
+                modifiedAt: event.modifiedAt,
+                createdAt: event.createdAt,
+                selectNode,
+              })
               break
             case graphTypes.EDIT_NODE_TYPE:
               selectNode(event.id)

@@ -141,16 +141,18 @@ export const actions = {
     const data = _state.textEditor.editor.getValue()
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
     _actions.updateLastSaveTime()
+    _state.node.lastModified = new Date()
   },
 
   saveHandwritingNote: () => async (_state: any, _actions: any) => {
     _actions.handwritingEditor.component.getImage(async (data: any) => {
       await writeNote(_state.node.id, NoteDataType.HANDWRITING, data)
       _actions.updateLastSaveTime()
+      _state.node.lastModified = new Date()
     })
   },
 
-  updateLastSaveTime: () => () => ({
+  updateLastSaveTime: () => ({
     lastSave: new Date(),
   }),
 
