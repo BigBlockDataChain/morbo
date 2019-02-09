@@ -141,7 +141,7 @@ export const actions = {
     const data = _state.textEditor.editor.getValue()
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
     _actions.updateLastSaveTime()
-    _state.node.lastModified = new Date()
+    _state.node.lastModified = new Date().toString()
   },
 
   saveHandwritingNote: () => async (_state: any, _actions: any) => {
@@ -442,10 +442,17 @@ function headerButtons(
       html.div(
         {id: 'last-save'},
         [
-          _state.lastSave !== null ? html.span('Last save:') : null as any,
-          _state.lastSave !== null
-            ? html.span(_state.lastSave.toLocaleString())
-            : null as any,
+          html.span('Last save:'),
+          (new Date().getTime() - Date.parse(_state.node.lastModified)) / 1000 < 15
+          ? html.span('a few seconds ago')
+          : html.span(new Date (Date.parse(_state.node.lastModified)).toLocaleString()),
+        ],
+      ),
+      html.div(
+        {id: 'last-save'},
+        [
+          html.span('Created On:'),
+          html.span(new Date (Date.parse(_state.node.created)).toLocaleString()),
         ],
       ),
     ],

@@ -46,8 +46,8 @@ export interface IGraphMetadata {
 export interface IGraphNodeData {
   id: number
   title: string
-  lastModified: Date
-  created: Date
+  lastModified: string
+  created: string
   x: number
   y: number
   tags: string[]

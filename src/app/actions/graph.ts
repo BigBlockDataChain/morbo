@@ -123,7 +123,7 @@ export const actions: any = {
         .map(Number)
         .sort((a: number, b: number) => a - b)
       const nextId = ids[ids.length - 1] + 1 || 1
-      const currentDate = new Date()
+      const currentDate = new Date().toString()
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'Note ' + nextId,
