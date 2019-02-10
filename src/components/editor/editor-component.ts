@@ -443,16 +443,15 @@ function headerButtons(
         {id: 'last-save'},
         [
           html.span('Last save:'),
-          (new Date().getTime() - Date.parse(_state.node.lastModified)) / 1000 < 15
-          ? html.span('a few seconds ago')
-          : html.span(new Date (Date.parse(_state.node.lastModified)).toLocaleString()),
+          html.span(new Date (Date.parse(_state.node.lastModified)).toLocaleString()),
         ],
       ),
       html.div(
-        {id: 'last-save'},
+        {id: 'created-on'},
         [
           html.span('Created On:'),
-          html.span(new Date (Date.parse(_state.node.created)).toLocaleString()),
+          html.span(new Date (Date.parse(_state.node.created))
+            .toLocaleDateString('en-GB')),
         ],
       ),
     ],
