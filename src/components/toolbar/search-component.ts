@@ -8,6 +8,9 @@ const searchSvg = require('../../res/magnifying-glass.svg')
 const clearSvg = require('../../res/cancel.svg')
 
 import './search-component.css'
+import classNames from 'classnames';
+
+const RESULT_HEIGHT: number = 60
 
 interface IState {
   query: null | string
@@ -120,7 +123,7 @@ export function view(
             {
               class: 'result-container',
               scrollTop: (_state.focusedEl && _state.keyPress) ?
-                            _state.focusedEl * 60 : 0,
+                            _state.focusedEl * RESULT_HEIGHT : 0,
             },
             _state.results.map((result: any, i: number) => {
               const value = result.matches[0].value
@@ -129,8 +132,7 @@ export function view(
                 : value
               return html.div(
                 {
-                  class: (_state.focusedEl === i) ?
-                            'search-result-select' : 'search-result',
+                  class: classNames('search-result', {'select': _state.focusedEl === i}),
                   enterPressed: (_state.focusedEl === i && _state.enterPressed) ?
                                   (() => {
                                     onSearchResultClick(result.item.metadata)

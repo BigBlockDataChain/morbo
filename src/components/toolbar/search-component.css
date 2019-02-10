@@ -50,7 +50,7 @@
   cursor: pointer;
 }
 
-#search .search-result-select {
+#search .select {
   display: flex;
   flex-direction: column;
   padding: 8px 8px;
@@ -63,7 +63,7 @@
   color: white;
 }
 
-.theme-dark #search .search-result-select {
+.theme-dark #search .select {
   background: #404E5C;
 }
 
