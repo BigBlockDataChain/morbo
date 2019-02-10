@@ -93,6 +93,7 @@ export function view(
                 _actions.setFocusedEl(null)
               },
               onkeydown: (event: KeyboardEvent) => {
+                event.stopPropagation()
                 _actions.onKeyPress(event)
               },
               value: _state.query,
