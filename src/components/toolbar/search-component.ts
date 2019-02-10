@@ -1,4 +1,5 @@
 import * as html from '@hyperapp/html'
+import classNames from 'classnames'
 import {ActionResult} from 'hyperapp'
 
 import {IGraphNodeData} from '@lib/types'
@@ -8,7 +9,6 @@ const searchSvg = require('../../res/magnifying-glass.svg')
 const clearSvg = require('../../res/cancel.svg')
 
 import './search-component.css'
-import classNames from 'classnames';
 
 const RESULT_HEIGHT: number = 60
 
@@ -132,7 +132,7 @@ export function view(
                 : value
               return html.div(
                 {
-                  class: classNames('search-result', {'select': _state.focusedEl === i}),
+                  class: classNames('search-result', {select: _state.focusedEl === i}),
                   enterPressed: (_state.focusedEl === i && _state.enterPressed) ?
                                   (() => {
                                     onSearchResultClick(result.item.metadata)
