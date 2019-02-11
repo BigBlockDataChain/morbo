@@ -34,6 +34,8 @@
   top: -24px;
   position: relative;
   background: white;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .theme-dark #search .result-container {
@@ -48,16 +50,20 @@
   cursor: pointer;
 }
 
-#search .search-result {
-  color: white;
-}
-
-#search .search-result:hover {
+#search .select {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 8px;
+  cursor: pointer;
   color: purple;
   background: rgba(0, 0, 0, 0.0625);
 }
 
-.theme-dark #search .search-result:hover {
+#search .search-result {
+  color: white;
+}
+
+.theme-dark #search .select {
   background: #404E5C;
 }
 
