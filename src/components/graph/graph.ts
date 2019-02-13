@@ -929,9 +929,9 @@ export default class GraphComponent {
                 link = l.source
               }
               if (link !== undefined) {
-                const {translation} = stringToTransform(
+                const transform = stringToTransform(
                   d3.select(refs[link]).attr('transform'))
-                this._updateLink(d3.select(refs_[i_]), d, translation)
+                this._updateLink(d3.select(refs_[i_]), d, transform.translation)
               }
             })
 
@@ -1200,7 +1200,7 @@ export default class GraphComponent {
       }
     }
   }
-  
+
   /*
    * Returns transform of the graph with the given point at the centre
    */
