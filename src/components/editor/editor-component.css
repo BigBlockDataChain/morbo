@@ -124,6 +124,15 @@
   margin-right: 0.5em;
 }
 
+#editor-container #header #created-on {
+  color: gray;
+  font-size: 90%;
+}
+#editor-container #header #created-on span:first-child {
+  margin-right: 0.5em;
+  margin-left: 0.5em;
+}
+
 #editor-container #editor {
   height: 100%;
   width: 100%;
