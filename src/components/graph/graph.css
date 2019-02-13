@@ -1,4 +1,3 @@
-
 #graph .node rect {
   stroke: black;
   fill: white;
@@ -8,8 +7,17 @@
   user-select: none;
 }
 
+.theme-dark #graph .node rect {
+  stroke: #E0E3E5;
+  fill: #BCBFC3;
+}
+
 #graph .node.selected rect {
   stroke: purple;
+}
+
+.theme-dark #graph .node.selected rect {
+  stroke: lightcoral;
 }
 
 #graph .node.valid-target rect {
@@ -19,6 +27,11 @@
 #graph .link {
   stroke: black;
 }
+
+.theme-dark #graph .link {
+  stroke: #E0E3E5;
+}
+
 
 #graph .link.new-link {
   stroke: purple;

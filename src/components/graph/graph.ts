@@ -103,6 +103,7 @@ export default class GraphComponent {
   private _drag: any | null = null
 
   private _selectedNode: GraphNodeId | null = null
+  private _homeNode: GraphNodeId | null = null
   private _lastSelectedLink: ILinkTuple | null = null
 
   private _actionStream: Subject<graphTypes.GraphAction> | null = null
@@ -329,8 +330,13 @@ export default class GraphComponent {
         label: 'Set here as home',
         click: () => {
           const node = this._graphData!.metadata![this._selectedNode!]
-          const {scale} = this._getGraphTranslationAndScale()
-          this._setHomeLocation({x: node.x, y: node.y, scale})
+          this._homeNode = this._selectedNode
+          const newHome = this._centreOnPoint(node)
+          this._setHomeLocation({
+            x: newHome.translation.x,
+            y: newHome.translation.y,
+            scale: newHome.scale,
+          })
         },
       },
     ])
@@ -355,11 +361,11 @@ export default class GraphComponent {
       {
         label: 'Set here as home',
         click: () => {
-          const {scale} = this._getGraphTranslationAndScale()
-
+          const newHome = this._centreOnPoint(this._lastRightClickLocation!)
           this._setHomeLocation({
-            ...this._svgToGraphPosition(this._lastRightClickLocation!),
-            scale,
+            x: newHome.translation.x,
+            y: newHome.translation.y,
+            scale: newHome.scale,
           })
         },
       },
@@ -566,7 +572,6 @@ export default class GraphComponent {
   private _setHomeLocation(location: IHomeLocation): void {
     logger.trace('Setting home location', location)
     this._homeLocation = location
-    this._resetPosition()
   }
 
   /**
@@ -899,6 +904,14 @@ export default class GraphComponent {
             d.x += d3.event.dx
             d.y += d3.event.dy
 
+            const {translation} = this._centreOnPoint(d)
+            if (d.id === this._homeNode)
+              this._setHomeLocation({
+                x: translation.x,
+                y: translation.y,
+                scale: this._homeLocation.scale,
+              })
+
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
               let link
@@ -1186,6 +1199,17 @@ export default class GraphComponent {
         default: break
       }
     }
+  }
+  
+  /*
+   * Returns transform of the graph with the given point at the centre
+   */
+  private _centreOnPoint(d: IPosition): ITransform {
+    const transform = this._getGraphTranslationAndScale()
+    d = this._graphToSVGPosition(d)
+    const x = transform.translation.x + this._width / 2 - d.x
+    const y = transform.translation.y + this._height / 2 - d.y
+    return {translation: {x, y}, scale: transform.scale}
   }
 
 }

@@ -32,6 +32,7 @@ const mockMetadata: IGraphMetadata = {
     x: 12,
     y: 12,
     tags: ['tagA'],
+    type: NoteDataType.TEXT,
   },
   2: {
     id: 2,
@@ -41,6 +42,7 @@ const mockMetadata: IGraphMetadata = {
     x: 12,
     y: 12,
     tags: ['tagB'],
+    type: NoteDataType.HANDWRITING,
   },
 }
 
