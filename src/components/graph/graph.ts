@@ -450,9 +450,9 @@ export default class GraphComponent {
 
   private _renderLinks(): void {
 
-    // NOTE: Key-function provides D3 with information about which datum maps to which
-    // element. This allows arrays in different orders to work as expected
     const existingLinks = this._gLinks.selectAll('.link')
+      // NOTE: Key-function provides D3 with information about which datum maps to which
+      // element. This allows arrays in different orders to work as expected
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .enter()
 
@@ -489,8 +489,6 @@ export default class GraphComponent {
     }
 
     existingLinks
-      // NOTE: Key-function provides D3 with information about which datum maps to which
-      // element. This allows arrays in different orders to work as expected
       .selectAll('.link')
       .attr('stroke-width', GraphComponent._LINK_STROKE)
       .attr('fill', 'none')
