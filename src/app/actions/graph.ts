@@ -10,11 +10,11 @@ import {
 import * as graphTypes from '@components/graph/types'
 import {
   deleteNote,
+  importDirectory,
   loadIndex,
   loadMetadata,
   writeIndex,
   writeMetadata,
-  importDirectory,
 } from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {
