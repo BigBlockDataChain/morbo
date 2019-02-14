@@ -14,6 +14,7 @@ import {
   loadMetadata,
   writeIndex,
   writeMetadata,
+  importDirectory,
 } from '@lib/io'
 import {getLogger} from '@lib/logger'
 import {
@@ -104,6 +105,10 @@ export const actions: any = {
     graphCommandStream.next(new EditNodeMetadataCommand(node))
 
     return {metadata}
+  },
+
+  importDirectory: (path: string) => () => {
+    return importDirectory(path)
   },
 
   createNewNode: ({

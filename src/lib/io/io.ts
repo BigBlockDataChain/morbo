@@ -80,3 +80,5 @@ export function writeNote(
   const notePath = join(BASE_DIR, `file${id}.${ext}`)
   return writeFile(notePath, data)
 }
+
+export {importDirectory} from './import'
