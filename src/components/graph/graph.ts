@@ -914,7 +914,8 @@ export default class GraphComponent {
 
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
-              let link
+              let link: number | undefined
+              let otherNode: any
               if (l.source === d.id) {
                 if (this._linkMode === LinkType.STRAIGHT) {
                   this._updateLink(d3.select(refs_[i_]), d, null)
@@ -929,9 +930,13 @@ export default class GraphComponent {
                 link = l.source
               }
               if (link !== undefined) {
-                const transform = stringToTransform(
-                  d3.select(refs[link]).attr('transform'))
-                this._updateLink(d3.select(refs_[i_]), d, transform.translation)
+                this._nodes.each((n: IGraphNodeData, i__: number, refs__: any[]) => {
+                  if (n.id === link)
+                    otherNode = d3.select(refs__[i__])
+                })
+
+                this._updateLink(d3.select(refs_[i_]), d, stringToTransform(
+                  otherNode.attr('transform')).translation)   
               }
             })
 
@@ -1189,12 +1194,10 @@ export default class GraphComponent {
       end.y += GraphComponent._NODE_HEIGHT / 2
       switch (this._linkMode) {
         case LinkType.VERTICAL:
-          l
-            .attr('d', generateVerticalLinkPath(start, end!))
+          l.attr('d', generateVerticalLinkPath(start, end))
           break
         case LinkType.HORIZONTAL:
-          l
-            .attr('d', generateHorizontalLinkPath(start, end!))
+          l.attr('d', generateHorizontalLinkPath(start, end))
           break
         default: break
       }
