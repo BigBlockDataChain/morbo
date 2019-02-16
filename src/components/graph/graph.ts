@@ -272,13 +272,13 @@ export default class GraphComponent {
     this._disableDoubleClickZoom()
 
     // Focus graph
-    if (this._selectedNode !== null && dimensionsChanged)
+    if (this._selectedNode !== null && dimensionsChanged) {
       this._lastFocusedLocation = {
         x: this._graphData!.metadata![this._selectedNode].x,
         y: this._graphData!.metadata![this._selectedNode].y,
       }
-
-    this._focusGraph()
+      this._focusGraph()
+    }
   }
 
   private _registerContextMenus(): void {
@@ -932,13 +932,13 @@ export default class GraphComponent {
                 link = l.source
               }
               if (link !== undefined) {
-                this._nodes.each((n: IGraphNodeData, i__: number, refs__: any[]) => {
+                this._nodes.each((n: IGraphNodeData, j: number, refs_j: any[]) => {
                   if (n.id === link)
-                    otherNode = d3.select(refs__[i__])
+                    otherNode = d3.select(refs_j[j])
                 })
 
                 this._updateLink(d3.select(refs_[i_]), d, stringToTransform(
-                  otherNode.attr('transform')).translation)   
+                  otherNode.attr('transform')).translation)
               }
             })
 
