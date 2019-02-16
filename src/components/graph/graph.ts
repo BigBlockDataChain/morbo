@@ -456,6 +456,8 @@ export default class GraphComponent {
 
   private _renderLinks(): void {
 
+    d3.selectAll('.link').remove()
+
     const existingLinks = this._gLinks.selectAll('.link')
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
