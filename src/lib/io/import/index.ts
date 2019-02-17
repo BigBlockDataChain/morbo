@@ -40,6 +40,7 @@ function createNodes(
         y: 100 * (children.length - 1),
         tags: [],
         type: NoteDataType.TEXT, // TODO Handle file type
+        isExpanded: true,
       }
       index[nextId] = []
       nextId++
@@ -53,6 +54,7 @@ function createNodes(
         y: 100 * (children.length - 1),
         tags: [],
         type: NoteDataType.TEXT, // TODO Handle file type
+        isExpanded: true,
       }
       const [nextNextId, subchildren] = createNodes(
         nextId + 1, index, metadata, f.tree, depth + 1)

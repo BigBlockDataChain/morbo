@@ -100,6 +100,7 @@ export const actions: any = {
       lastModified: node.lastModified,
       tags: node.tags,
       type: node.type,
+      isExpanded: node.isExpanded,
     }
 
     graphCommandStream.next(new EditNodeMetadataCommand(node))
@@ -129,6 +130,7 @@ export const actions: any = {
         .sort((a: number, b: number) => a - b)
       const nextId = ids[ids.length - 1] + 1 || 1
       const currentDate = new Date().toString()
+      console.log('new node created')
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'Note ' + nextId,
@@ -138,6 +140,7 @@ export const actions: any = {
         y: position.y,
         tags: [],
         type: undefined,
+        isExpanded: true,
       }
 
       // Set parent if specified

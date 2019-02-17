@@ -399,6 +399,24 @@ export default class GraphComponent {
       .attr('height', GraphComponent._NODE_HEIGHT)
       .text((d: IGraphNodeData) =>
         d.title.length > 17 ? d.title.substr(0, 17 - 3) + '...' : d.title)
+    
+    // append the expand/collapse button
+    newNodes
+      .append('rect')
+      .attr('x', GraphComponent._NODE_WIDTH - 5 - 15)
+      .attr('y', 5)
+      .attr('width', 15)
+      .attr('height', 15)
+      .attr('stroke-width', 1)
+      .attr('fill', '#ffffff')
+      .on('click', (d: IGraphNodeData) => d.isExpanded = !d.isExpanded)
+    newNodes
+      .append('text')
+      .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
+      .attr('y', 18)
+      .attr('width', 15)
+      .attr('height', 15)
+      .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
 
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
