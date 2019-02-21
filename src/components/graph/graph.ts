@@ -36,6 +36,12 @@ interface IExtendedGraphData extends IGraphData {
   linkData: ILinkTuple[]
 }
 
+enum LinkType {
+  STRAIGHT = 'straight',
+  VERTICAL = 'vertical',
+  HORIZONTAL = 'horizontal',
+}
+
 enum GraphModeKind {
   SET_AS_PARENT = 'setAsParent',
   NORMAL = 'normal',
@@ -110,11 +116,34 @@ export default class GraphComponent {
   private _graphData: null | IExtendedGraphData = null
   private _dimensions: null | IDimensions = null
 
+  private _linkMode = LinkType.HORIZONTAL
   private _mode: IGraphMode = GraphMode.NORMAL
   private _startNode: null | GraphNodeId = null
   private _targetNode: null | GraphNodeId = null
 
   private _homeLocation: IHomeLocation = {x: 0, y: 0, scale: 1}
+
+  private generateLink = {
+    vertical: d3.linkVertical()
+      .x((l: any) => {
+        return this._graphData!.metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l)[0].x
+      })
+      .y((l: any) => {
+        return this._graphData!.metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l)[0].y
+      }),
+
+    horizontal: d3.linkHorizontal()
+      .x((l: any) => {
+        return this._graphData!.metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l)[0].x
+      })
+      .y((l: any) => {
+        return this._graphData!.metadataItems.filter(
+          (d: IGraphNodeData) => d.id === l)[0].y
+      }),
+  }
 
   private get _d3Initialized(): boolean { return (document as any).d3Initialized }
   private set _d3Initialized(value: boolean) { (document as any).d3Initialized = value }
@@ -243,13 +272,13 @@ export default class GraphComponent {
     this._disableDoubleClickZoom()
 
     // Focus graph
-    if (this._selectedNode !== null && dimensionsChanged)
+    if (this._selectedNode !== null && dimensionsChanged) {
       this._lastFocusedLocation = {
         x: this._graphData!.metadata![this._selectedNode].x,
         y: this._graphData!.metadata![this._selectedNode].y,
       }
-
-    this._focusGraph()
+      this._focusGraph()
+    }
   }
 
   private _registerContextMenus(): void {
@@ -427,33 +456,51 @@ export default class GraphComponent {
 
   private _renderLinks(): void {
 
-    const existingLinks = this._gLinks.selectAll('.link')
+    d3.selectAll('.link').remove()
 
-    existingLinks
+    const existingLinks = this._gLinks.selectAll('.link')
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .enter()
-      .append('line')
-      .attr('class', 'link')
-      .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
-        const sourceNode = this._graphData!.metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.source)[0]
-        d3.select(refs[i]).attr('y1', sourceNode.y)
-        return sourceNode.x
-      })
-      .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
-        const targetNode = this._graphData!.metadataItems.filter(
-          (d: IGraphNodeData) => d.id === l.target)[0]
-        d3.select(refs[i]).attr('y2', targetNode.y)
-        return targetNode.x
-      })
-      .attr('stroke-width', GraphComponent._LINK_STROKE)
-      .on('contextmenu', (l: ILinkTuple) => this._onLinkContextMenu(l))
+
+    switch (this._linkMode) {
+      case LinkType.STRAIGHT:
+        existingLinks
+          .append('line')
+          .attr('class', 'link')
+          .attr('x1', (l: ILinkTuple, i: number, refs: any[]) => {
+            const sourceNode = this._graphData!.metadataItems.filter(
+              (d: IGraphNodeData) => d.id === l.source)[0]
+            d3.select(refs[i]).attr('y1', sourceNode.y)
+            return sourceNode.x
+          })
+          .attr('x2', (l: ILinkTuple, i: number, refs: any[]) => {
+            const targetNode = this._graphData!.metadataItems.filter(
+              (d: IGraphNodeData) => d.id === l.target)[0]
+            d3.select(refs[i]).attr('y2', targetNode.y)
+            return targetNode.x
+          })
+        break
+      case LinkType.VERTICAL:
+        existingLinks.append('path')
+          .attr('class', 'link')
+          .attr('d', this.generateLink.vertical)
+        break
+      case LinkType.HORIZONTAL:
+        existingLinks
+          .append('path')
+          .attr('class', 'link')
+          .attr('d', this.generateLink.horizontal)
+        break
+      default: break
+    }
 
     existingLinks
-      // NOTE: Key-function provides D3 with information about which datum maps to which
-      // element. This allows arrays in different orders to work as expected
+      .selectAll('.link')
+      .attr('stroke-width', GraphComponent._LINK_STROKE)
+      .attr('fill', 'none')
+      .on('contextmenu', (l: ILinkTuple) => this._onLinkContextMenu(l))
       .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
       .exit()
       .remove()
@@ -869,14 +916,30 @@ export default class GraphComponent {
 
             // Update link positions
             this._links.each((l: ILinkTuple, i_: number, refs_: any[]) => {
-              if (l.source === d.id)
-                d3.select(refs_[i_])
-                  .attr('x1', d.x)
-                  .attr('y1', d.y)
-              else if (l.target === d.id)
-                d3.select(refs_[i_])
-                  .attr('x2', d.x)
-                  .attr('y2', d.y)
+              let link: number | undefined
+              let otherNode: any
+              if (l.source === d.id) {
+                if (this._linkMode === LinkType.STRAIGHT) {
+                  this._updateLink(d3.select(refs_[i_]), d, null)
+                  return
+                }
+                link = l.target
+              } else if (l.target === d.id) {
+                if (this._linkMode === LinkType.STRAIGHT) {
+                  this._updateLink(d3.select(refs_[i_]), null, d)
+                  return
+                }
+                link = l.source
+              }
+              if (link !== undefined) {
+                this._nodes.each((n: IGraphNodeData, j: number, refsJ: any[]) => {
+                  if (n.id === link)
+                    otherNode = d3.select(refsJ[j])
+                })
+
+                this._updateLink(d3.select(refs_[i_]), d, stringToTransform(
+                  otherNode.attr('transform')).translation)
+              }
             })
 
             // Update node position
@@ -1034,27 +1097,20 @@ export default class GraphComponent {
 
   private _updateNewLink(): void {
     const nodeStart = this._graphData!.metadata[this._startNode!]
-    const positionStart = {x: nodeStart.x, y: nodeStart.y}
 
     const newLinkEl = this._gNewLink.select('.new-link')
-      .attr('x1', positionStart.x)
-      .attr('y1', positionStart.y)
+    this._updateLink(newLinkEl, nodeStart, null)
 
     if (this._targetNode !== null) {
       const nodeEnd = this._graphData!.metadata[this._targetNode]
-      const positionEnd = {x: nodeEnd.x, y: nodeEnd.y}
-      newLinkEl
-        .attr('x2', positionEnd.x)
-        .attr('y2', positionEnd.y)
+      this._updateLink(newLinkEl, null, nodeEnd)
     } else {
       // Prevents link from jumping when zooming (b/c clientX and clientY are undefined
       // then)
       if (d3.event.clientX && d3.event.clientY) {
         const positionEnd = this._svgToGraphPosition(
           {x: d3.event.clientX, y: d3.event.clientY})
-        newLinkEl
-          .attr('x2', positionEnd.x)
-          .attr('y2', positionEnd.y)
+        this._updateLink(newLinkEl, null, positionEnd)
       }
     }
   }
@@ -1081,19 +1137,7 @@ export default class GraphComponent {
   }
 
   private _getGraphTranslationAndScale(): ITransform {
-    const transformRaw = this._g.attr('transform')
-    const transform: ITransform = {translation: {x: 0, y: 0}, scale: 1}
-    if (transformRaw === null || transformRaw.match(/Nan/)) return transform
-    const [translationRaw, scaleRaw] = transformRaw.split(' ')
-    const translationValues = translationRaw
-      .replace('translate(', '')
-      .replace(')', '')
-      .split(',')
-      .map((v: string) => v === 'NaN' ? 0 : Number(v))
-    transform.translation = {x: translationValues[0], y: translationValues[1]}
-    const scaleValueRaw = scaleRaw.match(/\d(\.\d+)*/)
-    transform.scale = scaleValueRaw !== null ? Number(scaleValueRaw[0]) : 1
-    return transform
+    return stringToTransform(this._g.attr('transform'))
   }
 
   private _graphToSVGPosition(d: IPosition): IPosition {
@@ -1135,6 +1179,34 @@ export default class GraphComponent {
   }
 
   /**
+   * If using straight links, can only update one side at a time, so make one point
+   * the new position and the other point null
+   */
+  private _updateLink(l: any, start: IPosition | null, end: IPosition | null): void {
+    if (end === null) {
+      l
+        .attr('x1', start!.x)
+        .attr('y1', start!.y)
+    } else if (start === null) {
+      l
+        .attr('x2', end!.x)
+        .attr('y2', end!.y)
+    } else {
+      end.x += GraphComponent._NODE_WIDTH / 2
+      end.y += GraphComponent._NODE_HEIGHT / 2
+      switch (this._linkMode) {
+        case LinkType.VERTICAL:
+          l.attr('d', generateVerticalLinkPath(start, end))
+          break
+        case LinkType.HORIZONTAL:
+          l.attr('d', generateHorizontalLinkPath(start, end))
+          break
+        default: break
+      }
+    }
+  }
+
+  /*
    * Returns transform of the graph with the given point at the centre
    */
   private _centreOnPoint(d: IPosition): ITransform {
@@ -1144,4 +1216,38 @@ export default class GraphComponent {
     const y = transform.translation.y + this._height / 2 - d.y
     return {translation: {x, y}, scale: transform.scale}
   }
+
+}
+
+function generateVerticalLinkPath(source: IPosition, target: IPosition): string {
+  return 'M' + source.x + ',' + source.y
+    + 'C' + source.x + ',' + (source.y + target.y) / 2
+    + ' ' + target.x + ',' + (source.y + target.y) / 2
+    + ' ' + target.x + ',' + target.y
+}
+
+function generateHorizontalLinkPath(source: IPosition, target: IPosition): string {
+  return 'M' + source.x + ',' + source.y
+    + 'C' + (source.x + target.x) / 2 + ',' + source.y
+    + ' ' + (source.x + target.x) / 2 + ',' + target.y
+    + ' ' + target.x + ',' + target.y
+}
+
+function stringToTransform(transformRaw: string): ITransform {
+  const transform = {translation: {x: 0, y: 0}, scale: 1}
+  if (transformRaw === null || transformRaw.match(/Nan/)) return transform
+
+  const translationRaw = transformRaw.match(/translate\(.*?\)/)
+  if (translationRaw !== null) {
+    const temp = translationRaw[0].replace(/\s|translate|\(|\)/g, '').split(',')
+    transform.translation = {x: parseFloat(temp[0]), y: parseFloat(temp[1])}
+  }
+
+  const scaleRaw = transformRaw.match(/scale\(.*?\)/)
+  if (scaleRaw !== null) {
+    const temp = scaleRaw[0].replace(/\s|scale|\(|\)/g, '').split(',')
+    transform.scale = parseFloat(temp[0])
+  }
+
+  return transform
 }
