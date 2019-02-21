@@ -141,16 +141,18 @@ export const actions = {
     const data = _state.textEditor.editor.getValue()
     await writeNote(_state.node.id, NoteDataType.TEXT, data)
     _actions.updateLastSaveTime()
+    _state.node.lastModified = new Date().toString()
   },
 
   saveHandwritingNote: () => async (_state: any, _actions: any) => {
     _actions.handwritingEditor.component.getImage(async (data: any) => {
       await writeNote(_state.node.id, NoteDataType.HANDWRITING, data)
       _actions.updateLastSaveTime()
+      _state.node.lastModified = new Date()
     })
   },
 
-  updateLastSaveTime: () => () => ({
+  updateLastSaveTime: () => ({
     lastSave: new Date(),
   }),
 
@@ -440,10 +442,16 @@ function headerButtons(
       html.div(
         {id: 'last-save'},
         [
-          _state.lastSave !== null ? html.span('Last save:') : null as any,
-          _state.lastSave !== null
-            ? html.span(_state.lastSave.toLocaleString())
-            : null as any,
+          html.span('Last save:'),
+          html.span(new Date (Date.parse(_state.node.lastModified)).toLocaleString()),
+        ],
+      ),
+      html.div(
+        {id: 'created-on'},
+        [
+          html.span('Created On:'),
+          html.span(new Date (Date.parse(_state.node.created))
+            .toLocaleDateString('en-GB')),
         ],
       ),
     ],
