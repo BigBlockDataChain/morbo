@@ -10,6 +10,7 @@ import Empty from '@components/widgets/empty'
 import {initDataDirectory, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
+import * as Handwriting from '@components/editor/handwriting/handwriting-editor-component'
 import {
   El,
   GraphNodeId,
@@ -164,6 +165,7 @@ export function view(state: IState, actions: any) {
         for (const f of ev.dataTransfer.files) {
           logger.debug('Dropped file path = ' + f.path)
           console.log(f.path)
+
           if (f.path.includes('.txt')){
             const reader = new FileReader()
             reader.readAsDataURL(f)
@@ -173,6 +175,7 @@ export function view(state: IState, actions: any) {
               actions.graph.createNewNode({
                 position: {x: ev.screenX, y: ev.screenY},
                 parent: null,
+                type: NoteDataType.TEXT,
                 newNodeCallback: (nodeId: GraphNodeId) => {
                   writeNote(nodeId, NoteDataType.TEXT, fileContent)
                 },
@@ -180,17 +183,24 @@ export function view(state: IState, actions: any) {
             }
           }
           else if (f.path.includes('.jpg') || f.path.includes('.png')){
-            actions.graph.createNewNode({
-              position: {x: ev.screenX, y: ev.screenY},
-              parent: null,
-              newNodeCallback: (nodeId: GraphNodeId) => {
-              
-              },
-            })
+            const reader = new FileReader()
+            reader.readAsDataURL(f)
+            reader.onloadend = () => {
+              const base64Data: string = reader.result!.toString().split(',')[1]
+              const fileContent = atob(base64Data)
+              actions.graph.createNewNode({
+                position: {x: ev.screenX, y: ev.screenY},
+                parent: null,
+                type: NoteDataType.HANDWRITING,
+                newNodeCallback: (nodeId: GraphNodeId) => {
+                  Handwriting.componentActions.setImage(fileContent)
+                  //writeNote(nodeId, NoteDataType.HANDWRITING, fileContent)
+                },
+              })
+            }
           }
-    }
-    }
-
+        }
+      }
     },
     [
       Toolbar.view(
@@ -232,6 +242,6 @@ export function view(state: IState, actions: any) {
             actions.selectNode,
           )
         : null as any,
-    ],
-  )
-}
+      ],
+    )
+  }

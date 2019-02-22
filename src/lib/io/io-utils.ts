@@ -27,7 +27,7 @@ export function readFile(path: string): Promise<any> {
  * @returns Either resolves or rejects promise with void or error based on
  * success of write operation
  */
-export function writeFile(path: string, data: string): Promise<void> {
+export function writeFile(path: string, data: any): Promise<void> {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, data, (err: any) => {
       if (err) {
