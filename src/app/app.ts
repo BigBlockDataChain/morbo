@@ -180,10 +180,9 @@ export function view(state: IState, actions: any) {
             }
           } else if (f.path.includes('.jpg') || f.path.includes('.png')) {
             const reader = new FileReader()
-            reader.readAsDataURL(f)
+            reader.readAsArrayBuffer(f)
             reader.onloadend = () => {
-              const base64Data: string = reader.result!.toString().split(',')[1]
-              const fileContent = atob(base64Data)
+              const fileContent = new Buffer(reader.result! as ArrayBuffer)
               actions.graph.createNewNode({
                 position: {x: ev.screenX, y: ev.screenY},
                 parent: null,
