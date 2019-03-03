@@ -944,9 +944,7 @@ export default class GraphComponent {
 
                   const intersection = intersectLineWithRectange(line, rect)
 
-                  const x = d3.select(refs_[line.start.id])
-                  console.log(refs_, line.start.id)
-                  x
+                  this._getNodeById(line.start.id)
                     .select('circle')
                     .attr('cx', () =>
                       intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
@@ -1211,4 +1209,13 @@ export default class GraphComponent {
     const y = transform.translation.y + this._height / 2 - d.y
     return {translation: {x, y}, scale: transform.scale}
   }
+
+  private _getNodeById(id: GraphNodeId): any {
+    let node
+    this._nodes.each((n: IGraphNodeData, i: number, refs: any[]) => {
+      if (n.id === id) node = d3.select(refs[i])
+    })
+    return node
+  }
+
 }
