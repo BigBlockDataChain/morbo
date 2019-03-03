@@ -10,6 +10,7 @@ import {
 import * as graphTypes from '@components/graph/types'
 import {
   deleteNote,
+  importDirectory,
   loadIndex,
   loadMetadata,
   writeIndex,
@@ -96,6 +97,7 @@ export const actions: any = {
     metadata[node.id] = {
       ...metadata[node.id],
       title: node.title,
+      lastModified: node.lastModified,
       tags: node.tags,
       type: node.type,
     }
@@ -103,6 +105,10 @@ export const actions: any = {
     graphCommandStream.next(new EditNodeMetadataCommand(node))
 
     return {metadata}
+  },
+
+  importDirectory: (path: string) => () => {
+    return importDirectory(path)
   },
 
   createNewNode: ({
@@ -121,12 +127,13 @@ export const actions: any = {
       const ids = Object.keys(state.index)
         .map(Number)
         .sort((a: number, b: number) => a - b)
-      const nextId = ids[ids.length - 1] + 1 || 0
+      const nextId = ids[ids.length - 1] + 1 || 1
+      const currentDate = new Date().toString()
       const nodeData: IGraphNodeData = {
         id: nextId,
         title: 'Note ' + nextId,
-        lastModified: '',
-        created: '',
+        lastModified: currentDate,
+        created: currentDate,
         x: position.x,
         y: position.y,
         tags: [],
