@@ -358,6 +358,8 @@ export default class GraphComponent {
   }
 
   private _renderNodes(): void {
+
+    d3.selectAll('.node').remove()
     const existingNodes = this._gNodes.selectAll('.node')
 
     const nodeCircles: {[id: string]: IPosition} = {}
