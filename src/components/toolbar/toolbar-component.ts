@@ -11,6 +11,7 @@ const homeSvg = require('../../res/house.svg')
 const settingSvg = require('../../res/settings.svg')
 const searchSvg = require('../../res/magnifying-glass.svg')
 const saveSvg = require('../../res/save-disk.svg')
+const lightbulbSvg = require('../../res/lightbulb.svg')
 
 const SVG_ICONS = {
   BACK: backSvg,
@@ -18,6 +19,7 @@ const SVG_ICONS = {
   SETTINGS: settingSvg,
   SEARCH: searchSvg,
   SAVE: saveSvg,
+  LIGHTBULB: lightbulbSvg,
 }
 
 interface IState {
@@ -37,9 +39,10 @@ export const actions = {
 }
 
 interface IButtonCallbacks {
-  onBack: () => void,
+    onBack: () => void,
     onHome: () => void,
     onSettings: () => void,
+    onLightbulb: () => void,
     onSearchResultClick: (node: IGraphNodeData) => void,
 }
 
@@ -57,9 +60,10 @@ export function view(
       html.div(
         {class: 'container'},
         [
-          // icon(callbacks.onBack, SVG_ICONS.BACK),
+          icon(callbacks.onBack, SVG_ICONS.BACK),
           icon(callbacks.onHome, SVG_ICONS.HOME),
           icon(callbacks.onSettings, SVG_ICONS.SETTINGS),
+          icon(callbacks.onLightbulb, SVG_ICONS.LIGHTBULB)
         ],
       ),
       html.div(
