@@ -52,6 +52,7 @@ export interface IGraphNodeData {
   y: number
   tags: string[]
   type: undefined | NoteDataType
+  isExpanded: boolean
 }
 
 export interface IDimensions {
