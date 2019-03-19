@@ -178,7 +178,7 @@ export function view(state: IState, actions: any) {
                 },
               })
             }
-          } else if (f.path.includes('.jpg') || f.path.includes('.png')) {
+          } else if (f.path.includes('.png')) {
             const reader = new FileReader()
             reader.readAsArrayBuffer(f)
             reader.onloadend = () => {
