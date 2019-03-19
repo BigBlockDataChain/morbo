@@ -64,6 +64,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
     1: {
       id: 0,
@@ -74,6 +75,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
     2: {
       id: 2,
@@ -84,6 +86,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
   }
 
@@ -97,6 +100,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
     {
       id: 0,
@@ -107,6 +111,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
     {
       id: 2,
@@ -117,6 +122,7 @@ describe('graphMetadataToList', () => {
       y: 0,
       tags: [],
       type: NoteDataType.TEXT,
+      isExpanded: true,
     },
   ]
 

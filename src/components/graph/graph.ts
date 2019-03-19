@@ -357,6 +357,51 @@ export default class GraphComponent {
     return svg
   }
 
+  private _allParentsExpanded(id: number): boolean {
+    const parentId = this._graphData!.childParentIndex[id]
+    if (parentId === null) {
+      return true
+    } else if (this._graphData!.metadata[parentId].isExpanded) {
+      return this._allParentsExpanded(parentId)
+    }
+    return false
+  }
+
+  private _visibleNodeMetadata(): IGraphNodeData[] {
+    const subset: IGraphNodeData[] = []
+    for (const i of this._graphData!.metadataItems) {
+      if (this._allParentsExpanded(i.id)) {
+        subset.push(i)
+      }
+    }
+    return subset
+  }
+
+  private _visibleNodeLinkdata(): ILinkTuple[] {
+    const subset: ILinkTuple[] = []
+    for (const i of this._graphData!.linkData) {
+      if (this._allParentsExpanded(i.target)) {
+        subset.push(i)
+      }
+    }
+    return subset
+  }
+
+  private _onNodeExpandClick(d: IGraphNodeData): void {
+    d3.event.stopPropagation()
+
+    d.isExpanded = !d.isExpanded
+    this._graphData!.metadata[d.id].isExpanded = d.isExpanded
+
+    this._nodes
+        .filter((nd: IGraphNodeData) => nd.id === d.id)
+        .select('.node-expand-btn')
+        .text((nd: IGraphNodeData) => nd.isExpanded ? '-' : '+')
+
+    this._renderNodes()
+    this._renderLinks()
+  }
+
   private _renderNodes(): void {
 
     d3.selectAll('.node').remove()
@@ -383,11 +428,13 @@ export default class GraphComponent {
 
       nodeCircles[nodeId] = intersectLineWithRectange(line, rect)
     })
+    
+    const visibleNodes = this._visibleNodeMetadata()
 
     const newNodes = existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(this._graphData!.metadataItems, (d: IGraphNodeData) => d.id)
+      .data(visibleNodes, (d: IGraphNodeData) => d.id)
       .enter()
       .append('g')
       .attr('class', 'node')
@@ -436,10 +483,30 @@ export default class GraphComponent {
       .text((d: IGraphNodeData) =>
         d.title.length > 17 ? d.title.substr(0, 17 - 3) + '...' : d.title)
 
+    // append the expand/collapse button
+    newNodes
+      .append('rect')
+      .attr('x', GraphComponent._NODE_WIDTH - 5 - 15)
+      .attr('y', 5)
+      .attr('width', 15)
+      .attr('height', 15)
+      .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
+      .on('dblclick', () => d3.event.stopPropagation())
+    newNodes
+      .append('text')
+      .attr('class', 'node-expand-btn')
+      .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
+      .attr('y', 18)
+      .attr('width', 20)
+      .attr('height', 20)
+      .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
+      .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
+      .on('dblclick', () => d3.event.stopPropagation())
+
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(this._graphData!.metadataItems, (d: IGraphNodeData) => d.id)
+      .data(visibleNodes, (d: IGraphNodeData) => d.id)
       .exit()
       .remove()
 
@@ -465,10 +532,12 @@ export default class GraphComponent {
 
     const existingLinks = this._gLinks.selectAll('.link')
 
+    const visibleLinks = this._visibleNodeLinkdata()
+
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
+      .data(visibleLinks, (l: ILinkTuple) => l.id)
       .enter()
       .append('line')
       .attr('class', 'link')
@@ -490,7 +559,7 @@ export default class GraphComponent {
     existingLinks
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
-      .data(this._graphData!.linkData, (l: ILinkTuple) => l.id)
+      .data(visibleLinks, (l: ILinkTuple) => l.id)
       .exit()
       .remove()
 

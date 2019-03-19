@@ -33,6 +33,7 @@ const mockMetadata: IGraphMetadata = {
     y: 12,
     tags: ['tagA'],
     type: NoteDataType.TEXT,
+    isExpanded: true,
   },
   2: {
     id: 2,
@@ -43,6 +44,7 @@ const mockMetadata: IGraphMetadata = {
     y: 12,
     tags: ['tagB'],
     type: NoteDataType.HANDWRITING,
+    isExpanded: true,
   },
 }
 
