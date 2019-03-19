@@ -3,8 +3,8 @@ import classNames from 'classnames'
 import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
-import * as Preview from '@components/preview/preview-component'
 import GraphView from '@components/graph/graph-view-component'
+import * as Preview from '@components/preview/preview-component'
 import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
 import Empty from '@components/widgets/empty'
@@ -13,11 +13,11 @@ import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
 import {
   El,
-  IPosition,
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
   IGraphNodeData,
+  IPosition,
   NoteDataType,
 } from '@lib/types'
 import {emptyFunction} from '@lib/utils'
@@ -127,18 +127,19 @@ export const appActions = {
     }
   },
 
-  selectNodeHover: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) => (state: IState) => {
-    return {
-      runtime: {
-        ...state.runtime,
-        showPreview: true,
-        showEditor: false,
-        selectedNodeHover: {
-          id: nodeId,
-          position: position,
+  selectNodeHover: ({nodeId, pos}: {nodeId: GraphNodeId, pos: IPosition}) =>
+    (state: IState) => {
+      return {
+        runtime: {
+          ...state.runtime,
+          showPreview: true,
+          showEditor: false,
+          selectedNodeHover: {
+            id: nodeId,
+            position: pos,
+          },
         },
-      },
-    }
+      }
   },
 
   unSelectNodeHover: () => (state: IState) => {

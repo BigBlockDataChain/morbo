@@ -21,23 +21,23 @@ export function view(
     },
     [
       html.div(
-        {class: 'text-body',},
+        {class: 'text-body'},
         node.title,
       ),
       html.div(
-        {class: 'text-body',},
+        {class: 'text-body'},
         'Tags: ' + node.tags,
       ),
       html.div(
-        {class: 'text-body',},
+        {class: 'text-body'},
         'Type: ' + node.type,
       ),
       html.div(
-        {class: 'text-body',},
+        {class: 'text-body'},
         'Created: ' + node.created,
       ),
       html.div(
-        {class: 'text-body',},
+        {class: 'text-body'},
         'Last Modified: ' + node.lastModified,
       ),
     ],

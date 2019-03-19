@@ -456,7 +456,7 @@ export default class GraphComponent {
           this._onNodeMouseOut(d, i, refs))
       .call(this._drag)
 
-      newNodes
+    newNodes
       // Add to only nodes with parents
       .filter((d: IGraphNodeData) => nodeCircles[d.id])
       .append('circle')
@@ -496,7 +496,7 @@ export default class GraphComponent {
     .attr('height', 15)
     .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
     .on('dblclick', () => d3.event.stopPropagation())
-  newNodes
+    newNodes
     .append('text')
     .attr('class', 'node-expand-btn')
     .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
@@ -806,7 +806,7 @@ export default class GraphComponent {
         assertNever(this._mode.kind)
     }
   }
-  
+
   private _onNodeMouseDown(d: IGraphNodeData): void {
     clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
@@ -844,17 +844,18 @@ export default class GraphComponent {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
         this._actionStream!.next(new graphTypes.NodeHoverShortAction(d.id))
-        if(this._hoverDone){
+        if (this._hoverDone) {
           this._hoverTimeOutId = setTimeout(() => {
             this._actionStream!.next(
               new graphTypes.NodeHoverLongAction(
-                d.id, 
+                d.id,
                 this._graphToSVGPosition({
-                  x: d.x + GraphComponent._NODE_WIDTH / 2 + GraphComponent._LINK_STROKE_HOVER,
+                  x: d.x + GraphComponent._NODE_WIDTH / 2
+                         + GraphComponent._LINK_STROKE_HOVER,
                   y: d.y,
                 })))
-            }, GraphComponent._LONG_HOVER_DELAY);
-            this._hoverDone = false
+            }, GraphComponent._LONG_HOVER_DELAY)
+          this._hoverDone = false
           }
         break
 
@@ -1022,35 +1023,35 @@ export default class GraphComponent {
                     return `translate(${x}, ${y}) scale(1)`
                   })
 
-                  const nodes: IGraphNodeData[] = []
-                  const hasParent: boolean[] = []
-                  const parentId = this._graphData!.childParentIndex[d.id]
-                  const childIds = this._graphData!.index[d.id]
-                  if (parentId !== null) {
+                const nodes: IGraphNodeData[] = []
+                const hasParent: boolean[] = []
+                const parentId = this._graphData!.childParentIndex[d.id]
+                const childIds = this._graphData!.index[d.id]
+                if (parentId !== null) {
                     nodes.push(this._graphData!.metadata[parentId])
                     hasParent.push(true)
                   }
-                  if (childIds !== null) {
+                if (childIds !== null) {
                     for (const k of childIds) {
                       nodes.push(this._graphData!.metadata[k])
                       hasParent.push(false)
                     }
                   }
-  
-                  for (let j = 0; j < nodes.length; j++) {
+
+                for (let j = 0; j < nodes.length; j++) {
                     let line: any
                     if (hasParent[j]) line = {start: d, end: nodes[j]}
                     else line = {start: nodes[j], end: d}
-  
+
                     const rect = {
                       xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
                       yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
                       xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
                       yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
                     }
-  
+
                     const intersection = intersectLineWithRectange(line, rect)
-  
+
                     this._getNodeById(line.start.id)
                       .select('circle')
                       .attr('cx', () =>
@@ -1316,7 +1317,7 @@ private _getGraphBoundingBox(): IBoundingBox {
     const y = transform.translation.y + this._height / 2 - d.y
     return {translation: {x, y}, scale: transform.scale}
   }
-  
+
   private _getNodeById(id: GraphNodeId): any {
     let node
     this._nodes.each((n: IGraphNodeData, i: number, refs: any[]) => {

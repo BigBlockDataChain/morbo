@@ -178,7 +178,7 @@ export const actions: any = {
     unSelectNodeHover,
   }: {
     selectNode: (nodeId: GraphNodeId) => any,
-    selectNodeHover: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) => any,
+    selectNodeHover: ({nodeId, pos}: {nodeId: GraphNodeId, pos: IPosition}) => any,
     unSelectNodeHover: () => any,
   }) =>
     (_: any, _actions: any) => {
@@ -220,7 +220,7 @@ export const actions: any = {
             case graphTypes.NODE_HOVER_SHORT_TYPE:
               break
             case graphTypes.NODE_HOVER_LONG_TYPE:
-              selectNodeHover({nodeId: event.nodeId, position: event.position})
+              selectNodeHover({nodeId: event.nodeId, pos: event.position})
               break
             case graphTypes.NODE_HOVER_END_TYPE:
               unSelectNodeHover()
