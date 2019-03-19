@@ -428,7 +428,7 @@ export default class GraphComponent {
 
       nodeCircles[nodeId] = intersectLineWithRectange(line, rect)
     })
-    
+
     const visibleNodes = this._visibleNodeMetadata()
 
     const newNodes = existingNodes
