@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
+import * as Preview from '@components/preview/preview-component'
 import GraphView from '@components/graph/graph-view-component'
 import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
@@ -12,6 +13,7 @@ import {getLogger} from '@lib/logger'
 import * as Search from '@lib/search'
 import {
   El,
+  IPosition,
   GraphNodeId,
   IGraphIndex,
   IGraphMetadata,
@@ -53,7 +55,12 @@ interface IGraphState {
 interface IRuntime {
   showEditor: boolean
   selectedNode: null | GraphNodeId,
+  selectedNodeHover: {
+    id: null | GraphNodeId,
+    position: null | IPosition,
+  }
   settingsOpen: boolean
+  showPreview: boolean
 }
 
 export const initialState: IState = {
@@ -69,7 +76,12 @@ export const initialState: IState = {
   runtime: {
     showEditor: true,
     selectedNode: null,
+    selectedNodeHover: {
+      id: null,
+      position: null,
+    },
     settingsOpen: true,
+    showPreview: false,
   },
   search: Search.state,
 }
@@ -93,6 +105,8 @@ export const appActions = {
     actions.graph.init()
     actions.graph.handleGraphActions({
       selectNode: actions.selectNode,
+      selectNodeHover: actions.selectNodeHover,
+      unSelectNodeHover: actions.unSelectNodeHover,
     })
   },
 
@@ -107,7 +121,35 @@ export const appActions = {
       runtime: {
         ...state.runtime,
         showEditor: true,
+        showPreview: false,
         selectedNode: nodeId,
+      },
+    }
+  },
+
+  selectNodeHover: ({nodeId, position}: {nodeId: GraphNodeId, position: IPosition}) => (state: IState) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        showPreview: true,
+        showEditor: false,
+        selectedNodeHover: {
+          id: nodeId,
+          position: position,
+        },
+      },
+    }
+  },
+
+  unSelectNodeHover: () => (state: IState) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        showPreview: false,
+        selectedNodeHover: {
+          id: null,
+          position: null,
+        },
       },
     }
   },
@@ -189,6 +231,13 @@ export function view(state: IState, actions: any) {
             actions.onEditorUpdateMetadata,
             actions.graph.deleteNode,
             actions.selectNode,
+          )
+        : null as any,
+
+        (state.runtime.showPreview && state.runtime.selectedNodeHover.id !== null)
+        ? Preview.view(
+            state.graph.metadata[state.runtime.selectedNodeHover.id],
+            state.runtime.selectedNodeHover.position!,
           )
         : null as any,
 

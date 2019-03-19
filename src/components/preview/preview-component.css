@@ -1,0 +1,18 @@
+#preview-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    z-index: 2;
+  }
+  
+  .theme-dark #preview-container .text-body {
+    background-color: silver;
+  }
+
+  #preview-container .text-body {
+    padding-top: 0em;
+    text-align: left;
+    color: black;
+    background: silver;
+    font-size: 1em;
+  }
