@@ -78,6 +78,7 @@ export default class GraphComponent {
    * a second time in order for a double click to be registered.
    */
   private static readonly _SINGLE_CLICK_DELAY: number = 300
+  private static readonly _LONG_HOVER_DELAY: number = 750
 
   private _commandStreamSub: null | Subscription = null
 
@@ -102,6 +103,8 @@ export default class GraphComponent {
   private _lastSelectedLink: ILinkTuple | null = null
 
   private _actionStream: Subject<graphTypes.GraphAction> | null = null
+  private _hoverTimeOutId: any = 0
+  private _hoverDone: boolean = true
 
   private _lastClickWasSingle: boolean = false
 
@@ -446,13 +449,14 @@ export default class GraphComponent {
       .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
       .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
       .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
+      .on('mousedown', (d: IGraphNodeData) => this._onNodeMouseDown(d))
       .on('mouseover.action', (d: IGraphNodeData, i: number, refs: any[]) =>
           this._onNodeMouseOver(d, i, refs))
       .on('mouseout.action', (d: IGraphNodeData, i: number, refs: any[]) =>
           this._onNodeMouseOut(d, i, refs))
       .call(this._drag)
 
-    newNodes
+      newNodes
       // Add to only nodes with parents
       .filter((d: IGraphNodeData) => nodeCircles[d.id])
       .append('circle')
@@ -483,25 +487,25 @@ export default class GraphComponent {
       .text((d: IGraphNodeData) =>
         d.title.length > 17 ? d.title.substr(0, 17 - 3) + '...' : d.title)
 
-    // append the expand/collapse button
+            // append the expand/collapse button
     newNodes
-      .append('rect')
-      .attr('x', GraphComponent._NODE_WIDTH - 5 - 15)
-      .attr('y', 5)
-      .attr('width', 15)
-      .attr('height', 15)
-      .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
-      .on('dblclick', () => d3.event.stopPropagation())
-    newNodes
-      .append('text')
-      .attr('class', 'node-expand-btn')
-      .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
-      .attr('y', 18)
-      .attr('width', 20)
-      .attr('height', 20)
-      .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
-      .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
-      .on('dblclick', () => d3.event.stopPropagation())
+    .append('rect')
+    .attr('x', GraphComponent._NODE_WIDTH - 5 - 15)
+    .attr('y', 5)
+    .attr('width', 15)
+    .attr('height', 15)
+    .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
+    .on('dblclick', () => d3.event.stopPropagation())
+  newNodes
+    .append('text')
+    .attr('class', 'node-expand-btn')
+    .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
+    .attr('y', 18)
+    .attr('width', 20)
+    .attr('height', 20)
+    .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
+    .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
+    .on('dblclick', () => d3.event.stopPropagation())
 
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
@@ -756,6 +760,7 @@ export default class GraphComponent {
   }
 
   private _onNodeClick(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         this._setSelectedNode(d.id)
@@ -786,11 +791,27 @@ export default class GraphComponent {
   }
 
   private _onNodeDblClick(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
         this._actionStream!.next(new graphTypes.NodeDblClickAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+  
+  private _onNodeMouseDown(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._actionStream!.next(new graphTypes.NodeMouseDownAction(d.id))
         break
 
       case GraphModeKind.SET_AS_PARENT:
@@ -823,6 +844,18 @@ export default class GraphComponent {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
         this._actionStream!.next(new graphTypes.NodeHoverShortAction(d.id))
+        if(this._hoverDone){
+          this._hoverTimeOutId = setTimeout(() => {
+            this._actionStream!.next(
+              new graphTypes.NodeHoverLongAction(
+                d.id, 
+                this._graphToSVGPosition({
+                  x: d.x + GraphComponent._NODE_WIDTH / 2 + GraphComponent._LINK_STROKE_HOVER,
+                  y: d.y,
+                })))
+            }, GraphComponent._LONG_HOVER_DELAY);
+            this._hoverDone = false
+          }
         break
 
       case GraphModeKind.SET_AS_PARENT:
@@ -842,6 +875,8 @@ export default class GraphComponent {
   }
 
   private _onNodeMouseOut(d: IGraphNodeData, i: number, refs: any[]): void {
+    this._hoverDone = true
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
@@ -946,6 +981,7 @@ export default class GraphComponent {
   }
 
   private _enableDrag(): void {
+    clearInterval(this._hoverTimeOutId)
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: IGraphNodeData, i: number, refs: any[]) => {
@@ -986,43 +1022,43 @@ export default class GraphComponent {
                     return `translate(${x}, ${y}) scale(1)`
                   })
 
-                const nodes: IGraphNodeData[] = []
-                const hasParent: boolean[] = []
-                const parentId = this._graphData!.childParentIndex[d.id]
-                const childIds = this._graphData!.index[d.id]
-                if (parentId !== null) {
-                  nodes.push(this._graphData!.metadata[parentId])
-                  hasParent.push(true)
-                }
-                if (childIds !== null) {
-                  for (const k of childIds) {
-                    nodes.push(this._graphData!.metadata[k])
-                    hasParent.push(false)
+                  const nodes: IGraphNodeData[] = []
+                  const hasParent: boolean[] = []
+                  const parentId = this._graphData!.childParentIndex[d.id]
+                  const childIds = this._graphData!.index[d.id]
+                  if (parentId !== null) {
+                    nodes.push(this._graphData!.metadata[parentId])
+                    hasParent.push(true)
+                  }
+                  if (childIds !== null) {
+                    for (const k of childIds) {
+                      nodes.push(this._graphData!.metadata[k])
+                      hasParent.push(false)
+                    }
+                  }
+  
+                  for (let j = 0; j < nodes.length; j++) {
+                    let line: any
+                    if (hasParent[j]) line = {start: d, end: nodes[j]}
+                    else line = {start: nodes[j], end: d}
+  
+                    const rect = {
+                      xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
+                      yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
+                      xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
+                      yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
+                    }
+  
+                    const intersection = intersectLineWithRectange(line, rect)
+  
+                    this._getNodeById(line.start.id)
+                      .select('circle')
+                      .attr('cx', () =>
+                        intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
+                        .attr('cy', () =>
+                          intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
                   }
                 }
-
-                for (let j = 0; j < nodes.length; j++) {
-                  let line: any
-                  if (hasParent[j]) line = {start: d, end: nodes[j]}
-                  else line = {start: nodes[j], end: d}
-
-                  const rect = {
-                    xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
-                    yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
-                    xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
-                    yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
-                  }
-
-                  const intersection = intersectLineWithRectange(line, rect)
-
-                  this._getNodeById(line.start.id)
-                    .select('circle')
-                    .attr('cx', () =>
-                      intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
-                      .attr('cy', () =>
-                        intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
-                }
-              }
             })
 
             this._actionStream!
@@ -1240,8 +1276,8 @@ export default class GraphComponent {
       y: this._height === 0
         ? 0
         : this._height * (d.y - box.yMin) / (box.yMax - box.yMin),
-    }
   }
+}
 
   private _svgToGraphPosition(d: IPosition): IPosition {
     const box = this._getGraphBoundingBox()
@@ -1252,18 +1288,18 @@ export default class GraphComponent {
       y: this._height === 0
         ? 0
         : (d.y / this._height) * (box.yMax - box.yMin) + box.yMin,
-    }
   }
+}
 
-  private _getGraphBoundingBox(): IBoundingBox {
-    const transform = this._getGraphTranslationAndScale()
-    return {
-      xMin: -transform.translation.x / transform.scale,
-      xMax: this._width / transform.scale - transform.translation.x / transform.scale,
-      yMin: -transform.translation.y / transform.scale,
-      yMax: this._height / transform.scale - transform.translation.y / transform.scale,
-    }
+private _getGraphBoundingBox(): IBoundingBox {
+  const transform = this._getGraphTranslationAndScale()
+  return {
+    xMin: -transform.translation.x / transform.scale,
+    xMax: this._width / transform.scale - transform.translation.x / transform.scale,
+    yMin: -transform.translation.y / transform.scale,
+    yMax: this._height / transform.scale - transform.translation.y / transform.scale,
   }
+}
 
   private _graphTransformToString(): GraphTransformType {
     const transform = this._getGraphTranslationAndScale()
@@ -1280,7 +1316,7 @@ export default class GraphComponent {
     const y = transform.translation.y + this._height / 2 - d.y
     return {translation: {x, y}, scale: transform.scale}
   }
-
+  
   private _getNodeById(id: GraphNodeId): any {
     let node
     this._nodes.each((n: IGraphNodeData, i: number, refs: any[]) => {
