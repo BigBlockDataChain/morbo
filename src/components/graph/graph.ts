@@ -487,7 +487,7 @@ export default class GraphComponent {
       .text((d: IGraphNodeData) =>
         d.title.length > 17 ? d.title.substr(0, 17 - 3) + '...' : d.title)
 
-            // append the expand/collapse button
+    // append the expand/collapse button
     newNodes
       .filter((d: IGraphNodeData) => {
         let check = false
@@ -847,17 +847,17 @@ export default class GraphComponent {
         this._actionStream!.next(new graphTypes.NodeHoverShortAction(d.id))
         if (this._hoverDone) {
           this._hoverTimeOutId = setTimeout(() => {
-            this._actionStream!.next(
-              new graphTypes.NodeHoverLongAction(
-                d.id,
-                this._graphToSVGPosition({
-                  x: d.x + GraphComponent._NODE_WIDTH / 2
-                         + GraphComponent._LINK_STROKE_HOVER,
-                  y: d.y,
-                })))
-            }, GraphComponent._LONG_HOVER_DELAY)
+            this._actionStream!.next(new graphTypes.NodeHoverLongAction(
+              d.id,
+              this._graphToSVGPosition({
+                x: d.x + GraphComponent._NODE_WIDTH / 2
+                       + GraphComponent._LINK_STROKE_HOVER,
+                y: d.y,
+              })
+            ))
+          }, GraphComponent._LONG_HOVER_DELAY)
           this._hoverDone = false
-          }
+        }
         break
 
       case GraphModeKind.SET_AS_PARENT:
@@ -1029,36 +1029,36 @@ export default class GraphComponent {
                 const parentId = this._graphData!.childParentIndex[d.id]
                 const childIds = this._graphData!.index[d.id]
                 if (parentId !== null) {
-                    nodes.push(this._graphData!.metadata[parentId])
-                    hasParent.push(true)
-                  }
+                  nodes.push(this._graphData!.metadata[parentId])
+                  hasParent.push(true)
+                }
                 if (childIds !== null) {
-                    for (const k of childIds) {
-                      nodes.push(this._graphData!.metadata[k])
-                      hasParent.push(false)
-                    }
+                  for (const k of childIds) {
+                    nodes.push(this._graphData!.metadata[k])
+                    hasParent.push(false)
                   }
+                }
 
                 for (let j = 0; j < nodes.length; j++) {
-                    let line: any
-                    if (hasParent[j]) line = {start: d, end: nodes[j]}
-                    else line = {start: nodes[j], end: d}
+                  let line: any
+                  if (hasParent[j]) line = {start: d, end: nodes[j]}
+                  else line = {start: nodes[j], end: d}
 
-                    const rect = {
-                      xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
-                      yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
-                      xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
-                      yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
-                    }
+                  const rect = {
+                    xMin: line.start.x - GraphComponent._NODE_WIDTH / 2,
+                    yMin: line.start.y - GraphComponent._NODE_HEIGHT / 2,
+                    xMax: line.start.x + GraphComponent._NODE_WIDTH / 2,
+                    yMax: line.start.y + GraphComponent._NODE_HEIGHT / 2,
+                  }
 
-                    const intersection = intersectLineWithRectange(line, rect)
+                  const intersection = intersectLineWithRectange(line, rect)
 
-                    this._getNodeById(line.start.id)
-                      .select('circle')
-                      .attr('cx', () =>
-                        intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
-                        .attr('cy', () =>
-                          intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
+                  this._getNodeById(line.start.id)
+                    .select('circle')
+                    .attr('cx', () =>
+                      intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
+                    .attr('cy', () =>
+                      intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
                   }
                 }
             })
@@ -1278,8 +1278,8 @@ export default class GraphComponent {
       y: this._height === 0
         ? 0
         : this._height * (d.y - box.yMin) / (box.yMax - box.yMin),
+    }
   }
-}
 
   private _svgToGraphPosition(d: IPosition): IPosition {
     const box = this._getGraphBoundingBox()
@@ -1290,18 +1290,18 @@ export default class GraphComponent {
       y: this._height === 0
         ? 0
         : (d.y / this._height) * (box.yMax - box.yMin) + box.yMin,
+    }
   }
-}
 
-private _getGraphBoundingBox(): IBoundingBox {
-  const transform = this._getGraphTranslationAndScale()
-  return {
-    xMin: -transform.translation.x / transform.scale,
-    xMax: this._width / transform.scale - transform.translation.x / transform.scale,
-    yMin: -transform.translation.y / transform.scale,
-    yMax: this._height / transform.scale - transform.translation.y / transform.scale,
+  private _getGraphBoundingBox(): IBoundingBox {
+    const transform = this._getGraphTranslationAndScale()
+    return {
+      xMin: -transform.translation.x / transform.scale,
+      xMax: this._width / transform.scale - transform.translation.x / transform.scale,
+      yMin: -transform.translation.y / transform.scale,
+      yMax: this._height / transform.scale - transform.translation.y / transform.scale,
+    }
   }
-}
 
   private _graphTransformToString(): GraphTransformType {
     const transform = this._getGraphTranslationAndScale()
