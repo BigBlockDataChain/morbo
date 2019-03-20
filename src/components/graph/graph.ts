@@ -507,7 +507,7 @@ export default class GraphComponent {
       .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
       .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
       .on('dblclick', () => d3.event.stopPropagation())
-    
+
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
@@ -853,7 +853,7 @@ export default class GraphComponent {
                 x: d.x + GraphComponent._NODE_WIDTH / 2
                        + GraphComponent._LINK_STROKE_HOVER,
                 y: d.y,
-              })
+              }),
             ))
           }, GraphComponent._LONG_HOVER_DELAY)
           this._hoverDone = false

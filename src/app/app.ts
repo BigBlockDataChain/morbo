@@ -131,7 +131,6 @@ export const appActions = {
     (state: IState) => {
       return {
         runtime: {
-          ...state.runtime,
           showPreview: true,
           showEditor: false,
           selectedNodeHover: {
@@ -145,7 +144,6 @@ export const appActions = {
   unSelectNodeHover: () => (state: IState) => {
     return {
       runtime: {
-        ...state.runtime,
         showPreview: false,
         selectedNodeHover: {
           id: null,
