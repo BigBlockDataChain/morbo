@@ -489,24 +489,25 @@ export default class GraphComponent {
 
             // append the expand/collapse button
     newNodes
-    .append('rect')
-    .attr('x', GraphComponent._NODE_WIDTH - 5 - 15)
-    .attr('y', 5)
-    .attr('width', 15)
-    .attr('height', 15)
-    .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
-    .on('dblclick', () => d3.event.stopPropagation())
-    newNodes
-    .append('text')
-    .attr('class', 'node-expand-btn')
-    .attr('x', GraphComponent._NODE_WIDTH - 5 - 12)
-    .attr('y', 18)
-    .attr('width', 20)
-    .attr('height', 20)
-    .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
-    .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
-    .on('dblclick', () => d3.event.stopPropagation())
-
+      .filter((d: IGraphNodeData) => {
+        let check = false
+        Object.keys(this._graphData!.childParentIndex).forEach(key => {
+          if (d.id === this._graphData!.childParentIndex[Number(key)]) {
+            check = true
+          }
+        })
+        return check
+      })
+      .append('text')
+      .attr('class', 'node-expand-btn')
+      .attr('x', GraphComponent._NODE_WIDTH - 24)
+      .attr('y', 24)
+      .attr('width', 24)
+      .attr('height', 24)
+      .text((d: IGraphNodeData) => d.isExpanded ? '-' : '+')
+      .on('click', (d: IGraphNodeData) => this._onNodeExpandClick(d))
+      .on('dblclick', () => d3.event.stopPropagation())
+    
     existingNodes
       // NOTE: Key-function provides D3 with information about which datum maps to which
       // element. This allows arrays in different orders to work as expected
