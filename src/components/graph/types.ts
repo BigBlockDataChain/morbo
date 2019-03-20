@@ -87,6 +87,17 @@ export class NodeDragAction implements INodeDragAction {
 //   public constructor(public node: GraphNodeId) {}
 // }
 
+export const NODE_MOUSE_DOWN_TYPE = 'nodeMouseDown'
+export type NodeMouseDownType  = 'nodeMouseDown'
+export interface INodeMouseDownAction {
+  readonly kind: NodeMouseDownType,
+  readonly nodeId: GraphNodeId
+}
+export class NodeMouseDownAction implements INodeMouseDownAction {
+  public readonly kind = NODE_MOUSE_DOWN_TYPE
+  public constructor(public readonly nodeId: GraphNodeId) {}
+}
+
 export const NODE_HOVER_SHORT_TYPE = 'nodeHoverShort'
 export type NodeHoverShortType     = 'nodeHoverShort'
 export interface INodeHoverShortAction {
@@ -96,6 +107,21 @@ export interface INodeHoverShortAction {
 export class NodeHoverShortAction implements INodeHoverShortAction {
   public readonly kind = NODE_HOVER_SHORT_TYPE
   public constructor(public readonly nodeId: GraphNodeId) {}
+}
+
+export const NODE_HOVER_LONG_TYPE = 'nodeHoverLong'
+export type NodeHoverLongType     = 'nodeHoverLong'
+export interface INodeHoverLongAction {
+  readonly kind: NodeHoverLongType
+  readonly nodeId: GraphNodeId
+  readonly position: IPosition
+}
+export class NodeHoverLongAction implements INodeHoverLongAction {
+  public readonly kind = NODE_HOVER_LONG_TYPE
+  public constructor(
+    public readonly nodeId: GraphNodeId,
+    public readonly position: IPosition,
+  ) {}
 }
 
 // NOTE Not implemented yet
@@ -201,6 +227,8 @@ export type GraphAction
   | IDeleteNodeAction
   | IDeleteLinkAction
   | ISetNodeParentType
+  | INodeHoverLongAction
+  | INodeMouseDownAction
 
 export const FOCUS_TYPE = 'focus'
 export type FocusType   = 'focus'

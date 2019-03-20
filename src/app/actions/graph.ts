@@ -174,8 +174,12 @@ export const actions: any = {
 
   handleGraphActions: ({
     selectNode,
+    selectNodeHover,
+    unSelectNodeHover,
   }: {
     selectNode: (nodeId: GraphNodeId) => any,
+    selectNodeHover: ({nodeId, pos}: {nodeId: GraphNodeId, pos: IPosition}) => any,
+    unSelectNodeHover: () => any,
   }) =>
     (_: any, _actions: any) => {
       graphActionObservable
@@ -215,7 +219,14 @@ export const actions: any = {
               break
             case graphTypes.NODE_HOVER_SHORT_TYPE:
               break
+            case graphTypes.NODE_HOVER_LONG_TYPE:
+              selectNodeHover({nodeId: event.nodeId, pos: event.position})
+              break
             case graphTypes.NODE_HOVER_END_TYPE:
+              unSelectNodeHover()
+              break
+            case graphTypes.NODE_MOUSE_DOWN_TYPE:
+              unSelectNodeHover()
               break
             case graphTypes.BACKGROUND_CLICK_TYPE:
               break

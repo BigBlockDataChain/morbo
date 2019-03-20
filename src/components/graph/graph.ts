@@ -78,6 +78,7 @@ export default class GraphComponent {
    * a second time in order for a double click to be registered.
    */
   private static readonly _SINGLE_CLICK_DELAY: number = 300
+  private static readonly _LONG_HOVER_DELAY: number = 750
 
   private _commandStreamSub: null | Subscription = null
 
@@ -102,6 +103,8 @@ export default class GraphComponent {
   private _lastSelectedLink: ILinkTuple | null = null
 
   private _actionStream: Subject<graphTypes.GraphAction> | null = null
+  private _hoverTimeOutId: any = 0
+  private _hoverDone: boolean = true
 
   private _lastClickWasSingle: boolean = false
 
@@ -446,6 +449,7 @@ export default class GraphComponent {
       .on('click', (d: IGraphNodeData) => this._onNodeClick(d))
       .on('contextmenu', (d: IGraphNodeData) => this._onNodeContextMenu(d))
       .on('dblclick', (d: IGraphNodeData) => this._onNodeDblClick(d))
+      .on('mousedown', (d: IGraphNodeData) => this._onNodeMouseDown(d))
       .on('mouseover.action', (d: IGraphNodeData, i: number, refs: any[]) =>
           this._onNodeMouseOver(d, i, refs))
       .on('mouseout.action', (d: IGraphNodeData, i: number, refs: any[]) =>
@@ -757,6 +761,7 @@ export default class GraphComponent {
   }
 
   private _onNodeClick(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         this._setSelectedNode(d.id)
@@ -787,11 +792,27 @@ export default class GraphComponent {
   }
 
   private _onNodeDblClick(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
         this._lastClickWasSingle = false
         this._actionStream!.next(new graphTypes.NodeDblClickAction(d.id))
+        break
+
+      case GraphModeKind.SET_AS_PARENT:
+        break
+
+      default:
+        assertNever(this._mode.kind)
+    }
+  }
+
+  private _onNodeMouseDown(d: IGraphNodeData): void {
+    clearInterval(this._hoverTimeOutId)
+    switch (this._mode.kind) {
+      case GraphModeKind.NORMAL:
+        this._actionStream!.next(new graphTypes.NodeMouseDownAction(d.id))
         break
 
       case GraphModeKind.SET_AS_PARENT:
@@ -824,6 +845,19 @@ export default class GraphComponent {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
         this._actionStream!.next(new graphTypes.NodeHoverShortAction(d.id))
+        if (this._hoverDone) {
+          this._hoverTimeOutId = setTimeout(() => {
+            this._actionStream!.next(new graphTypes.NodeHoverLongAction(
+              d.id,
+              this._graphToSVGPosition({
+                x: d.x + GraphComponent._NODE_WIDTH / 2
+                       + GraphComponent._LINK_STROKE_HOVER,
+                y: d.y,
+              }),
+            ))
+          }, GraphComponent._LONG_HOVER_DELAY)
+          this._hoverDone = false
+        }
         break
 
       case GraphModeKind.SET_AS_PARENT:
@@ -843,6 +877,8 @@ export default class GraphComponent {
   }
 
   private _onNodeMouseOut(d: IGraphNodeData, i: number, refs: any[]): void {
+    this._hoverDone = true
+    clearInterval(this._hoverTimeOutId)
     switch (this._mode.kind) {
       case GraphModeKind.NORMAL:
         d3.event.stopPropagation()
@@ -947,6 +983,7 @@ export default class GraphComponent {
   }
 
   private _enableDrag(): void {
+    clearInterval(this._hoverTimeOutId)
     this._drag = d3.drag()
     this._drag
       .on('drag', (d: IGraphNodeData, i: number, refs: any[]) => {
@@ -1020,10 +1057,10 @@ export default class GraphComponent {
                     .select('circle')
                     .attr('cx', () =>
                       intersection.x - line.start.x + GraphComponent._NODE_WIDTH / 2)
-                      .attr('cy', () =>
-                        intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
+                    .attr('cy', () =>
+                      intersection.y - line.start.y + GraphComponent._NODE_HEIGHT / 2)
+                  }
                 }
-              }
             })
 
             this._actionStream!
