@@ -37,3 +37,8 @@
   stroke: purple;
   pointer-events: none;
 }
+
+.node-expand-btn {
+  font-size: 30px;
+  font-family: monospace;
+}
