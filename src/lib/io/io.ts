@@ -82,3 +82,4 @@ export function writeNote(
 }
 
 export {importDirectory} from './import'
+export {exportData} from './export'

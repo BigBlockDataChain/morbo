@@ -11,6 +11,7 @@ import * as graphTypes from '@components/graph/types'
 import {
   deleteNote,
   importDirectory,
+  exportData,
   loadIndex,
   loadMetadata,
   writeIndex,
@@ -110,6 +111,10 @@ export const actions: any = {
 
   importDirectory: (path: string) => () => {
     return importDirectory(path)
+  },
+
+  exportData: (path: string) => (state: any) => {
+    return exportData(path, state.index, state.metadata)
   },
 
   createNewNode: ({

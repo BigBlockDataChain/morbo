@@ -210,6 +210,7 @@ export function view(state: IState, actions: any) {
             actions.settings,
             actions.toggleSettingsPanel,
             actions.graph.importDirectory,
+            actions.graph.exportData,
           )
         : Empty(),
       GraphView(

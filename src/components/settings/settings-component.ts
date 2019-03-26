@@ -23,6 +23,12 @@ export const actions = {
       (paths: string[]) => importDirectory(paths[0]),
     )
   },
+  onExportDataClick: (exportData: (path: string) => any) => () => {
+    dialog.showOpenDialog(
+      {properties: ['openDirectory']},
+      (paths: string[]) => exportData(paths[0]),
+    )
+  },
 }
 
 export function view(
@@ -30,6 +36,7 @@ export function view(
   _actions: any,
   onClose: () => any,
   importDirectory: (path: string) => any,
+  exportData: (path: string) => any,
 ) {
   const themeSwitch = html.div(
     {class: 'item'},
@@ -63,7 +70,10 @@ export function view(
         {onclick: () => _actions.onImportDirectoryClick(importDirectory)},
         'Import',
       ),
-      html.button('Export'),
+      html.button(
+        {onclick: () => _actions.onExportDataClick(exportData)},
+        'Export',
+      ),
     ],
   )
 
