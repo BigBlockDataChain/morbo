@@ -10,8 +10,8 @@ import {
 import * as graphTypes from '@components/graph/types'
 import {
   deleteNote,
-  importDirectory,
   exportData,
+  importDirectory,
   loadIndex,
   loadMetadata,
   writeIndex,
