@@ -3,16 +3,33 @@
   bottom: 0;
   left: 0;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: #eee;
+  border: 2px solid black;
+  border-radius: 16px;
+  box-shadow: 0 0 6px 0 rgba(0, 0, 0, 0.5);
+  padding: 16px;
+  height: fit-content;
+  opacity: 0.975;
 }
 
 .theme-dark #preview-container .text-body {
-  background-color: silver;
+}
+
+#preview-container label {
+  color: #555;
+  font-size: 80%;
+  padding-right: 0.5em;
 }
 
 #preview-container .text-body {
-  padding-top: 0em;
   text-align: left;
   color: black;
-  background: silver;
+  font-size: 90%;
+  line-height: 1.5em;
+}
+
+#preview-container .note-title {
   font-size: 1em;
 }

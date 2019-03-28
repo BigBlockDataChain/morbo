@@ -21,24 +21,29 @@ export function view(
     },
     [
       html.div(
-        {class: 'text-body'},
-        node.title,
-      ),
-      html.div(
-        {class: 'text-body'},
-        'Tags: ' + node.tags,
-      ),
-      html.div(
-        {class: 'text-body'},
-        'Type: ' + node.type,
-      ),
-      html.div(
-        {class: 'text-body'},
-        'Created: ' + node.created,
-      ),
-      html.div(
-        {class: 'text-body'},
-        'Last Modified: ' + node.lastModified,
+        {
+          class: 'preview-container-wrapper',
+        },
+        [
+          html.div(
+            {class: 'text-body note-title'},
+            node.title,
+          ),
+          html.div(
+            {class: 'text-body'},
+            [
+              html.label('Tags:'),
+              node.tags.toString(),
+            ],
+          ),
+          html.div(
+            {class: 'text-body'},
+            [
+              html.label('Modified:'),
+              node.lastModified.toString(),
+            ],
+          ),
+        ],
       ),
     ],
   )
