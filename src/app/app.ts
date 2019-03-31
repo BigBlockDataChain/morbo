@@ -83,9 +83,8 @@ export const initialState: IState = {
       position: null,
     },
     settingsOpen: true,
-    lightbulbOpen: true,
+    lightbulbOpen: false,
     showPreview: false,
-
   },
   search: Search.state,
 }
@@ -229,10 +228,10 @@ export function view(state: IState, actions: any) {
           )
         : Empty(),
 
-      (state.runtime.lightbulbOpen === false)
+      (state.runtime.lightbulbOpen === true)
         ? Lightbulb.view(
-              actions.toggleLightbulbPanel,
-            )
+            actions.toggleLightbulbPanel,
+          )
           : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
