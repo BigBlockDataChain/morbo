@@ -2,17 +2,8 @@ import * as html from '@hyperapp/html'
 
 import './lightbulb-component.css'
 
-// interface IState {
-//
-// }
-//
-// export const state: IState = {
-//
-// }
 
 export function view(
-  _state: any,
-  _actions: any,
   onClose: () => any,
 ){
   return html.div(

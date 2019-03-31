@@ -7,7 +7,7 @@ import GraphView from '@components/graph/graph-view-component'
 import * as Preview from '@components/preview/preview-component'
 import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
-// import * as Lightbulb from '@components/lightbulb/lightbulb-component'
+import * as Lightbulb from '@components/lightbulb/lightbulb-component'
 import Empty from '@components/widgets/empty'
 import {initDataDirectory, writeNote} from '@lib/io'
 import {getLogger} from '@lib/logger'
@@ -41,7 +41,6 @@ interface IState {
   graph: IGraphState
   editor: any
   settings: any
-  // lightbulb: any
   runtime: IRuntime
   toolbar: any
   search: any
@@ -63,13 +62,13 @@ interface IRuntime {
   }
   settingsOpen: boolean
   showPreview: boolean
+  lightbulbOpen: boolean
 }
 
 export const initialState: IState = {
   toolbar: Toolbar.state,
   editor: Editor.state,
   settings: Settings.state,
-  // lightbulb: Lightbulb.state,
   graph: {
     index: {},
     metadata: {},
@@ -84,7 +83,9 @@ export const initialState: IState = {
       position: null,
     },
     settingsOpen: true,
+    lightbulbOpen: true,
     showPreview: false,
+
   },
   search: Search.state,
 }
@@ -181,14 +182,14 @@ export const appActions = {
     }
   },
 
-  // toggleLightbulbPanel: () => (state: IState, actions: any) => {
-  //   return {
-  //     runtime: {
-  //       ...state.runtime,
-  //       lightbulbOpen: !state.runtime.lightbulbOpen,
-  //     },
-  //   }
-  // },
+  toggleLightbulbPanel: () => (state: IState, actions: any) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        lightbulbOpen: !state.runtime.lightbulbOpen,
+      },
+    }
+  },
 
   onSearchResultClick: (node: IGraphNodeData) => (_: IState, actions: any) => {
     actions.graph.focusNode(node.id)
@@ -228,13 +229,11 @@ export function view(state: IState, actions: any) {
           )
         : Empty(),
 
-      // (state.runtime.lightbulbOpen === false)
-      //   ? Lightbulb.view(
-      //         state.lightbulb,
-      //         actions.lightbulb,
-      //         actions.toggleLightbulbPanel,
-      //       )
-      //     : Empty(),
+      (state.runtime.lightbulbOpen === false)
+        ? Lightbulb.view(
+              actions.toggleLightbulbPanel,
+            )
+          : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
