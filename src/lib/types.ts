@@ -52,11 +52,19 @@ export interface IGraphNodeData {
   y: number
   tags: string[]
   type: undefined | NoteDataType
+  isExpanded: boolean
 }
 
 export interface IDimensions {
   height: number,
   width: number,
+}
+
+export interface IBoundingBox {
+  xMin: number
+  xMax: number
+  yMin: number
+  yMax: number
 }
 
 export interface IPosition { x: number, y: number }
