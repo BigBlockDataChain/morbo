@@ -2,10 +2,9 @@ import * as html from '@hyperapp/html'
 
 import './lightbulb-component.css'
 
-
 export function view(
   onClose: () => any,
-){
+) {
   return html.div(
     {id: 'lightbulb-component'},
     [
@@ -49,7 +48,11 @@ export function view(
               html.p('Click the "Gear" button -> import/export'),
               html.b('Toggle dark theme:'),
               html.p('Click the "Gear" button -> "Dark Theme"'),
-            ]
+              html.b('To edit the metadata tag and title of a note'),
+              html.p('Open the note and click on "Tags" and "Title"'),
+              html.b('To search a note by title or tags'),
+              html.p('Click the "Magnifying-glass" button -> search'),
+            ],
           ),
         ],
       ),
