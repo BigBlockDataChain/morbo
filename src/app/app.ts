@@ -83,7 +83,7 @@ export const initialState: IState = {
       position: null,
     },
     settingsOpen: true,
-    lightbulbOpen: false,
+    lightbulbOpen: true,
     showPreview: false,
   },
   search: Search.state,
