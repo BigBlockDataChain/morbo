@@ -63,7 +63,7 @@ export function view(
           icon(callbacks.onBack, SVG_ICONS.BACK),
           icon(callbacks.onHome, SVG_ICONS.HOME),
           icon(callbacks.onSettings, SVG_ICONS.SETTINGS),
-          icon(callbacks.onLightbulb, SVG_ICONS.LIGHTBULB)
+          icon(callbacks.onLightbulb, SVG_ICONS.LIGHTBULB),
         ],
       ),
       html.div(
