@@ -4,6 +4,7 @@ import {Subject} from 'rxjs'
 
 import * as Editor from '@components/editor/editor-component'
 import GraphView from '@components/graph/graph-view-component'
+import * as Lightbulb from '@components/lightbulb/lightbulb-component'
 import * as Preview from '@components/preview/preview-component'
 import * as Settings from '@components/settings/settings-component'
 import * as Toolbar from '@components/toolbar/toolbar-component'
@@ -61,6 +62,7 @@ interface IRuntime {
   }
   settingsOpen: boolean
   showPreview: boolean
+  lightbulbOpen: boolean
 }
 
 export const initialState: IState = {
@@ -81,6 +83,7 @@ export const initialState: IState = {
       position: null,
     },
     settingsOpen: true,
+    lightbulbOpen: true,
     showPreview: false,
   },
   search: Search.state,
@@ -178,6 +181,15 @@ export const appActions = {
     }
   },
 
+  toggleLightbulbPanel: () => (state: IState, actions: any) => {
+    return {
+      runtime: {
+        ...state.runtime,
+        lightbulbOpen: !state.runtime.lightbulbOpen,
+      },
+    }
+  },
+
   onSearchResultClick: (node: IGraphNodeData) => (_: IState, actions: any) => {
     actions.graph.focusNode(node.id)
   },
@@ -246,6 +258,7 @@ export function view(state: IState, actions: any) {
           onBack: emptyFunction,
           onHome: actions.resetGraph,
           onSettings: actions.toggleSettingsPanel,
+          onLightbulb: actions.toggleLightbulbPanel,
           onSearchResultClick: actions.onSearchResultClick,
         },
         (query: string) => actions.search.search({metadata: state.graph.metadata, query}),
@@ -258,6 +271,12 @@ export function view(state: IState, actions: any) {
             actions.graph.importDirectory,
           )
         : Empty(),
+
+      (state.runtime.lightbulbOpen === true)
+        ? Lightbulb.view(
+            actions.toggleLightbulbPanel,
+          )
+          : Empty(),
       GraphView(
         {height: state.graph.height, width: state.graph.width},
         actions.onGraphReset,
