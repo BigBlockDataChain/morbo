@@ -162,9 +162,9 @@ export function view(state: IState, actions: any) {
         ev.preventDefault()
         ev.stopPropagation()
         for (const f of ev.dataTransfer.files) {
-          logger.debug('Dropped file path = ' + f.path)
-          if (f.path.includes('.txt')) {
             const reader = new FileReader()
+            logger.debug('Dropped file path = ' + f.path)
+            if (f.path.toLowerCase().includes(".txt")) {
             reader.readAsDataURL(f)
             reader.onloadend = () => {
               const base64Data: string = reader.result!.toString().split(',')[1]
@@ -178,8 +178,7 @@ export function view(state: IState, actions: any) {
                 },
               })
             }
-          } else if (f.path.includes('.PNG')|| f.path.includes('.png')) {
-            const reader = new FileReader()
+          } else if (f.path.toLowerCase().includes('.png')) {
             reader.readAsArrayBuffer(f)
             reader.onloadend = () => {
               const fileContent = new Buffer(reader.result! as ArrayBuffer)

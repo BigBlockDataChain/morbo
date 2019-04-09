@@ -1,0 +1,44 @@
+#lightbulb-component {
+  position: absolute;
+  height: 105%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#lightbulb-component #lightbulb-modal {
+  box-shadow: -2px 0px 16px 0px rgba(0,0,0,0.25);
+  background-color: white;
+  width: calc(512px + 64px);
+  max-height: 85%;
+  padding: 64px;
+  position: relative;
+}
+
+#lightbulb-component .lightbulb-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#lightbulb-component .close-button {
+  background: none;
+  color: black;
+  margin: 0.5em 0.5em 0;
+  font-size: 1.5em;
+  width: unset;
+  height: unset;
+}
+
+#lightbulb-component .lightbulb-title {
+  padding-top: 0em;
+  text-align: center;
+  color: black;
+  font-size: 1.5em;
+  font-weight: bold;
+}
