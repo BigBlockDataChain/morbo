@@ -207,7 +207,7 @@ export function view(state: IState, actions: any) {
         for (const f of ev.dataTransfer.files) {
             const reader = new FileReader()
             logger.debug('Dropped file path = ' + f.path)
-            if (f.path.toLowerCase().includes(".txt")) {
+            if (f.path.toLowerCase().includes('.txt')) {
             reader.readAsDataURL(f)
             reader.onloadend = () => {
               const base64Data: string = reader.result!.toString().split(',')[1]
@@ -283,7 +283,7 @@ export function view(state: IState, actions: any) {
             state.graph.metadata[state.runtime.selectedNodeHover.id],
             state.runtime.selectedNodeHover.position!,
           )
-        : null as any,  
+        : null as any,
       ],
     )
   }
