@@ -1,4 +1,4 @@
-# morbo
+# imacs
 
 [![Build Status][build-badge-image]][build-link]
 
