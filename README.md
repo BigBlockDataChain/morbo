@@ -2,6 +2,12 @@
 
 [![Build Status][build-badge-image]][build-link]
 
+<table>
+  <tr>
+    <td><img src="screenshots/tree-view.png"/></td>
+    <td><img src="screenshots/editor-split-view.png"/></td>
+  </tr>
+</table>
 
 ## Development setup
 
