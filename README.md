@@ -1,7 +1,13 @@
-# morbo
+# imacs
 
 [![Build Status][build-badge-image]][build-link]
 
+<table>
+  <tr>
+    <td><img src="screenshots/tree-view.png"/></td>
+    <td><img src="screenshots/editor-split-view.png"/></td>
+  </tr>
+</table>
 
 ## Development setup
 
@@ -31,8 +37,8 @@ Run tests and watch for changes with `npm run test`.
 Run tests once and exit with `npm run test-no-watch'.
 
 
-[build-link]: https://api.travis-ci.org/BigBlockDataChain/morbo.svg?branch=master
-[build-badge-image]: https://api.travis-ci.org/BigBlockDataChain/morbo.svg?branch=master
+[build-link]: https://travis-ci.org/projectimacs/imacs
+[build-badge-image]: https://api.travis-ci.org/projectimacs/imacs.svg?branch=master
 
 [npm-link]: https://www.npmjs.com/
 [yarn-link]: https://yarnpkg.com/en/
