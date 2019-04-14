@@ -205,6 +205,50 @@ export function view(state: IState, actions: any) {
       id: 'app',
       class: classNames({'theme-dark': state.settings.darkTheme}),
       oncreate: (el: El) => actions.onCreate(el),
+      ondragover: (ev: Event) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+      },
+      ondragleave: (ev: Event) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+      },
+      ondrop: (ev: any, node: IGraphNodeData) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+        for (const f of ev.dataTransfer.files) {
+            const reader = new FileReader()
+            logger.debug('Dropped file path = ' + f.path)
+            if (f.path.toLowerCase().includes('.txt')) {
+            reader.readAsDataURL(f)
+            reader.onloadend = () => {
+              const base64Data: string = reader.result!.toString().split(',')[1]
+              const fileContent = atob(base64Data)
+              actions.graph.createNewNode({
+                position: {x: ev.screenX, y: ev.screenY},
+                parent: null,
+                type: NoteDataType.TEXT,
+                newNodeCallback: (nodeId: GraphNodeId) => {
+                  writeNote(nodeId, NoteDataType.TEXT, fileContent)
+                },
+              })
+            }
+          } else if (f.path.toLowerCase().includes('.png')) {
+            reader.readAsArrayBuffer(f)
+            reader.onloadend = () => {
+              const fileContent = new Buffer(reader.result! as ArrayBuffer)
+              actions.graph.createNewNode({
+                position: {x: ev.screenX, y: ev.screenY},
+                parent: null,
+                type: NoteDataType.HANDWRITING,
+                newNodeCallback: (nodeId: GraphNodeId) => {
+                  writeNote(nodeId, NoteDataType.HANDWRITING, fileContent)
+                },
+              })
+            }
+          }
+        }
+      },
     },
     [
       Toolbar.view(
@@ -253,47 +297,12 @@ export function view(state: IState, actions: any) {
             actions.selectNode,
           )
         : null as any,
-
-        (state.runtime.showPreview && state.runtime.selectedNodeHover.id !== null)
+      (state.runtime.showPreview && state.runtime.selectedNodeHover.id !== null)
         ? Preview.view(
             state.graph.metadata[state.runtime.selectedNodeHover.id],
             state.runtime.selectedNodeHover.position!,
           )
         : null as any,
-
-        html.div(
-          {
-            id: 'drag',
-            ondragover: (ev: Event) => {
-              ev.preventDefault()
-              ev.stopPropagation()
-            },
-            ondragleave: (ev: Event) => {
-              ev.preventDefault()
-              ev.stopPropagation()
-            },
-            ondrop: (ev: any) => {
-              ev.preventDefault()
-              ev.stopPropagation()
-              for (const f of ev.dataTransfer.files) {
-                logger.debug('Dropped file path = ' + f.path)
-                const reader = new FileReader()
-                reader.readAsDataURL(f)
-                reader.onloadend = () => {
-                  const base64Data: string = reader.result!.toString().split(',')[1]
-                  const fileContent = atob(base64Data)
-                  actions.graph.createNewNode({
-                    position: {x: 0, y: 0},
-                    parent: null,
-                    newNodeCallback: (nodeId: GraphNodeId) => {
-                      writeNote(nodeId, NoteDataType.TEXT, fileContent)
-                    },
-                  })
-              }
-            }
-          },
-        },
-      ),
-    ],
-  )
-}
+      ],
+    )
+  }

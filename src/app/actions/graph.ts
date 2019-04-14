@@ -22,6 +22,7 @@ import {
   GraphNodeId,
   IGraphNodeData,
   IPosition,
+  NoteDataType,
 } from '@lib/types'
 import {assertNever} from '@lib/utils'
 import {
@@ -117,11 +118,13 @@ export const actions: any = {
       parent,
       selectNode,
       newNodeCallback = undefined,
+      type = undefined,
     }: {
       position: IPosition,
       parent: null | GraphNodeId,
       selectNode?: (nodeId: GraphNodeId) => any,
       newNodeCallback?: (nodeId: GraphNodeId) => any,
+      type: undefined | NoteDataType,
     },
   ) =>
     (state: any, _actions: any) => {
@@ -138,8 +141,8 @@ export const actions: any = {
         x: position.x,
         y: position.y,
         tags: [],
-        type: undefined,
         isExpanded: true,
+        type,
       }
 
       // Set parent if specified
